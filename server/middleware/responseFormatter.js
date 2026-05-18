@@ -21,8 +21,14 @@ function responseFormatter(req, res, next) {
 
   // 重写json方法，统一格式
   res.json = function(data) {
-    // 如果已经是正确的格式（包含code字段），直接返回
-    if (data && typeof data === 'object' && 'code' in data) {
+    // 如果已经是正确的格式（包含code和message字段），直接返回
+    if (data && typeof data === 'object' && 'code' in data && 'message' in data) {
+      return originalJson(data);
+    }
+
+    // 如果有code字段但没有message字段，添加message
+    if (data && typeof data === 'object' && 'code' in data && !('message' in data)) {
+      data.message = 'success';
       return originalJson(data);
     }
 
