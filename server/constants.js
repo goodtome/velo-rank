@@ -26,9 +26,9 @@ const CACHE = {
 // 验证配置
 const VALIDATION = {
   // 允许的赛事类别
-  ALLOWED_CATEGORIES: ['WorldTour', 'ProSeries', 'Continental', 'Women-WorldTour', 'Women-ProSeries'],
+  ALLOWED_CATEGORIES: ['Grand Tour', 'WorldTour', 'ProSeries', 'Continental', 'Women-WorldTour', 'Women-ProSeries'],
   // 允许的性别
-  ALLOWED_GENDERS: ['Male', 'Female'],
+  ALLOWED_GENDERS: ['MEN', 'WOMEN'],
   // 最小赛季年份
   MIN_SEASON: 2000,
   // 最大赛季年份
