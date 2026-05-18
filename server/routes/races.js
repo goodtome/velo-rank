@@ -191,4 +191,150 @@ router.get('/:id/gc', asyncHandler(async (req, res) => {
   res.json({ code: 200, data: rows });
 }));
 
+// POST /api/v1/races - 创建赛事
+router.post('/', asyncHandler(async (req, res) => {
+  const {
+    race_name,
+    race_name_en,
+    race_code,
+    category,
+    gender,
+    season,
+    country,
+    start_date,
+    end_date,
+    total_stages,
+    total_distance
+  } = req.body;
+
+  // 数据校验
+  if (!race_name || !race_code || !season) {
+    throw new AppError('缺少必填字段（race_name, race_code, season）', ERROR_CODE.BAD_REQUEST);
+  }
+
+  if (category && !VALIDATION.ALLOWED_CATEGORIES.includes(category)) {
+    throw new AppError('无效的赛事类别', ERROR_CODE.BAD_REQUEST);
+  }
+
+  if (gender && !VALIDATION.ALLOWED_GENDERS.includes(gender)) {
+    throw new AppError('无效的性别分类', ERROR_CODE.BAD_REQUEST);
+  }
+
+  if (season < VALIDATION.MIN_SEASON || season > VALIDATION.MAX_SEASON) {
+    throw new AppError(`赛季年份必须在${VALIDATION.MIN_SEASON}-${VALIDATION.MAX_SEASON}之间`, ERROR_CODE.BAD_REQUEST);
+  }
+
+  const id = require('crypto').randomUUID();
+  const sql = `
+    INSERT INTO races (
+      id, race_name, race_name_en, race_code, category, gender,
+      season, country, start_date, end_date, total_stages, total_distance
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `;
+  
+  await pool.query(sql, [
+    id, race_name, race_name_en, race_code, category, gender,
+    season, country, start_date, end_date, total_stages, total_distance
+  ]);
+
+  res.status(201).json({
+    code: 201,
+    message: '赛事创建成功',
+    data: { id }
+  });
+}));
+
+// PUT /api/v1/races/:id - 更新赛事
+router.put('/:id', asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const raceId = parseInt(id);
+  
+  if (isNaN(raceId) || raceId < VALIDATION.MIN_ID) {
+    throw new AppError('无效的赛事ID', ERROR_CODE.BAD_REQUEST);
+  }
+
+  const {
+    race_name,
+    race_name_en,
+    race_code,
+    category,
+    gender,
+    season,
+    country,
+    start_date,
+    end_date,
+    total_stages,
+    total_distance
+  } = req.body;
+
+  // 检查赛事是否存在
+  const [existing] = await pool.query('SELECT id FROM races WHERE id = ?', [raceId]);
+  if (existing.length === 0) {
+    throw new AppError('赛事不存在', ERROR_CODE.NOT_FOUND);
+  }
+
+  // 数据校验
+  if (category && !VALIDATION.ALLOWED_CATEGORIES.includes(category)) {
+    throw new AppError('无效的赛事类别', ERROR_CODE.BAD_REQUEST);
+  }
+
+  if (gender && !VALIDATION.ALLOWED_GENDERS.includes(gender)) {
+    throw new AppError('无效的性别分类', ERROR_CODE.BAD_REQUEST);
+  }
+
+  const sql = `
+    UPDATE races SET
+      race_name = ?
+      race_name_en = ?
+      race_code = ?
+      category = ?
+      gender = ?
+      season = ?
+      country = ?
+      start_date = ?
+      end_date = ?
+      total_stages = ?
+      total_distance = ?
+    WHERE id = ?
+  `;
+  
+  await pool.query(sql, [
+    race_name, race_name_en, race_code, category, gender,
+    season, country, start_date, end_date, total_stages, total_distance,
+    raceId
+  ]);
+
+  res.json({
+    code: 200,
+    message: '赛事更新成功'
+  });
+}));
+
+// DELETE /api/v1/races/:id - 删除赛事
+router.delete('/:id', asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const raceId = parseInt(id);
+  
+  if (isNaN(raceId) || raceId < VALIDATION.MIN_ID) {
+    throw new AppError('无效的赛事ID', ERROR_CODE.BAD_REQUEST);
+  }
+
+  // 检查赛事是否存在
+  const [existing] = await pool.query('SELECT id FROM races WHERE id = ?', [raceId]);
+  if (existing.length === 0) {
+    throw new AppError('赛事不存在', ERROR_CODE.NOT_FOUND);
+  }
+
+  // 删除关联的赛段（级联删除）
+  await pool.query('DELETE FROM stages WHERE race_id = ?', [raceId]);
+  
+  // 删除赛事
+  await pool.query('DELETE FROM races WHERE id = ?', [raceId]);
+
+  res.json({
+    code: 200,
+    message: '赛事删除成功'
+  });
+}));
+
 module.exports = router;

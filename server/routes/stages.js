@@ -100,4 +100,182 @@ router.get('/:id/jerseys', asyncHandler(async (req, res) => {
   });
 }));
 
+// POST /api/v1/stages - 创建赛段
+router.post('/', asyncHandler(async (req, res) => {
+  const {
+    race_id,
+    stage_number,
+    stage_name,
+    date,
+    distance_km,
+    stage_type
+  } = req.body;
+
+  // 数据校验
+  if (!race_id || !stage_number || !stage_name) {
+    throw new AppError('缺少必填字段（race_id, stage_number, stage_name）', ERROR_CODE.BAD_REQUEST);
+  }
+
+  if (!Number.isInteger(stage_number) || stage_number < 1) {
+    throw new AppError('stage_number必须是大于0的整数', ERROR_CODE.BAD_REQUEST);
+  }
+
+  if (distance_km && (!Number.isInteger(distance_km) || distance_km < 0)) {
+    throw new AppError('distance_km必须是大于0的整数', ERROR_CODE.BAD_REQUEST);
+  }
+
+  if (stage_type && !['Flat', 'Hills', 'Mountain', 'TTT', 'ITT'].includes(stage_type)) {
+    throw new AppError('无效的stage_type', ERROR_CODE.BAD_REQUEST);
+  }
+
+  // 检查赛事是否存在
+  const [race] = await pool.query('SELECT id FROM races WHERE id = ?', [race_id]);
+  if (race.length === 0) {
+    throw new AppError('赛事不存在', ERROR_CODE.NOT_FOUND);
+  }
+
+  // 检查赛段编号是否重复
+  const [existing] = await pool.query(
+    'SELECT id FROM stages WHERE race_id = ? AND stage_number = ?',
+    [race_id, stage_number]
+  );
+  if (existing.length > 0) {
+    throw new AppError('该赛事下已存在相同编号的赛段', ERROR_CODE.BAD_REQUEST);
+  }
+
+  const id = require('crypto').randomUUID();
+  const sql = `
+    INSERT INTO stages (
+      id, race_id, stage_number, stage_name, date,
+      distance_km, stage_type
+    ) VALUES (?, ?, ?, ?, ?, ?, ?)
+  `;
+  
+  await pool.query(sql, [
+    id, race_id, stage_number, stage_name, date || null,
+    distance_km || null, stage_type || 'Flat'
+  ]);
+
+  res.status(201).json({
+    code: 201,
+    message: '赛段创建成功',
+    data: { id }
+  });
+}));
+
+// PUT /api/v1/stages/:id - 更新赛段
+router.put('/:id', asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const stageId = parseInt(id);
+  
+  if (isNaN(stageId) || stageId < VALIDATION.MIN_ID) {
+    throw new AppError('无效的赛段ID', ERROR_CODE.BAD_REQUEST);
+  }
+
+  const {
+    stage_number,
+    stage_name,
+    date,
+    distance_km,
+    stage_type
+  } = req.body;
+
+  // 检查赛段是否存在
+  const [existing] = await pool.query('SELECT id, race_id FROM stages WHERE id = ?', [stageId]);
+  if (existing.length === 0) {
+    throw new AppError('赛段不存在', ERROR_CODE.NOT_FOUND);
+  }
+
+  // 数据校验
+  if (stage_number && (!Number.isInteger(stage_number) || stage_number < 1)) {
+    throw new AppError('stage_number必须是大于0的整数', ERROR_CODE.BAD_REQUEST);
+  }
+
+  if (distance_km && (!Number.isInteger(distance_km) || distance_km < 0)) {
+    throw new AppError('distance_km必须是大于0的整数', ERROR_CODE.BAD_REQUEST);
+  }
+
+  if (stage_type && !['Flat', 'Hills', 'Mountain', 'TTT', 'ITT'].includes(stage_type)) {
+    throw new AppError('无效的stage_type', ERROR_CODE.BAD_REQUEST);
+  }
+
+  // 检查赛段编号是否与其他赛段重复
+  if (stage_number) {
+    const [duplicate] = await pool.query(
+      'SELECT id FROM stages WHERE race_id = ? AND stage_number = ? AND id != ?',
+      [existing[0].race_id, stage_number, stageId]
+    );
+    if (duplicate.length > 0) {
+      throw new AppError('该赛事下已存在相同编号的赛段', ERROR_CODE.BAD_REQUEST);
+    }
+  }
+
+  // 构建动态更新SQL
+  const updates = [];
+  const params = [];
+
+  if (stage_number) {
+    updates.push('stage_number = ?');
+    params.push(stage_number);
+  }
+  if (stage_name) {
+    updates.push('stage_name = ?');
+    params.push(stage_name);
+  }
+  if (date !== undefined) {
+    updates.push('date = ?');
+    params.push(date || null);
+  }
+  if (distance_km !== undefined) {
+    updates.push('distance_km = ?');
+    params.push(distance_km || null);
+  }
+  if (stage_type) {
+    updates.push('stage_type = ?');
+    params.push(stage_type);
+  }
+
+  if (updates.length === 0) {
+    throw new AppError('没有提供要更新的字段', ERROR_CODE.BAD_REQUEST);
+  }
+
+  params.push(stageId); // WHERE id = ?
+
+  const sql = `UPDATE stages SET ${updates.join(', ')} WHERE id = ?`;
+  await pool.query(sql, params);
+
+  res.json({
+    code: 200,
+    message: '赛段更新成功'
+  });
+}));
+
+// DELETE /api/v1/stages/:id - 删除赛段
+router.delete('/:id', asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const stageId = parseInt(id);
+  
+  if (isNaN(stageId) || stageId < VALIDATION.MIN_ID) {
+    throw new AppError('无效的赛段ID', ERROR_CODE.BAD_REQUEST);
+  }
+
+  // 检查赛段是否存在
+  const [existing] = await pool.query('SELECT id FROM stages WHERE id = ?', [stageId]);
+  if (existing.length === 0) {
+    throw new AppError('赛段不存在', ERROR_CODE.NOT_FOUND);
+  }
+
+  // 删除关联的赛段成绩和领骑衫数据
+  await pool.query('DELETE FROM stage_results WHERE stage_id = ?', [stageId]);
+  await pool.query('DELETE FROM jerseys WHERE stage_id = ?', [stageId]);
+  
+  // 删除赛段
+  await pool.query('DELETE FROM stages WHERE id = ?', [stageId]);
+
+  res.json({
+    code: 200,
+    message: '赛段删除成功'
+  });
+}));
+
 module.exports = router;
