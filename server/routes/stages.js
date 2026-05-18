@@ -68,6 +68,52 @@ router.get('/:id/results', async (req, res) => {
   }
 });
 
+// GET /api/v1/stages/:id/jerseys - 获取领骑衫持有者
+router.get('/:id/jerseys', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const stageId = parseInt(id);
+    
+    if (isNaN(stageId) || stageId < VALIDATION.MIN_ID) {
+      return sendError(res, ERROR_CODE.BAD_REQUEST, '无效的赛段ID');
+    }
+    
+    // 查询领骑衫持有者，联表查询车手和车队信息
+    const sql = `
+      SELECT j.*, 
+             r.rider_name, r.rider_name_zh, r.nationality, r.photo_url,
+             t.team_name, t.team_name_zh, t.uci_code
+      FROM jerseys j
+      JOIN riders r ON j.rider_id = r.id
+      JOIN teams t ON j.team_id = t.id
+      WHERE j.stage_id = ?
+    `;
+    
+    const [rows] = await pool.query(sql, [stageId]);
+    
+    // 转换为对象格式（按jersey_type分组）
+    const jerseys = {};
+    rows.forEach(row => {
+      jerseys[row.jersey_type] = {
+        rider_name: row.rider_name,
+        rider_name_zh: row.rider_name_zh,
+        team_name: row.team_name,
+        team_name_zh: row.team_name_zh,
+        time_gap: row.time_gap,
+        points: row.points
+      };
+    });
+    
+    res.json({
+      code: 200,
+      data: jerseys
+    });
+  } catch (err) {
+    console.error('获取领骑衫失败:', err);
+    sendError(res, ERROR_CODE.INTERNAL_ERROR, '获取领骑衫失败', err.message);
+  }
+});
+
 // 统一错误响应
 function sendError(res, statusCode, message, details = null) {
   const response = { code: statusCode, message };
