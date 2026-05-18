@@ -1,4 +1,4 @@
-# 领骑 / Jersey
+# 正一领骑
 
 面向自行车运动爱好者的赛事成绩查询工具，专注UCI世界巡回赛及顶级赛事。
 
@@ -47,7 +47,7 @@ npm start
 ## 项目结构
 
 ```
-cycling_new/
+velo-rank/
 ├── server/                 # 后端服务
 │   ├── app.js             # 主入口
 │   ├── config/            # 配置文件

@@ -1,7 +1,7 @@
 {
-  "name": "jersey-api",
+  "name": "zhengyi-lingqi",
   "version": "1.0.0",
-  "description": "领骑/Jersey - 自行车比赛成绩查询小程序后端API",
+  "description": "正一领骑 - 自行车比赛成绩查询小程序后端API",
   "main": "server/app.js",
   "scripts": {
     "start": "node server/app.js",
