@@ -203,9 +203,9 @@ router.get('/:id', asyncHandler(async (req, res) => {
 // PUT /api/v1/races/:id - 更新赛事
 router.put('/:id', asyncHandler(async (req, res) => {
   const { id } = req.params;
-  const raceId = parseInt(id);
-    
-  if (isNaN(raceId) || raceId < VALIDATION.MIN_ID) {
+  const raceId = id;  // UUID是字符串，不要用parseInt()
+  
+  if (!id || id.trim() === '') {
     throw new AppError('无效的赛事ID', ERROR_CODE.BAD_REQUEST);
   }
 
