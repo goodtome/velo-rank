@@ -46,3 +46,4 @@ server/uploads/
 *.db
 *.sqlite
 *.sqlite3
+server/scripts/__pycache__/

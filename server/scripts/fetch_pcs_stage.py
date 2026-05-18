@@ -302,13 +302,11 @@ def extract_stage_info(soup):
     return info
 
 def main():
-    print(f"Fetching: {URL}")
     resp = requests.get(URL, headers=HEADERS, timeout=30)
-    print(f"HTTP {resp.status_code}")
     
     if resp.status_code != 200:
-        print(f"Error: HTTP {resp.status_code}")
-        print(resp.text[:500])
+        print(f"Error: HTTP {resp.status_code}", file=sys.stderr)
+        print(resp.text[:500], file=sys.stderr)
         sys.exit(1)
     
     soup = BeautifulSoup(resp.text, 'html.parser')
