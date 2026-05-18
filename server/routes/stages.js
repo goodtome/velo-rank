@@ -106,6 +106,7 @@ router.post('/', asyncHandler(async (req, res) => {
     race_id,
     stage_number,
     stage_name,
+    stage_code,
     date,
     distance_km,
     stage_type
@@ -144,15 +145,11 @@ router.post('/', asyncHandler(async (req, res) => {
   }
 
   const id = require('crypto').randomUUID();
-  const sql = `
-    INSERT INTO stages (
-      id, race_id, stage_number, stage_name, date,
-      distance_km, stage_type
-    ) VALUES (?, ?, ?, ?, ?, ?, ?)
-  `;
+  // 修正：8个字段对应8个?占位符（包含stage_code）
+  const sql = `INSERT INTO stages (id, race_id, stage_number, stage_name, stage_code, date, distance_km, stage_type) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
   
   await pool.query(sql, [
-    id, race_id, stage_number, stage_name, date || null,
+    id, race_id, stage_number, stage_name, stage_code || null, date || null,
     distance_km || null, stage_type || 'Flat'
   ]);
 
