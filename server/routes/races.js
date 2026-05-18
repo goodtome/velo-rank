@@ -4,7 +4,7 @@ const pool = require('../config/db-pool');
 const { PAGINATION, CACHE, VALIDATION, ERROR_CODE } = require('../constants');
 const { AppError, asyncHandler } = require('../middleware/errorHandler');
 
-// 统计信息缓存（使用配置）
+// 统计信息缓存
 let statsCache = {
   data: null,
   timestamp: 0,
@@ -34,8 +34,7 @@ function validatePagination(page, limit) {
  */
 async function getStatsWithCache() {
   const now = Date.now();
-  
-  // 检查缓存是否有效
+    
   if (statsCache.data && (now - statsCache.timestamp) < statsCache.TTL) {
     console.log('使用缓存的统计信息');
     return statsCache.data;
@@ -43,7 +42,6 @@ async function getStatsWithCache() {
     
   console.log('重新查询统计信息');
     
-  // 优化：使用单条查询代替多个子查询
   const [stats] = await pool.query(`
     SELECT 
       SUM(CASE WHEN is_active = 1 THEN 1 ELSE 0 END) as races,
@@ -56,7 +54,6 @@ async function getStatsWithCache() {
     FROM races
   `);
     
-  // 更新缓存
   statsCache.data = stats[0];
   statsCache.timestamp = now;
     
@@ -67,7 +64,6 @@ async function getStatsWithCache() {
 router.get('/', asyncHandler(async (req, res) => {
   const { category, gender, season } = req.query;
     
-  // 验证参数
   if (category && !VALIDATION.ALLOWED_CATEGORIES.includes(category)) {
     throw new AppError('无效的赛事类别', ERROR_CODE.BAD_REQUEST);
   }
@@ -84,10 +80,8 @@ router.get('/', asyncHandler(async (req, res) => {
     }
   }
     
-  // 验证并获取分页参数
   const pagination = validatePagination(req.query.page, req.query.limit);
     
-  // 优化：添加索引提示（假设在start_date上有索引）
   let sql = `
     SELECT /*+ INDEX(races idx_start_date) */
       id, race_name, race_name_en, race_code, category, gender, 
@@ -124,7 +118,7 @@ router.get('/', asyncHandler(async (req, res) => {
   });
 }));
 
-// GET /api/v1/races/stats/overview - 获取数据库统计信息（带缓存）
+// GET /api/v1/races/stats/overview - 获取数据库统计信息
 router.get('/stats/overview', asyncHandler(async (req, res) => {
   const stats = await getStatsWithCache();
   res.json({ code: 200, data: stats });
@@ -164,16 +158,13 @@ router.post('/', asyncHandler(async (req, res) => {
   }
 
   const id = require('crypto').randomUUID();
-  const sql = `
-    INSERT INTO races (
-      id, race_name, race_name_en, race_code, category, gender,
-      season, country, start_date, end_date, total_stages, total_distance
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `;
-    
+  
+  // 12个字段，12个?占位符
+  const sql = `INSERT INTO races (id, race_name, race_name_en, race_code, category, gender, season, country, start_date, end_date, total_stages, total_distance) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+  
   await pool.query(sql, [
-    id, race_name, race_name_en, race_code, category, gender,
-    season, country, start_date, end_date, total_stages, total_distance
+    id, race_name, race_name_en || null, race_code, category || null, gender || null,
+    season, country || null, start_date || null, end_date || null, total_stages || null, total_distance || null
   ]);
 
   res.status(201).json({
@@ -187,13 +178,11 @@ router.post('/', asyncHandler(async (req, res) => {
 router.get('/:id', asyncHandler(async (req, res) => {
   const { id } = req.params;
     
-  // 验证ID是否为有效数字
-  const raceId = parseInt(id);
-  if (isNaN(raceId) || raceId < VALIDATION.MIN_ID) {
+  if (!id || id.trim() === '') {
     throw new AppError('无效的赛事ID', ERROR_CODE.BAD_REQUEST);
   }
     
-  const [rows] = await pool.query('SELECT * FROM races WHERE id = ?', [raceId]);
+  const [rows] = await pool.query('SELECT * FROM races WHERE id = ?', [id]);
   if (rows.length === 0) {
     throw new AppError('赛事不存在', ERROR_CODE.NOT_FOUND);
   }
@@ -203,8 +192,7 @@ router.get('/:id', asyncHandler(async (req, res) => {
 // PUT /api/v1/races/:id - 更新赛事
 router.put('/:id', asyncHandler(async (req, res) => {
   const { id } = req.params;
-  const raceId = id;  // UUID是字符串，不要用parseInt()
-  
+    
   if (!id || id.trim() === '') {
     throw new AppError('无效的赛事ID', ERROR_CODE.BAD_REQUEST);
   }
@@ -224,7 +212,7 @@ router.put('/:id', asyncHandler(async (req, res) => {
   } = req.body;
 
   // 检查赛事是否存在
-  const [existing] = await pool.query('SELECT id FROM races WHERE id = ?', [raceId]);
+  const [existing] = await pool.query('SELECT id FROM races WHERE id = ?', [id]);
   if (existing.length === 0) {
     throw new AppError('赛事不存在', ERROR_CODE.NOT_FOUND);
   }
@@ -291,13 +279,12 @@ router.put('/:id', asyncHandler(async (req, res) => {
     throw new AppError('没有提供要更新的字段', ERROR_CODE.BAD_REQUEST);
   }
 
-  params.push(raceId); // WHERE id = ?
+  params.push(id); // WHERE id = ?
 
   const sql = `UPDATE races SET ${updates.join(', ')} WHERE id = ?`;
     
   try {
     await pool.query(sql, params);
-      
     res.json({
       code: 200,
       message: '赛事更新成功'
@@ -311,23 +298,22 @@ router.put('/:id', asyncHandler(async (req, res) => {
 // DELETE /api/v1/races/:id - 删除赛事
 router.delete('/:id', asyncHandler(async (req, res) => {
   const { id } = req.params;
-  const raceId = parseInt(id);
     
-  if (isNaN(raceId) || raceId < VALIDATION.MIN_ID) {
+  if (!id || id.trim() === '') {
     throw new AppError('无效的赛事ID', ERROR_CODE.BAD_REQUEST);
   }
 
   // 检查赛事是否存在
-  const [existing] = await pool.query('SELECT id FROM races WHERE id = ?', [raceId]);
+  const [existing] = await pool.query('SELECT id FROM races WHERE id = ?', [id]);
   if (existing.length === 0) {
     throw new AppError('赛事不存在', ERROR_CODE.NOT_FOUND);
   }
 
   // 删除关联的赛段（级联删除）
-  await pool.query('DELETE FROM stages WHERE race_id = ?', [raceId]);
+  await pool.query('DELETE FROM stages WHERE race_id = ?', [id]);
     
   // 删除赛事
-  await pool.query('DELETE FROM races WHERE id = ?', [raceId]);
+  await pool.query('DELETE FROM races WHERE id = ?', [id]);
 
   res.json({
     code: 200,
@@ -339,15 +325,13 @@ router.delete('/:id', asyncHandler(async (req, res) => {
 router.get('/:id/stages', asyncHandler(async (req, res) => {
   const { id } = req.params;
     
-  // 验证ID
-  const raceId = parseInt(id);
-  if (isNaN(raceId) || raceId < VALIDATION.MIN_ID) {
+  if (!id || id.trim() === '') {
     throw new AppError('无效的赛事ID', ERROR_CODE.BAD_REQUEST);
   }
     
   const [rows] = await pool.query(
     'SELECT * FROM stages WHERE race_id = ? ORDER BY stage_number',
-    [raceId]
+    [id]
   );
   res.json({ code: 200, data: rows });
 }));
@@ -356,13 +340,10 @@ router.get('/:id/stages', asyncHandler(async (req, res) => {
 router.get('/:id/gc', asyncHandler(async (req, res) => {
   const { id } = req.params;
     
-  // 验证ID
-  const raceId = parseInt(id);
-  if (isNaN(raceId) || raceId < VALIDATION.MIN_ID) {
+  if (!id || id.trim() === '') {
     throw new AppError('无效的赛事ID', ERROR_CODE.BAD_REQUEST);
   }
     
-  // 使用参数化查询避免语法问题
   const sql = `
     SELECT gc.*, r.rider_name, r.rider_name_zh, r.nationality, r.photo_url,
            t.team_name, t.team_name_zh, t.uci_code
@@ -375,7 +356,7 @@ router.get('/:id/gc', asyncHandler(async (req, res) => {
     ORDER BY gc.\`rank\`
   `;
     
-  const [rows] = await pool.query(sql, [raceId]);
+  const [rows] = await pool.query(sql, [id]);
   res.json({ code: 200, data: rows });
 }));
 
