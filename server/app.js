@@ -14,13 +14,17 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// 统一响应格式中间件（放在路由之前）
+const { responseFormatter } = require('./middleware/responseFormatter');
+app.use(responseFormatter);
+
 // 请求日志
 app.use((req, res, next) => {
   console.log(`${new Date().toISOString()} ${req.method} ${req.path}`);
   next();
 });
 
-// 健康检查
+// 健康检查（不需要统一响应格式）
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
@@ -45,23 +49,21 @@ app.use('/api/v1/admin', require('./routes/admin'));
 app.use('/api/v1/realtime', require('./routes/realtime'));
 app.use('/api/v1/push', require('./routes/push'));
 
-// 404处理
+// 404处理（使用统一错误格式）
 app.use('*', (req, res) => {
   res.status(404).json({ code: 404, message: '接口不存在' });
 });
 
-// 错误处理
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ code: 500, message: '服务器内部错误' });
-});
+// 统一错误处理中间件（必须放在最后）
+const { errorHandler } = require('./middleware/errorHandler');
+app.use(errorHandler);
 
 // 初始化WebSocket服务器
 const { initWebSocket } = require('./websocket');
 initWebSocket(server);
 
 server.listen(PORT, () => {
-  console.log(`领骑后端服务启动成功 - http://localhost:${PORT}`);
+  console.log(`正一领骑后端服务启动成功 - http://localhost:${PORT}`);
   console.log(`WebSocket服务已启动 - ws://localhost:${PORT}/ws/realtime`);
   console.log(`API文档：http://localhost:${PORT}/api/v1`);
 });
