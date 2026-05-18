@@ -1,0 +1,63 @@
+<!-- 赛事百科页面 -->
+<view class="encyclopedia-container">
+  <!-- 搜索栏 -->
+  <view class="search-bar">
+    <input class="search-input" placeholder="{{t('searchPlaceholder')}}" bindinput="onSearchInput" value="{{searchKey}}" />
+    <button class="search-btn" bindtap="onSearch">{{t('search')}}</button>
+  </view>
+  
+  <!-- 分类标签 -->
+  <view class="category-tabs">
+    <view class="tab {{activeCategory === 'all' ? 'active' : ''}}" bindtap="switchCategory" data-category="all">{{t('all')}}</view>
+    <view class="tab {{activeCategory === 'ranking' ? 'active' : ''}}" bindtap="switchCategory" data-category="ranking">{{t('rankingTerm')}}</view>
+    <view class="tab {{activeCategory === 'tactic' ? 'active' : ''}}" bindtap="switchCategory" data-category="tactic">{{t('tacticTerm')}}</view>
+    <view class="tab {{activeCategory === 'rule' ? 'active' : ''}}" bindtap="switchCategory" data-category="rule">{{t('ruleTerm')}}</view>
+  </view>
+  
+  <!-- 术语列表 -->
+  <view class="term-list">
+    <view class="term-card" wx:for="{{filteredTerms}}" wx:key="id" bindtap="showTermDetail" data-id="{{item.id}}">
+      <view class="term-header">
+        <text class="term-name">{{item.name}}</text>
+        <text class="term-english">{{item.english}}</text>
+      </view>
+      <view class="term-brief">{{item.brief}}</view>
+      <view class="term-tags">
+        <text class="tag" wx:for="{{item.tags}}" wx:key="*this" wx:for-item="tag">{{tag}}</text>
+      </view>
+    </view>
+  </view>
+  
+  <!-- 术语详情弹窗 -->
+  <view class="term-detail-mask" wx:if="{{showDetail}}" bindtap="hideTermDetail">
+    <view class="term-detail-dialog" catchtap="preventBubble">
+      <view class="detail-header">
+        <text class="detail-title">{{currentTerm.name}} ({{currentTerm.english}})</text>
+        <view class="detail-close" bindtap="hideTermDetail">×</view>
+      </view>
+      <scroll-view scroll-y class="detail-content">
+        <view class="detail-section">
+          <text class="section-title">{{t('termDefinition')}}</text>
+          <text class="section-content">{{currentTerm.definition}}</text>
+        </view>
+        
+        <view class="detail-section">
+          <text class="section-title">{{t('termDetail')}}</text>
+          <text class="section-content">{{currentTerm.description}}</text>
+        </view>
+        
+        <view class="detail-section" wx:if="{{currentTerm.example}}">
+          <text class="section-title">{{t('termExample')}}</text>
+          <text class="section-content example">{{currentTerm.example}}</text>
+        </view>
+        
+        <view class="detail-section" wx:if="{{currentTerm.relatedTerms.length > 0}}">
+          <text class="section-title">{{t('termRelated')}}</text>
+          <view class="related-terms">
+            <text class="related-term" wx:for="{{currentTerm.relatedTerms}}" wx:key="*this" bindtap="showRelatedTerm" data-term="{{item}}">{{item}}</text>
+          </view>
+        </view>
+      </scroll-view>
+    </view>
+  </view>
+</view>

@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>领骑 - 管理后台</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; }
+    .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+    .header { background: #1890ff; color: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
+    .header h1 { font-size: 24px; margin-bottom: 8px; }
+    .header p { opacity: 0.8; font-size: 14px; }
+    .card { background: white; border-radius: 8px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+    .card h2 { font-size: 18px; margin-bottom: 16px; color: #333; border-bottom: 2px solid #f0f0f0; padding-bottom: 10px; }
+    .btn { display: inline-block; padding: 8px 16px; border-radius: 4px; border: none; cursor: pointer; font-size: 14px; transition: all 0.3s; }
+    .btn-primary { background: #1890ff; color: white; }
+    .btn-primary:hover { background: #40a9ff; }
+    .btn-success { background: #52c41a; color: white; }
+    .btn-success:hover { background: #73d13d; }
+    .btn-danger { background: #ff4d4f; color: white; }
+    .btn-danger:hover { background: #ff7875; }
+    .btn-sm { padding: 4px 12px; font-size: 12px; }
+    input, select { padding: 8px 12px; border: 1px solid #d9d9d9; border-radius: 4px; font-size: 14px; width: 200px; }
+    input:focus, select:focus { outline: none; border-color: #1890ff; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    th, td { padding: 12px; text-align: left; border-bottom: 1px solid #f0f0f0; }
+    th { background: #fafafa; font-weight: 600; color: #333; }
+    tr:hover { background: #f5f5f5; }
+    .badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 12px; font-weight: 500; }
+    .badge-blue { background: #e6f7ff; color: #1890ff; }
+    .badge-green { background: #f6ffed; color: #52c41a; }
+    .badge-red { background: #fff1f0; color: #ff4d4f; }
+    .form-row { display: flex; gap: 12px; align-items: center; margin-bottom: 12px; }
+    .form-row label { min-width: 80px; color: #666; }
+    .status-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
+    .status-online { background: #52c41a; }
+    .status-offline { background: #ff4d4f; }
+    .log-entry { padding: 8px; border-left: 3px solid #1890ff; background: #f5f5f5; margin-bottom: 8px; font-size: 13px; }
+    .log-time { color: #999; font-size: 12px; }
+    .stat-card { background: #fafafa; padding: 16px; border-radius: 8px; text-align: center; }
+    .stat-label { font-size: 12px; color: #999; margin-bottom: 8px; }
+    .stat-value { font-size: 24px; font-weight: bold; margin-bottom: 8px; }
+    .stat-bar { height: 8px; background: #f0f0f0; border-radius: 4px; overflow: hidden; margin-bottom: 4px; }
+    .stat-bar-fill { height: 100%; transition: width 0.3s; }
+    .stat-percentage { font-size: 12px; color: #666; }
+    .zh-input { padding: 6px 10px; border: 1px solid #d9d9d9; border-radius: 4px; font-size: 13px; }
+    .zh-input:focus { outline: none; border-color: #1890ff; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🚴 领骑管理后台</h1>
+      <p>领骑 / Jersey - 自行车比赛成绩查询小程序后台</p>
+    </div>
+
+    <!-- 系统状态 -->
+    <div class="card">
+      <h2>📊 系统状态</h2>
+      <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+        <div style="flex: 1; min-width: 200px;">
+          <div style="margin-bottom: 10px;">
+            <span class="status-dot status-online"></span>
+            <strong>API服务</strong>
+          </div>
+          <p style="color: #666; font-size: 14px;">http://localhost:3000</p>
+        </div>
+        <div style="flex: 1; min-width: 200px;">
+          <div style="margin-bottom: 10px;">
+            <span class="status-dot status-online"></span>
+            <strong>数据库</strong>
+          </div>
+          <p style="color: #666; font-size: 14px;">MySQL 8.0 (localhost:13306)</p>
+        </div>
+        <div style="flex: 1; min-width: 200px;">
+          <div style="margin-bottom: 10px;">
+            <span class="status-dot status-online" id="syncDot"></span>
+            <strong>数据同步</strong>
+          </div>
+          <p style="color: #666; font-size: 14px;" id="syncStatusText">已连接</p>
+        </div>
+      </div>
+      <!-- 实时数据统计 -->
+      <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid #f0f0f0;">
+        <h3 style="font-size: 14px; color: #999; margin-bottom: 12px;">数据库实时统计</h3>
+        <div id="dbStats" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 10px;">
+          <div class="loading">⏳ 加载中…</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 数据同步 -->
+    <div class="card">
+      <h2>🔄 数据同步</h2>
+      <div style="margin-bottom: 16px;">
+        <label>赛事代码：</label>
+        <input type="text" id="raceCode" placeholder="如: giro-ditalia-2026" value="giro-ditalia-2026">
+        <button class="btn btn-primary" onclick="syncRace()">开始同步</button>
+        <button class="btn btn-success" onclick="checkSyncStatus()">查看状态</button>
+      </div>
+      <div id="syncLog" style="background: #f5f5f5; padding: 12px; border-radius: 4px; min-height: 100px; font-family: monospace; font-size: 13px;">
+        <div class="log-entry">
+          <div class="log-time">系统启动</div>
+          等待MySQL密码配置后即可开始数据同步
+        </div>
+      </div>
+    </div>
+
+    <!-- 中文名称管理 -->
+    <div class="card">
+      <h2>🇨🇳 中文名称管理</h2>
+      <p style="color: #666; margin-bottom: 16px;">为车队、车手、比赛和赛段添加中文翻译</p>
+      
+      <!-- 翻译统计 -->
+      <div id="translationStats" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px;">
+        <div class="loading">⏳ 加载中...</div>
+      </div>
+      
+      <!-- 车手中文名管理 -->
+      <div style="margin-bottom: 30px;">
+        <h3 style="font-size: 16px; margin-bottom: 12px; color: #333;">车手中文名（未翻译：<span id="ridersRemaining">...</span>）</h3>
+        <div style="margin-bottom: 12px;">
+          <input type="text" id="riderSearch" placeholder="搜索车手名称..." style="width: 300px;" />
+          <button class="btn btn-primary" onclick="searchRiders()">搜索</button>
+          <button class="btn btn-success" onclick="loadRidersWithoutZh(0)">刷新</button>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 40%;">英文名称</th>
+              <th style="width: 40%;">中文名称</th>
+              <th style="width: 20%;">操作</th>
+            </tr>
+          </thead>
+          <tbody id="ridersTableBody">
+            <tr><td colspan="3" style="text-align: center; color: #999;">加载中...</td></tr>
+          </tbody>
+        </table>
+        <div id="ridersPagination" style="margin-top: 12px; text-align: center;"></div>
+      </div>
+      
+      <!-- 车队中文名管理 -->
+      <div style="margin-bottom: 30px;">
+        <h3 style="font-size: 16px; margin-bottom: 12px; color: #333;">车队中文名（未翻译：<span id="teamsRemaining">...</span>）</h3>
+        <div style="margin-bottom: 12px;">
+          <input type="text" id="teamSearch" placeholder="搜索车队名称..." style="width: 300px;" />
+          <button class="btn btn-primary" onclick="searchTeams()">搜索</button>
+          <button class="btn btn-success" onclick="loadTeamsWithoutZh(0)">刷新</button>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 40%;">英文名称</th>
+              <th style="width: 40%;">中文名称</th>
+              <th style="width: 20%;">操作</th>
+            </tr>
+          </thead>
+          <tbody id="teamsTableBody">
+            <tr><td colspan="3" style="text-align: center; color: #999;">加载中...</td></tr>
+          </tbody>
+        </table>
+        <div id="teamsPagination" style="margin-top: 12px; text-align: center;"></div>
+      </div>
+    </div>
+
+    <!-- 成绩录入 -->
+    <div class="card">
+      <h2>✏️ 成绩录入</h2>
+      <p style="color: #666; margin-bottom: 16px;">手动录入赛段成绩（开发阶段使用）</p>
+      
+      <div class="form-row">
+        <label>赛事：</label>
+        <select id="raceSelect">
+          <option value="">请先同步赛事数据</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <label>赛段：</label>
+        <select id="stageSelect">
+          <option value="">请先选择赛事</option>
+        </select>
+      </div>
+      
+      <div style="margin: 20px 0; padding: 16px; background: #f5f5f5; border-radius: 4px;">
+        <h3 style="font-size: 16px; margin-bottom: 12px;">成绩列表</h3>
+        <div id="resultsForm">
+          <p style="color: #999;">请先选择赛事和赛段</p>
+        </div>
+      </div>
+      
+      <button class="btn btn-success" onclick="saveResults()">保存成绩</button>
+    </div>
+
+    <!-- 导入脚本生成器 -->
+    <div class="card">
+      <h2>📥 导入脚本生成器</h2>
+      <p style="color: #666; margin-bottom: 16px;">从JSON数据生成MySQL导入脚本并执行</p>
+      
+      <div style="margin-bottom: 16px;">
+        <label style="font-weight: 600; color: #333;">步骤1: 准备JSON数据文件</label>
+        <p style="color: #666; font-size: 13px; margin: 4px 0 8px 0;">将赛段数据保存为JSON格式（参考下方模板），然后粘贴到下方或直接上传文件</p>
+        
+        <div style="display: flex; gap: 12px; margin-bottom: 12px;">
+          <input type="file" id="jsonFileInput" accept=".json" style="width: auto;">
+          <button class="btn btn-primary" onclick="loadJsonTemplate()">加载模板</button>
+          <button class="btn btn-success" onclick="previewImport()">预览脚本</button>
+          <button class="btn btn-primary" onclick="executeImport()" id="executeBtn" disabled>执行导入</button>
+        </div>
+        
+        <textarea id="jsonDataInput" 
+          style="width: 100%; height: 300px; padding: 12px; border: 1px solid #d9d9d9; border-radius: 4px; font-family: monospace; font-size: 13px; resize: vertical;"
+          placeholder='{
+  "stage_info": {
+    "race_code": "giro-ditalia-2026",
+    "stage_number": 1,
+    "stage_name": "Nessebar → Burgas",
+    "date": "2026-05-10",
+    "distance_km": 140,
+    "stage_type": "Flat"
+  },
+  "results": [
+    { "rank": 1, "rider_name": "Paul MAGNIER", "team_name": "SOUDAL QUICK-STEP", "time_gap": "3h 45\' 12\"" }
+  ],
+  "jerseys": [
+    { "jersey_type": "pink", "rider_name": "Paul MAGNIER", "team_name": "SOUDAL QUICK-STEP" }
+  ]
+}'></textarea>
+      </div>
+      
+      <div style="margin-top: 20px; padding-top: 16px; border-top: 1px solid #f0f0f0;">
+        <label style="font-weight: 600; color: #333;">步骤2: 预览生成的SQL脚本</label>
+        <div id="sqlPreview" style="margin-top: 12px; background: #fafafa; padding: 16px; border-radius: 4px; font-family: monospace; font-size: 12px; white-space: pre-wrap; display: none; max-height: 400px; overflow-y: auto; border: 1px solid #e8e8e8;">
+        </div>
+      </div>
+      
+      <div style="margin-top: 16px; padding: 12px; background: #fff7e6; border-radius: 4px; font-size: 13px; color: #d48806;">
+        <strong>📝 使用说明：</strong>
+        <ol style="margin: 8px 0 0 0; padding-left: 20px;">
+          <li>填写JSON数据（或上传JSON文件）</li>
+          <li>点击"预览脚本"查看生成的SQL</li>
+          <li>确认无误后点击"执行导入"</li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- API测试 -->
+    <div class="card">
+      <h2>🧪 API测试</h2>
+      <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+        <button class="btn btn-primary btn-sm" onclick="testApi('/health')">健康检查</button>
+        <button class="btn btn-primary btn-sm" onclick="testApi('/api/v1/races')">赛事列表</button>
+        <button class="btn btn-primary btn-sm" onclick="testApi('/api/v1/search/riders?q=pogacar')">搜索车手</button>
+      </div>
+      <div id="apiResult" style="margin-top: 16px; background: #f5f5f5; padding: 12px; border-radius: 4px; font-family: monospace; font-size: 13px; display: none;">
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = 'http://localhost:3000';
+
+    // ===== 实时数据库统计 =====
+    const statLabels = {
+      races: '赛事', stages: '赛段', riders: '车手',
+      teams: '车队', stage_results: '成绩', jerseys: '领骑衫', general_classification: 'GC'
+    };
+    const statColors = ['#e6f7ff','#f6ffed','#fff7e6','#fff1f0','#f9f0ff','#e8f4fd','#eefbeb'];
+
+    async function loadDbStats() {
+      try {
+        const res = await fetch(`${API_BASE}/api/v1/races/stats/overview`);
+        const json = await res.json();
+        if (json.code !== 200) throw new Error(json.message);
+        const data = json.data;
+        document.getElementById('dbStats').innerHTML = Object.entries(data).map(([k, v], i) => `
+          <div style="background:${statColors[i % statColors.length]};border-radius:8px;padding:12px 8px;text-align:center;">
+            <div style="font-size:22px;font-weight:700;color:#1890ff;">${v}</div>
+            <div style="font-size:12px;color:#999;margin-top:4px;">${statLabels[k]||k}</div>
+          </div>
+        `).join('');
+        document.getElementById('syncStatusText').textContent = '已连接 · 数据就绪';
+        document.getElementById('syncDot').className = 'status-dot status-online';
+      } catch (err) {
+        document.getElementById('dbStats').innerHTML = '<div style="color:#ff4d4f;grid-column:1/-1;text-align:center;padding:12px;">⚠️ 统计加载失败: ' + err.message + '</div>';
+      }
+    }
+
+    // 测试API
+    async function testApi(endpoint) {
+      const resultDiv = document.getElementById('apiResult');
+      resultDiv.style.display = 'block';
+      resultDiv.innerHTML = '<span style="color: #1890ff;">⏳ 请求中...</span>';
+      
+      try {
+        const res = await fetch(API_BASE + endpoint);
+        const data = await res.json();
+        resultDiv.innerHTML = `
+          <div style="color: #52c41a;">✅ 请求成功</div>
+          <pre style="margin-top: 8px; white-space: pre-wrap;">${JSON.stringify(data, null, 2)}</pre>
+        `;
+      } catch (err) {
+        resultDiv.innerHTML = `<span style="color: #ff4d4f;">❌ 请求失败: ${err.message}</span>`;
+      }
+    }
+
+    // 同步赛事
+    async function syncRace() {
+      const raceCode = document.getElementById('raceCode').value;
+      if (!raceCode) {
+        alert('请输入赛事代码');
+        return;
+      }
+      
+      const logDiv = document.getElementById('syncLog');
+      logDiv.innerHTML += `
+        <div class="log-entry">
+          <div class="log-time">${new Date().toLocaleTimeString()}</div>
+          开始同步: ${raceCode}
+        </div>
+      `;
+      
+      try {
+        const res = await fetch(`${API_BASE}/api/v1/sync/races/${raceCode}`, { method: 'POST' });
+        const data = await res.json();
+        logDiv.innerHTML += `
+          <div class="log-entry">
+            <div class="log-time">${new Date().toLocaleTimeString()}</div>
+            ${data.message}
+          </div>
+        `;
+      } catch (err) {
+        logDiv.innerHTML += `
+          <div class="log-entry" style="border-left-color: #ff4d4f;">
+            <div class="log-time">${new Date().toLocaleTimeString()}</div>
+            ❌ 同步失败: ${err.message}
+          </div>
+        `;
+      }
+      
+      logDiv.scrollTop = logDiv.scrollHeight;
+    }
+
+    // 检查同步状态
+    async function checkSyncStatus() {
+      try {
+        const res = await fetch(`${API_BASE}/api/v1/sync/status`);
+        const data = await res.json();
+        alert(`同步状态:\n${JSON.stringify(data, null, 2)}`);
+      } catch (err) {
+        alert('获取状态失败: ' + err.message);
+      }
+    }
+
+    // 保存成绩
+    async function saveResults() {
+      alert('保存成绩功能需要在MySQL配置完成后实现');
+    }
+
+    // 初始化
+    loadDbStats();
+    
+    // ===== 导入脚本生成器 =====
+    
+    // 加载JSON模板
+    function loadJsonTemplate() {
+      const template = {
+        "stage_info": {
+          "race_code": "giro-ditalia-2026",
+          "stage_number": 1,
+          "stage_name": "Nessebar → Burgas",
+          "date": "2026-05-10",
+          "distance_km": 140,
+          "stage_type": "Flat"
+        },
+        "results": [
+          { "rank": 1, "rider_name": "Paul MAGNIER", "team_name": "SOUDAL QUICK-STEP", "time_gap": "3h 45' 12\"" },
+          { "rank": 2, "rider_name": "Rider Name", "team_name": "Team Name", "time_gap": "+ 0\"" }
+        ],
+        "jerseys": [
+          { "jersey_type": "pink", "rider_name": "Paul MAGNIER", "team_name": "SOUDAL QUICK-STEP" }
+        ]
+      };
+      document.getElementById('jsonDataInput').value = JSON.stringify(template, null, 2);
+    }
+    
+    // 上传JSON文件
+    document.getElementById('jsonFileInput').addEventListener('change', function(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          JSON.parse(e.target.result);
+          document.getElementById('jsonDataInput').value = e.target.result;
+          alert('✅ JSON文件已加载');
+        } catch (err) {
+          alert('❌ JSON格式错误: ' + err.message);
+        }
+      };
+      reader.readAsText(file);
+    });
+    
+    // 预览导入脚本
+    function previewImport() {
+      const jsonInput = document.getElementById('jsonDataInput').value;
+      const previewDiv = document.getElementById('sqlPreview');
+      
+      if (!jsonInput.trim()) {
+        alert('请输入JSON数据');
+        return;
+      }
+      
+      try {
+        const data = JSON.parse(jsonInput);
+        previewDiv.style.display = 'block';
+        previewDiv.textContent = '⏳ 生成中...';
+        
+        fetch(`${API_BASE}/api/v1/admin/generate-sql`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        })
+        .then(res => res.json())
+        .then(result => {
+          if (result.code === 200) {
+            previewDiv.textContent = result.data.sql;
+            document.getElementById('executeBtn').disabled = false;
+          } else {
+            previewDiv.textContent = '❌ 生成失败: ' + result.message;
+            document.getElementById('executeBtn').disabled = true;
+          }
+        })
+        .catch(err => {
+          previewDiv.textContent = '❌ 请求失败: ' + err.message + '\n\n💡 提示: 请确保后端API已启动';
+          document.getElementById('executeBtn').disabled = true;
+        });
+      } catch (err) {
+        alert('❌ JSON格式错误: ' + err.message);
+      }
+    }
+    
+    // 执行导入
+    async function executeImport() {
+      const jsonInput = document.getElementById('jsonDataInput').value;
+      
+      if (!confirm('确定要执行导入操作吗？这将直接修改数据库。')) {
+        return;
+      }
+      
+      try {
+        const data = JSON.parse(jsonInput);
+        const stageNum = data.stage_info?.stage_number || 'N/A';
+        
+        const btn = document.getElementById('executeBtn');
+        btn.textContent = '执行中...';
+        btn.disabled = true;
+        
+        // 调用后端执行导入脚本
+        const res = await fetch(`${API_BASE}/api/v1/admin/import-stage`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+        
+        const result = await res.json();
+        
+        if (result.code === 200) {
+          alert(`✅ 导入成功！\n\n${result.message}`);
+        } else {
+          alert(`❌ 导入失败: ${result.message}`);
+        }
+      } catch (err) {
+        alert('❌ 执行失败: ' + err.message);
+      } finally {
+        const btn = document.getElementById('executeBtn');
+        btn.textContent = '执行导入';
+        btn.disabled = false;
+      }
+    }
+    // ========== 中文名称管理 ==========
+    let currentRiderPage = 0;
+    let currentTeamPage = 0;
+    const PAGE_SIZE = 20;
+    
+    // 加载翻译统计
+    async function loadTranslationStats() {
+      try {
+        const res = await fetch(`${API_BASE}/api/v1/admin/translation-stats`);
+        const result = await res.json();
+        
+        if (result.code === 200) {
+          const stats = result.data;
+          let html = '';
+          
+          // 车队统计
+          html += \`
+            <div class="stat-card">
+              <div class="stat-label">车队中文名</div>
+              <div class="stat-value" style="color: \${stats.teams.percentage == 100 ? '#52c41a' : '#1890ff'}">
+                \${stats.teams.translated}/\${stats.teams.total}
+              </div>
+              <div class="stat-bar">
+                <div class="stat-bar-fill" style="width: \${stats.teams.percentage}%; background: \${stats.teams.percentage == 100 ? '#52c41a' : '#1890ff'}"></div>
+              </div>
+              <div class="stat-percentage">\${stats.teams.percentage}%</div>
+            </div>
+          \`;
+          
+          // 车手统计
+          html += \`
+            <div class="stat-card">
+              <div class="stat-label">车手中文名</div>
+              <div class="stat-value" style="color: \${stats.riders.percentage == 100 ? '#52c41a' : '#faad14'}">
+                \${stats.riders.translated}/\${stats.riders.total}
+              </div>
+              <div class="stat-bar">
+                <div class="stat-bar-fill" style="width: \${stats.riders.percentage}%; background: \${stats.riders.percentage == 100 ? '#52c41a' : '#faad14'}"></div>
+              </div>
+              <div class="stat-percentage">\${stats.riders.percentage}%</div>
+            </div>
+          \`;
+          
+          // 比赛统计
+          html += \`
+            <div class="stat-card">
+              <div class="stat-label">比赛中文名</div>
+              <div class="stat-value" style="color: \${stats.races.percentage == 100 ? '#52c41a' : '#1890ff'}">
+                \${stats.races.translated}/\${stats.races.total}
+              </div>
+              <div class="stat-bar">
+                <div class="stat-bar-fill" style="width: \${stats.races.percentage}%; background: \${stats.races.percentage == 100 ? '#52c41a' : '#1890ff'}"></div>
+              </div>
+              <div class="stat-percentage">\${stats.races.percentage}%</div>
+            </div>
+          \`;
+          
+          // 赛段统计
+          html += \`
+            <div class="stat-card">
+              <div class="stat-label">赛段中文名</div>
+              <div class="stat-value" style="color: \${stats.stages.percentage == 100 ? '#52c41a' : '#faad14'}">
+                \${stats.stages.translated}/\${stats.stages.total}
+              </div>
+              <div class="stat-bar">
+                <div class="stat-bar-fill" style="width: \${stats.stages.percentage}%; background: \${stats.stages.percentage == 100 ? '#52c41a' : '#faad14'}"></div>
+              </div>
+              <div class="stat-percentage">\${stats.stages.percentage}%</div>
+            </div>
+          \`;
+          
+          document.getElementById('translationStats').innerHTML = html;
+        }
+      } catch (err) {
+        console.error('加载翻译统计失败:', err);
+      }
+    }
+    
+    // 加载未翻译车手列表
+    async function loadRidersWithoutZh(page = 0) {
+      currentRiderPage = page;
+      const search = document.getElementById('riderSearch').value;
+      const offset = page * PAGE_SIZE;
+      
+      try {
+        let url = \`\${API_BASE}/api/v1/admin/riders-without-zh?limit=\${PAGE_SIZE}&offset=\${offset}\`;
+        if (search) url += \`&search=\${encodeURIComponent(search)}\`;
+        
+        const res = await fetch(url);
+        const result = await res.json();
+        
+        if (result.code === 200) {
+          const { riders, total } = result.data;
+          let html = '';
+          
+          riders.forEach(rider => {
+            html += \`
+              <tr>
+                <td>\${rider.rider_name}</td>
+                <td>
+                  <input type="text" class="zh-input" id="rider-zh-\${rider.id}" 
+                         placeholder="输入中文名" style="width: 200px;" />
+                </td>
+                <td>
+                  <button class="btn btn-primary btn-sm" onclick="updateRiderZh('\${rider.id}')">保存</button>
+                </td>
+              </tr>
+            \`;
+          });
+          
+          document.getElementById('ridersTableBody').innerHTML = html;
+          
+          // 分页
+          const totalPages = Math.ceil(total / PAGE_SIZE);
+          let paginationHtml = '';
+          if (page > 0) {
+            paginationHtml += \`<button class="btn btn-sm" onclick="loadRidersWithoutZh(\${page - 1})">上一页</button>\`;
+          }
+          paginationHtml += \` <span style="margin: 0 10px;">第 \${page + 1} 页 / 共 \${totalPages} 页 (共 \${total} 条)</span> \`;
+          if (page < totalPages - 1) {
+            paginationHtml += \`<button class="btn btn-sm" onclick="loadRidersWithoutZh(\${page + 1})">下一页</button>\`;
+          }
+          document.getElementById('ridersPagination').innerHTML = paginationHtml;
+        }
+      } catch (err) {
+        console.error('加载车手列表失败:', err);
+      }
+    }
+    
+    // 更新车手中文名
+    async function updateRiderZh(riderId) {
+      const input = document.getElementById(\`rider-zh-\${riderId}\`);
+      const riderNameZh = input.value.trim();
+      
+      if (!riderNameZh) {
+        alert('请输入中文名');
+        return;
+      }
+      
+      try {
+        const res = await fetch(\`\${API_BASE}/api/v1/admin/rider/\${riderId}/chinese-name\`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ rider_name_zh: riderNameZh })
+        });
+        
+        const result = await res.json();
+        
+        if (result.code === 200) {
+          alert('✅ 更新成功！');
+          loadRidersWithoutZh(currentRiderPage);
+          loadTranslationStats();
+        } else {
+          alert(\`❌ 更新失败: \${result.message}\`);
+        }
+      } catch (err) {
+        alert('❌ 更新失败: ' + err.message);
+      }
+    }
+    
+    // 加载未翻译车队列表
+    async function loadTeamsWithoutZh(page = 0) {
+      currentTeamPage = page;
+      const search = document.getElementById('teamSearch').value;
+      const offset = page * PAGE_SIZE;
+      
+      try {
+        let url = \`\${API_BASE}/api/v1/admin/teams-without-zh?limit=\${PAGE_SIZE}&offset=\${offset}\`;
+        if (search) url += \`&search=\${encodeURIComponent(search)}\`;
+        
+        const res = await fetch(url);
+        const result = await res.json();
+        
+        if (result.code === 200) {
+          const { teams, total } = result.data;
+          let html = '';
+          
+          teams.forEach(team => {
+            html += \`
+              <tr>
+                <td>\${team.team_name}</td>
+                <td>
+                  <input type="text" class="zh-input" id="team-zh-\${team.id}" 
+                         placeholder="输入中文名" style="width: 200px;" />
+                </td>
+                <td>
+                  <button class="btn btn-primary btn-sm" onclick="updateTeamZh('\${team.id}')">保存</button>
+                </td>
+              </tr>
+            \`;
+          });
+          
+          document.getElementById('teamsTableBody').innerHTML = html;
+          
+          // 分页
+          const totalPages = Math.ceil(total / PAGE_SIZE);
+          let paginationHtml = '';
+          if (page > 0) {
+            paginationHtml += \`<button class="btn btn-sm" onclick="loadTeamsWithoutZh(\${page - 1})">上一页</button>\`;
+          }
+          paginationHtml += \` <span style="margin: 0 10px;">第 \${page + 1} 页 / 共 \${totalPages} 页 (共 \${total} 条)</span> \`;
+          if (page < totalPages - 1) {
+            paginationHtml += \`<button class="btn btn-sm" onclick="loadTeamsWithoutZh(\${page + 1})">下一页</button>\`;
+          }
+          document.getElementById('teamsPagination').innerHTML = paginationHtml;
+        }
+      } catch (err) {
+        console.error('加载车队列表失败:', err);
+      }
+    }
+    
+    // 更新车队中文名
+    async function updateTeamZh(teamId) {
+      const input = document.getElementById(\`team-zh-\${teamId}\`);
+      const teamNameZh = input.value.trim();
+      
+      if (!teamNameZh) {
+        alert('请输入中文名');
+        return;
+      }
+      
+      try {
+        const res = await fetch(\`\${API_BASE}/api/v1/admin/team/\${teamId}/chinese-name\`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ team_name_zh: teamNameZh })
+        });
+        
+        const result = await res.json();
+        
+        if (result.code === 200) {
+          alert('✅ 更新成功！');
+          loadTeamsWithoutZh(currentTeamPage);
+          loadTranslationStats();
+        } else {
+          alert(\`❌ 更新失败: \${result.message}\`);
+        }
+      } catch (err) {
+        alert('❌ 更新失败: ' + err.message);
+      }
+    }
+    
+    // 搜索车手
+    function searchRiders() {
+      loadRidersWithoutZh(0);
+    }
+    
+    // 搜索车队
+    function searchTeams() {
+      loadTeamsWithoutZh(0);
+    }
+    
+    // 页面加载时初始化
+    window.onload = function() {
+      loadDbStats();
+      loadTranslationStats();
+    };
+  </script>
+</body>
+</html>

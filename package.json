@@ -1,0 +1,44 @@
+{
+  "name": "jersey-api",
+  "version": "1.0.0",
+  "description": "领骑/Jersey - 自行车比赛成绩查询小程序后端API",
+  "main": "server/app.js",
+  "scripts": {
+    "start": "node server/app.js",
+    "dev": "nodemon server/app.js",
+    "init-db": "node server/scripts/init-db.js",
+    "seed": "node server/scripts/seed-test-data.js",
+    "sync-pcs": "node server/scripts/sync-pcs.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "cycling",
+    "uci",
+    "results",
+    "api"
+  ],
+  "author": "Chen Peng",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^1.6.0",
+    "cheerio": "^1.0.0-rc.12",
+    "cloudscraper": "^4.6.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "jsdom": "^29.1.1",
+    "mysql2": "^3.6.0",
+    "playwright": "^1.60.0",
+    "playwright-extra": "^4.3.6",
+    "playwright-stealth": "^0.0.1",
+    "puppeteer": "^24.43.1",
+    "puppeteer-core": "^24.43.1",
+    "puppeteer-extra": "^3.3.6",
+    "puppeteer-extra-plugin-stealth": "^2.11.2",
+    "scrapingbee": "^1.8.2",
+    "uuid": "^9.0.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+}

@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>领骑 / Jersey — 赛事首页</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f0f2f5; color: #333; -webkit-font-smoothing: antialiased; }
+    
+    /* 微信小程序风格 */
+    .page { max-width: 430px; margin: 0 auto; min-height: 100vh; background: #fff; }
+    
+    /* 导航栏 */
+    .nav-bar { background: linear-gradient(135deg, #1890ff, #40a9ff); padding: 48px 16px 12px; color: white; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 8px rgba(24,144,255,0.3); }
+    .nav-bar h1 { font-size: 18px; font-weight: 600; }
+    .nav-bar p { font-size: 12px; opacity: 0.85; margin-top: 4px; }
+
+    /* 搜索栏 */
+    .search-bar { padding: 12px 16px; background: #fff; border-bottom: 1px solid #f0f0f0; position: sticky; top: 60px; z-index: 99; }
+    .search-input { width: 100%; padding: 8px 12px; border: 1px solid #e0e0e0; border-radius: 20px; font-size: 14px; background: #f5f5f5; outline: none; transition: border-color 0.2s; }
+    .search-input:focus { border-color: #1890ff; background: #fff; }
+
+    /* 赛事卡片 */
+    .race-list { padding: 12px; }
+    .race-card { background: #fff; border-radius: 12px; overflow: hidden; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); transition: transform 0.15s, box-shadow 0.15s; cursor: pointer; border: 1px solid #f0f0f0; }
+    .race-card:active { transform: scale(0.98); box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+    .race-header { display: flex; align-items: center; padding: 14px 16px 10px; gap: 12px; }
+    .race-logo { width: 44px; height: 44px; border-radius: 8px; background: #f5f5f5; display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; }
+    .race-title h3 { font-size: 16px; font-weight: 600; color: #1a1a1a; line-height: 1.3; }
+    .race-title .en { font-size: 12px; color: #999; margin-top: 2px; }
+    .race-badge { margin-left: auto; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 500; background: #e6f7ff; color: #1890ff; white-space: nowrap; }
+    .race-meta { display: flex; gap: 16px; padding: 8px 16px 14px; font-size: 12px; color: #888; }
+    .race-meta span { display: flex; align-items: center; gap: 4px; }
+    .race-actions { border-top: 1px solid #f5f5f5; display: flex; }
+    .race-action { flex: 1; text-align: center; padding: 10px 0; font-size: 13px; color: #666; cursor: pointer; transition: background 0.15s; position: relative; }
+    .race-action:not(:last-child)::after { content: ''; position: absolute; right: 0; top: 20%; height: 60%; width: 1px; background: #f0f0f0; }
+    .race-action:active { background: #f5f5f5; color: #1890ff; }
+    .race-action .icon { font-size: 18px; margin-right: 4px; }
+
+    /* 标签页 */
+    .tabs { display: flex; background: #fff; border-bottom: 1px solid #f0f0f0; position: sticky; top: 108px; z-index: 98; }
+    .tab { flex: 1; text-align: center; padding: 12px 0; font-size: 14px; color: #666; cursor: pointer; position: relative; transition: color 0.2s; }
+    .tab.active { color: #1890ff; font-weight: 600; }
+    .tab.active::after { content: ''; position: absolute; bottom: 0; left: 25%; width: 50%; height: 3px; background: #1890ff; border-radius: 3px 3px 0 0; }
+
+    /* 空状态 */
+    .empty { text-align: center; padding: 60px 20px; color: #bbb; }
+    .empty .icon { font-size: 48px; margin-bottom: 12px; }
+    .empty p { font-size: 14px; }
+    .loading { text-align: center; padding: 40px; color: #999; font-size: 14px; }
+
+    /* 领骑衫颜色圆点 */
+    .jersey-dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; margin-right: 4px; vertical-align: middle; }
+    .jersey-pink { background: #ff69b4; }
+    .jersey-purple { background: #6b4c9a; }
+    .jersey-blue { background: #1890ff; }
+    .jersey-white { background: #f0f0f0; border: 1px solid #ddd; }
+    .jersey-yellow { background: #fadb14; }
+    .jersey-red { background: #ff4d4f; }
+    .jersey-green { background: #52c41a; }
+
+    /* 结果列表 */
+    .result-item { display: flex; align-items: center; padding: 10px 16px; border-bottom: 1px solid #f8f8f8; }
+    .result-rank { width: 32px; font-size: 16px; font-weight: 700; color: #999; text-align: center; flex-shrink: 0; }
+    .result-rank.top3 { color: #1890ff; }
+    .result-rank.gc-1 { background: #fadb14; border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; font-size: 14px; }
+    .result-avatar { width: 36px; height: 36px; border-radius: 50%; background: #f0f2f5; margin-right: 12px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 16px; }
+    .result-info { flex: 1; min-width: 0; }
+    .result-name { font-size: 14px; font-weight: 500; color: #333; }
+    .result-team { font-size: 12px; color: #888; margin-top: 2px; }
+    .result-meta { font-size: 12px; color: #bbb; margin-left: 8px; white-space: nowrap; }
+    .result-time { font-size: 14px; font-weight: 600; color: #333; white-space: nowrap; }
+    .result-gap { font-size: 12px; color: #999; }
+
+    /* GC总榜样式 */
+    .gc-header { background: linear-gradient(135deg, #fadb14, #fa8c16); padding: 20px 16px; color: #fff; }
+    .gc-header h2 { font-size: 18px; font-weight: 700; }
+    .gc-header p { font-size: 12px; opacity: 0.85; margin-top: 4px; }
+
+    /* 搜索建议 */
+    .search-suggestions { padding: 8px 16px; border-bottom: 1px solid #f0f0f0; background: #fff; }
+    .suggestion-item { padding: 10px 0; border-bottom: 1px solid #f8f8f8; font-size: 14px; color: #333; cursor: pointer; }
+    .suggestion-item:last-child { border-bottom: none; }
+    .suggestion-item:hover { color: #1890ff; }
+
+    /* 弹窗 */
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: flex-end; justify-content: center; }
+    .modal-overlay.show { display: flex; }
+    .modal-content { background: #fff; border-radius: 16px 16px 0 0; width: 100%; max-width: 430px; max-height: 85vh; overflow-y: auto; animation: slideUp 0.25s ease-out; }
+    @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+    .modal-handle { width: 36px; height: 4px; background: #ddd; border-radius: 2px; margin: 10px auto; }
+    .modal-body { padding: 0 20px 30px; }
+
+    /* 错误提示 */
+    .error-toast { position: fixed; top: 80px; left: 50%; transform: translateX(-50%); background: #ff4d4f; color: #fff; padding: 10px 20px; border-radius: 8px; font-size: 14px; z-index: 2000; animation: fadeIn 0.3s; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateX(-50%) translateY(-10px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
+
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+<div class="page" id="app">
+
+  <!-- 首页：赛事列表 -->
+  <div id="homeView">
+    <div class="nav-bar">
+      <h1>🚴 领骑 Jersey</h1>
+      <p>自行车赛事成绩 · 领骑衫 · 实时排名</p>
+    </div>
+    <div class="search-bar">
+      <input type="text" class="search-input" id="searchInput" placeholder="搜索赛事、车手、车队…">
+    </div>
+    <div id="raceList" class="race-list">
+      <div class="loading">⏳ 加载中…</div>
+    </div>
+  </div>
+
+  <!-- 赛事详情页 -->
+  <div id="raceView" class="hidden">
+    <div class="nav-bar">
+      <h1 onclick="goHome()" style="cursor:pointer;">← 返回</h1>
+      <p id="raceSubtitle">赛事详情</p>
+    </div>
+    <div id="raceDetail">
+      <div class="loading">⏳ 加载中…</div>
+    </div>
+  </div>
+
+  <!-- GC总成绩榜页 -->
+  <div id="gcView" class="hidden">
+    <div class="gc-header">
+      <div style="cursor:pointer; opacity:0.85; margin-bottom:8px;" onclick="goHome()">← 返回赛事</div>
+      <h2>🏆 总成绩榜 GC</h2>
+      <p id="gcSubtitle">General Classification</p>
+    </div>
+    <div id="gcList"></div>
+  </div>
+
+  <!-- 赛段成绩页 -->
+  <div id="stageView" class="hidden">
+    <div class="nav-bar">
+      <h1 onclick="goHome()" style="cursor:pointer;">← 返回</h1>
+      <p id="stageSubtitle">赛段成绩</p>
+    </div>
+    <div id="stageDetail">
+      <div class="loading">⏳ 加载中…</div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const API = 'http://localhost:3000/api/v1';
+let currentRace = null;
+
+// ===== 首页：赛事列表 =====
+async function loadRaces() {
+  const listEl = document.getElementById('raceList');
+  try {
+    const res = await fetch(`${API}/races`);
+    const json = await res.json();
+    if (json.code !== 200) throw new Error(json.message);
+
+    if (json.data.length === 0) {
+      listEl.innerHTML = '<div class="empty"><div class="icon">🏁</div><p>暂无赛事数据</p></div>';
+      return;
+    }
+
+    listEl.innerHTML = json.data.map(race => `
+      <div class="race-card" onclick="openRace('${race.id}')">
+        <div class="race-header">
+          <div class="race-logo">🚴</div>
+          <div class="race-title">
+            <h3>${race.race_name_zh || race.race_name}</h3>
+            <div class="en">${race.race_name_en}</div>
+          </div>
+          <span class="race-badge">${race.category}</span>
+        </div>
+        <div class="race-meta">
+          <span>📅 ${race.start_date} ~ ${race.end_date}</span>
+          <span>📍 ${race.country || '—'}</span>
+          <span>📏 ${race.total_distance || '—'} km</span>
+        </div>
+        <div class="race-actions">
+          <div class="race-action" onclick="event.stopPropagation();openRace(${race.id})">
+            <span class="icon">📋</span>总成绩榜
+          </div>
+          <div class="race-action" onclick="event.stopPropagation();openRace(${race.id})">
+            <span class="icon">🚩</span>赛段列表
+          </div>
+          <div class="race-action" onclick="event.stopPropagation();openRace(${race.id})">
+            <span class="icon">👕</span>领骑衫
+          </div>
+          <div class="race-action" onclick="event.stopPropagation();openRace(${race.id})">
+            <span class="icon">🔍</span>搜索
+          </div>
+        </div>
+      </div>
+    `).join('');
+  } catch (err) {
+    listEl.innerHTML = `<div class="empty"><div class="icon">⚠️</div><p>加载失败：${err.message}</p></div>`;
+  }
+}
+
+// ===== 打开赛事详情 =====
+async function openRace(raceId) {
+  document.getElementById('homeView').classList.add('hidden');
+  document.getElementById('raceView').classList.remove('hidden');
+  document.getElementById('gcView').classList.add('hidden');
+  document.getElementById('stageView').classList.add('hidden');
+
+  try {
+    const res = await fetch(`${API}/races/${raceId}`);
+    const json = await res.json();
+    if (json.code !== 200) throw new Error(json.message);
+    currentRace = json.data;
+
+    document.getElementById('raceSubtitle').textContent = currentRace.race_name_zh || currentRace.race_name;
+
+    // 赛段列表
+    const stagesRes = await fetch(`${API}/races/${raceId}/stages`);
+    const stagesJson = await stagesRes.json();
+    const stages = stagesJson.data || [];
+
+    // GC排名
+    const gcRes = await fetch(`${API}/races/${raceId}/gc`);
+    const gcJson = await gcRes.json();
+    const gcData = gcJson.data || [];
+
+    // 领骑衫
+    let jerseysHtml = '';
+    if (stages.length > 0) {
+      const lastStageId = stages[stages.length - 1].id;
+      const jRes = await fetch(`${API}/stages/${lastStageId}/jerseys`);
+      const jJson = await jRes.json();
+      jerseysHtml = buildJerseysHtml(jJson.data || []);
+    }
+
+    // 构建赛事详情页面
+    document.getElementById('raceDetail').innerHTML = `
+      <!-- GC总榜 -->
+      <div style="margin:12px; background:#fffbe6; border-radius:12px; overflow:hidden; border:1px solid #ffe58f;" onclick="showGC('${raceId}')">
+        <div style="padding:12px 16px; background:linear-gradient(135deg,#fadb14,#fa8c16); color:#fff;">
+          <span style="font-size:16px;font-weight:700;">🏆 总成绩榜 GC</span>
+          <span style="font-size:12px;opacity:0.85;margin-left:8px;">当前排名第1：${gcData[0]?.rider_name_zh || '—'}</span>
+        </div>
+        ${gcData.length > 0 ? `<div style="padding:10px 16px; font-size:13px; color:#666;">
+          🥇 ${gcData[0]?.rider_name_zh || '—'} · 🕐 ${gcData[0]?.time || gcData[0]?.gap || '—'}
+        </div>` : '<div style="padding:10px 16px;color:#999;font-size:13px;">暂无GC数据</div>'}
+      </div>
+
+      <!-- 领骑衫 -->
+      ${jerseysHtml ? `<div style="margin:12px;"><h3 style="font-size:15px;padding:0 4px 8px;">👕 领骑衫 (最新赛段)</h3>${jerseysHtml}</div>` : ''}
+
+      <!-- 赛段列表 -->
+      <div style="margin:12px;">
+        <h3 style="font-size:15px;padding:0 4px 8px;">🚩 赛段列表 (${stages.length})</h3>
+        <div style="border-radius:12px; overflow:hidden; border:1px solid #f0f0f0;">
+          ${stages.map(s => `
+            <div style="display:flex;align-items:center;padding:12px 16px;border-bottom:1px solid #f8f8f8;cursor:pointer;"
+                 onclick="showStage('${s.id}', ${raceId})">
+              <span style="width:28px;height:28px;border-radius:50%;background:${s.stage_type==='TT'?'#e6f7ff':'#f6ffed'};color:${s.stage_type==='TT'?'#1890ff':'#52c41a'};display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;margin-right:12px;flex-shrink:0;">
+                ${s.stage_number}
+              </span>
+              <div style="flex:1;min-width:0;">
+                <div style="font-size:14px;font-weight:500;">${s.stage_name_zh || s.stage_name}</div>
+                <div style="font-size:12px;color:#999;margin-top:2px;">${s.start_location} → ${s.finish_location} · ${s.distance}km</div>
+              </div>
+              <span style="font-size:12px;color:#bbb;">›</span>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  } catch (err) {
+    document.getElementById('raceDetail').innerHTML = `<div class="empty"><div class="icon">⚠️</div><p>加载失败：${err.message}</p></div>`;
+  }
+}
+
+// ===== 领骑衫展示 =====
+function buildJerseysHtml(jerseys) {
+  const colorMap = { PINK:'pink', PURPLE:'purple', BLUE:'blue', WHITE:'white', YELLOW:'yellow', RED:'red', GREEN:'green', ORANGE:'orange' };
+  const labelMap = { PINK:'粉衫', PURPLE:'紫衫', BLUE:'蓝衫', WHITE:'白衫', YELLOW:'黄衫', RED:'红衫', GREEN:'绿衫', ORANGE:'橙衫' };
+  return `<div style="display:flex;gap:8px;flex-wrap:wrap;padding:12px 16px;background:#fff;border-radius:12px;border:1px solid #f0f0f0;">
+    ${jerseys.map(j => `
+      <div style="display:flex;flex-direction:column;align-items:center;width:64px;">
+        <div style="width:44px;height:44px;border-radius:50%;background:${jerseyBg(j.jersey_type)};display:flex;align-items:center;justify-content:center;font-size:20px;border:2px solid rgba(0,0,0,0.08);box-shadow:0 2px 6px rgba(0,0,0,0.1);">
+          🚴
+        </div>
+        <span style="font-size:11px;margin-top:4px;color:#555;">${j.jersey_type ? (labelMap[j.jersey_type]||j.jersey_type) : '—'}</span>
+        <span style="font-size:11px;color:#999;">${j.rider_name_zh || j.rider_name || '—'}</span>
+      </div>
+    `).join('')}
+  </div>`;
+}
+
+function jerseyBg(type) {
+  const map = { PINK:'#ffb6c1', PURPLE:'#d5c4e0', BLUE:'#bae7ff', WHITE:'#f5f5f5', YELLOW:'#fff7b8', RED:'#ffccc7', GREEN:'#d9f7be', ORANGE:'#ffe8cc' };
+  return map[type] || '#eee';
+}
+
+// ===== 总成绩榜 =====
+async function showGC(raceId) {
+  document.getElementById('raceView').classList.add('hidden');
+  document.getElementById('gcView').classList.remove('hidden');
+
+  try {
+    const res = await fetch(`${API}/races/${raceId}/gc`);
+    const json = await res.json();
+    const data = json.data || [];
+
+    if (currentRace) document.getElementById('gcSubtitle').textContent = currentRace.race_name_zh || currentRace.race_name;
+
+    if (data.length === 0) {
+      document.getElementById('gcList').innerHTML = '<div class="empty"><div class="icon">🏆</div><p>暂无GC数据</p></div>';
+      return;
+    }
+
+    document.getElementById('gcList').innerHTML = data.map((r, i) => `
+      <div class="result-item" style="${i===0?'background:#fffbe6;':''}">
+        <div class="result-rank ${i===0?'gc-1':''}">${i===0?'🥇':r.rank}</div>
+        <div class="result-avatar">${r.nationality ? r.nationality.substring(0,2).toUpperCase() : '🚴'}</div>
+        <div class="result-info">
+          <div class="result-name">${r.rider_name_zh || r.rider_name} <span style="font-size:11px;color:#bbb;">${r.nationality||''}</span></div>
+          <div class="result-team">${r.team_name_zh || r.team_name}</div>
+        </div>
+        <div style="text-align:right;">
+          <div class="result-time">${r.time || r.gap || '—'}</div>
+          ${i>0 ? `<div class="result-gap">+${r.gap || '—'}</div>` : ''}
+        </div>
+      </div>
+    `).join('');
+  } catch (err) {
+    document.getElementById('gcList').innerHTML = `<div class="empty"><div class="icon">⚠️</div><p>加载失败</p></div>`;
+  }
+}
+
+// ===== 赛段详情 =====
+async function showStage(stageId, raceId) {
+  document.getElementById('raceView').classList.add('hidden');
+  document.getElementById('stageView').classList.remove('hidden');
+
+  try {
+    const res = await fetch(`${API}/stages/${stageId}/results?limit=20`);
+    const json = await res.json();
+    const results = json.data || [];
+
+    const stageRes = await fetch(`${API}/stages/${stageId}`);
+    const stageJson = await stageRes.json();
+    const stage = stageJson.data || {};
+
+    document.getElementById('stageSubtitle').textContent = stage.stage_name_zh || stage.stage_name || `赛段 ${stage.stage_number}`;
+
+    document.getElementById('stageDetail').innerHTML = `
+      <div style="padding:12px 16px;background:#fff;border-bottom:1px solid #f0f0f0;">
+        <div style="font-size:14px;color:#666;margin-bottom:4px;">${stage.start_location || ''} → ${stage.finish_location || ''} · ${stage.distance||''}km · ${stage.stage_type||''}</div>
+        <div style="font-size:16px;font-weight:600;">${stage.stage_name_zh || stage.stage_name || '赛段 ' + stage.stage_number}</div>
+      </div>
+      ${results.length > 0 ? `
+        <div style="padding:12px 16px;">
+          ${results.map((r,i) => `
+            <div class="result-item" style="${i<3?'background:#fafffe;':''}border-radius:8px;margin-bottom:4px;">
+              <div class="result-rank ${i<3?'top3':''}">${r.rank}</div>
+              <div class="result-avatar">${r.nationality ? r.nationality.substring(0,2).toUpperCase() : '🚴'}</div>
+              <div class="result-info">
+                <div class="result-name">${r.rider_name_zh || r.rider_name}</div>
+                <div class="result-team">${r.team_name_zh || r.team_name}</div>
+              </div>
+              <div style="text-align:right;">
+                <div class="result-time">${r.time || r.gap || '—'}</div>
+                ${i>0 ? `<div class="result-gap">+${r.gap || '—'}</div>` : ''}
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      ` : '<div class="empty"><div class="icon">📋</div><p>暂无成绩数据</p></div>'}
+    `;
+  } catch (err) {
+    document.getElementById('stageDetail').innerHTML = `<div class="empty"><div class="icon">⚠️</div><p>加载失败</p></div>`;
+  }
+}
+
+// ===== 返回首页 =====
+function goHome() {
+  document.getElementById('homeView').classList.remove('hidden');
+  document.getElementById('raceView').classList.add('hidden');
+  document.getElementById('gcView').classList.add('hidden');
+  document.getElementById('stageView').classList.add('hidden');
+}
+
+// ===== 搜索 =====
+let searchTimer = null;
+document.getElementById('searchInput').addEventListener('input', e => {
+  clearTimeout(searchTimer);
+  const q = e.target.value.trim();
+  if (q.length < 2) return;
+  searchTimer = setTimeout(() => searchRiders(q), 300);
+});
+
+async function searchRiders(q) {
+  try {
+    const res = await fetch(`${API}/search/riders?q=${encodeURIComponent(q)}&limit=5`);
+    const json = await res.json();
+    const data = json.data || [];
+    if (data.length === 0) return;
+    showSearchModal(data);
+  } catch (err) { console.error(err); }
+}
+
+function showSearchModal(results) {
+  let overlay = document.querySelector('.modal-overlay');
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.className = 'modal-overlay';
+    overlay.innerHTML = '<div class="modal-content"><div class="modal-handle"></div><div class="modal-body" id="modalBody"></div></div>';
+    document.getElementById('app').appendChild(overlay);
+  }
+  document.getElementById('modalBody').innerHTML = results.map(r => `
+    <div class="suggestion-item" onclick="closeModal()">
+      ${r.rider_name_zh || r.rider_name} <span style="color:#999;font-size:12px;margin-left:8px;">${r.nationality || ''}</span>
+    </div>
+  `).join('');
+  overlay.classList.add('show');
+}
+
+function closeModal() {
+  const overlay = document.querySelector('.modal-overlay');
+  if (overlay) overlay.classList.remove('show');
+}
+document.querySelector('.modal-overlay')?.addEventListener('click', e => { if (e.target === e.currentTarget) closeModal(); });
+
+// 初始化
+loadRaces();
+</script>
+</body>
+</html>

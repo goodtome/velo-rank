@@ -1,0 +1,1568 @@
+[
+  {
+    "rank": 1,
+    "gc_rank": 2,
+    "rider_name": "Arrieta Igor",
+    "team_name": "UAE Team Emirates - XRG",
+    "time_gap": "+2:51",
+    "time": "5:07:51",
+    "bib": "192"
+  },
+  {
+    "rank": 2,
+    "gc_rank": 1,
+    "rider_name": "Eulálio Afonso",
+    "team_name": "Bahrain - Victorious",
+    "time_gap": "+0:00",
+    "time": "0:02",
+    "bib": "14"
+  },
+  {
+    "rank": 3,
+    "gc_rank": 40,
+    "rider_name": "Silva Guillermo Thomas",
+    "team_name": "XDS Astana Team",
+    "time_gap": "+12:02",
+    "time": "0:51",
+    "bib": "227"
+  },
+  {
+    "rank": 4,
+    "gc_rank": 34,
+    "rider_name": "Milesi Lorenzo",
+    "team_name": "Movistar Team",
+    "time_gap": "+8:57",
+    "time": "1:29",
+    "bib": "85"
+  },
+  {
+    "rank": 5,
+    "gc_rank": 3,
+    "rider_name": "Scaroni Christian",
+    "team_name": "XDS Astana Team",
+    "time_gap": "+3:34",
+    "time": "1:30",
+    "bib": "226"
+  },
+  {
+    "rank": 6,
+    "gc_rank": 42,
+    "rider_name": "Garofoli Gianmarco",
+    "team_name": "Soudal Quick-Step",
+    "time_gap": "+13:56",
+    "time": ",,",
+    "bib": "133"
+  },
+  {
+    "rank": 7,
+    "gc_rank": 27,
+    "rider_name": "Bouwman Koen",
+    "team_name": "Team Jayco AlUla",
+    "time_gap": "+7:20",
+    "time": "3:11",
+    "bib": "143"
+  },
+  {
+    "rank": 8,
+    "gc_rank": 5,
+    "rider_name": "Kulset Johannes",
+    "team_name": "Uno-X Mobility",
+    "time_gap": "+5:17",
+    "time": "3:13",
+    "bib": "214"
+  },
+  {
+    "rank": 9,
+    "gc_rank": 4,
+    "rider_name": "Raccagni Noviero Andrea",
+    "team_name": "Soudal Quick-Step",
+    "time_gap": "+3:39",
+    "time": "3:29",
+    "bib": "134"
+  },
+  {
+    "rank": 10,
+    "gc_rank": 32,
+    "rider_name": "Crescioli Ludovico",
+    "team_name": "Team Polti VisitMalta",
+    "time_gap": "+7:47",
+    "time": "4:42",
+    "bib": "162"
+  },
+  {
+    "rank": 11,
+    "gc_rank": 36,
+    "rider_name": "López Harold Martín",
+    "team_name": "XDS Astana Team",
+    "time_gap": "+9:17",
+    "time": "7:13",
+    "bib": "224"
+  },
+  {
+    "rank": 12,
+    "gc_rank": 12,
+    "rider_name": "Van Eetvelt Lennert",
+    "team_name": "Lotto Intermarché",
+    "time_gap": "+6:22",
+    "time": ",,",
+    "bib": "78"
+  },
+  {
+    "rank": 13,
+    "gc_rank": 51,
+    "rider_name": "Paletti Luca",
+    "team_name": "Bardiani CSF 7 Saber",
+    "time_gap": "+16:51",
+    "time": ",,",
+    "bib": "23"
+  },
+  {
+    "rank": 14,
+    "gc_rank": 38,
+    "rider_name": "Vlasov Aleksandr",
+    "team_name": "Red Bull - BORA - hansgrohe",
+    "time_gap": "+10:18",
+    "time": ",,",
+    "bib": "127"
+  },
+  {
+    "rank": 15,
+    "gc_rank": 14,
+    "rider_name": "Beloki Markel",
+    "team_name": "EF Education - EasyPost",
+    "time_gap": "+6:22",
+    "time": ",,",
+    "bib": "43"
+  },
+  {
+    "rank": 16,
+    "gc_rank": 20,
+    "rider_name": "O'Connor Ben",
+    "team_name": "Team Jayco AlUla",
+    "time_gap": "+6:22",
+    "time": ",,",
+    "bib": "141"
+  },
+  {
+    "rank": 17,
+    "gc_rank": 35,
+    "rider_name": "Romo Javier",
+    "team_name": "Movistar Team",
+    "time_gap": "+9:17",
+    "time": ",,",
+    "bib": "87"
+  },
+  {
+    "rank": 18,
+    "gc_rank": 8,
+    "rider_name": "Stork Florian",
+    "team_name": "Tudor Pro Cycling Team",
+    "time_gap": "+6:16",
+    "time": ",,",
+    "bib": "187"
+  },
+  {
+    "rank": 19,
+    "gc_rank": 19,
+    "rider_name": "Cepeda Jefferson Alexander",
+    "team_name": "EF Education - EasyPost",
+    "time_gap": "+6:22",
+    "time": ",,",
+    "bib": "41"
+  },
+  {
+    "rank": 20,
+    "gc_rank": 44,
+    "rider_name": "Tjøtta Martin",
+    "team_name": "Uno-X Mobility",
+    "time_gap": "+14:46",
+    "time": ",,",
+    "bib": "218"
+  },
+  {
+    "rank": 21,
+    "gc_rank": 37,
+    "rider_name": "Leknessund Andreas",
+    "team_name": "Uno-X Mobility",
+    "time_gap": "+9:17",
+    "time": ",,",
+    "bib": "216"
+  },
+  {
+    "rank": 22,
+    "gc_rank": 11,
+    "rider_name": "Pellizzari Giulio",
+    "team_name": "Red Bull - BORA - hansgrohe",
+    "time_gap": "+6:18",
+    "time": ",,",
+    "bib": "125"
+  },
+  {
+    "rank": 23,
+    "gc_rank": 18,
+    "rider_name": "Hindley Jai",
+    "team_name": "Red Bull - BORA - hansgrohe",
+    "time_gap": "+6:22",
+    "time": ",,",
+    "bib": "121"
+  },
+  {
+    "rank": 24,
+    "gc_rank": 22,
+    "rider_name": "Piganzoli Davide",
+    "team_name": "Team Visma | Lease a Bike",
+    "time_gap": "+6:22",
+    "time": ",,",
+    "bib": "177"
+  },
+  {
+    "rank": 25,
+    "gc_rank": 21,
+    "rider_name": "Rondel Mathys",
+    "team_name": "Tudor Pro Cycling Team",
+    "time_gap": "+6:22",
+    "time": ",,",
+    "bib": "186"
+  },
+  {
+    "rank": 26,
+    "gc_rank": 7,
+    "rider_name": "Christen Jan",
+    "team_name": "UAE Team Emirates - XRG",
+    "time_gap": "+6:16",
+    "time": ",,",
+    "bib": "194"
+  },
+  {
+    "rank": 27,
+    "gc_rank": 15,
+    "rider_name": "Vingegaard Jonas",
+    "team_name": "Team Visma | Lease a Bike",
+    "time_gap": "+6:22",
+    "time": ",,",
+    "bib": "171"
+  },
+  {
+    "rank": 28,
+    "gc_rank": 6,
+    "rider_name": "Ciccone Giulio",
+    "team_name": "Lidl - Trek",
+    "time_gap": "+6:12",
+    "time": ",,",
+    "bib": "61"
+  },
+  {
+    "rank": 29,
+    "gc_rank": 28,
+    "rider_name": "Gee-West Derek",
+    "team_name": "Lidl - Trek",
+    "time_gap": "+7:23",
+    "time": ",,",
+    "bib": "63"
+  },
+  {
+    "rank": 30,
+    "gc_rank": 10,
+    "rider_name": "Arensman Thymen",
+    "team_name": "Netcompany INEOS",
+    "time_gap": "+6:18",
+    "time": ",,",
+    "bib": "92"
+  },
+  {
+    "rank": 31,
+    "gc_rank": 13,
+    "rider_name": "Mas Enric",
+    "team_name": "Movistar Team",
+    "time_gap": "+6:22",
+    "time": ",,",
+    "bib": "81"
+  },
+  {
+    "rank": 32,
+    "gc_rank": 17,
+    "rider_name": "Caruso Damiano",
+    "team_name": "Bahrain - Victorious",
+    "time_gap": "+6:22",
+    "time": ",,",
+    "bib": "12"
+  },
+  {
+    "rank": 33,
+    "gc_rank": 9,
+    "rider_name": "Bernal Egan",
+    "team_name": "Netcompany INEOS",
+    "time_gap": "+6:16",
+    "time": ",,",
+    "bib": "91"
+  },
+  {
+    "rank": 34,
+    "gc_rank": 30,
+    "rider_name": "de la Cruz David",
+    "team_name": "Pinarello Q36.5 Pro Cycling Team",
+    "time_gap": "+7:23",
+    "time": ",,",
+    "bib": "113"
+  },
+  {
+    "rank": 35,
+    "gc_rank": 23,
+    "rider_name": "Storer Michael",
+    "team_name": "Tudor Pro Cycling Team",
+    "time_gap": "+6:22",
+    "time": ",,",
+    "bib": "181"
+  },
+  {
+    "rank": 36,
+    "gc_rank": 31,
+    "rider_name": "Harper Chris",
+    "team_name": "Pinarello Q36.5 Pro Cycling Team",
+    "time_gap": "+7:23",
+    "time": ",,",
+    "bib": "116"
+  },
+  {
+    "rank": 37,
+    "gc_rank": 24,
+    "rider_name": "Gall Felix",
+    "team_name": "Decathlon CMA CGM Team",
+    "time_gap": "+6:22",
+    "time": ",,",
+    "bib": "31"
+  },
+  {
+    "rank": 38,
+    "gc_rank": 33,
+    "rider_name": "Mühlberger Gregor",
+    "team_name": "Decathlon CMA CGM Team",
+    "time_gap": "+8:27",
+    "time": ",,",
+    "bib": "34"
+  },
+  {
+    "rank": 39,
+    "gc_rank": 26,
+    "rider_name": "Kench Josh",
+    "team_name": "Groupama - FDJ United",
+    "time_gap": "+6:22",
+    "time": ",,",
+    "bib": "55"
+  },
+  {
+    "rank": 40,
+    "gc_rank": 29,
+    "rider_name": "Kuss Sepp",
+    "team_name": "Team Visma | Lease a Bike",
+    "time_gap": "+7:23",
+    "time": ",,",
+    "bib": "175"
+  },
+  {
+    "rank": 41,
+    "gc_rank": 45,
+    "rider_name": "Scotson Callum",
+    "team_name": "Decathlon CMA CGM Team",
+    "time_gap": "+15:00",
+    "time": ",,",
+    "bib": "37"
+  },
+  {
+    "rank": 42,
+    "gc_rank": 25,
+    "rider_name": "Aleotti Giovanni",
+    "team_name": "Red Bull - BORA - hansgrohe",
+    "time_gap": "+6:22",
+    "time": ",,",
+    "bib": "122"
+  },
+  {
+    "rank": 43,
+    "gc_rank": 43,
+    "rider_name": "López Juan Pedro",
+    "team_name": "Movistar Team",
+    "time_gap": "+13:59",
+    "time": ",,",
+    "bib": "84"
+  },
+  {
+    "rank": 44,
+    "gc_rank": 16,
+    "rider_name": "Hirt Jan",
+    "team_name": "NSN Cycling Team",
+    "time_gap": "+6:22",
+    "time": ",,",
+    "bib": "102"
+  },
+  {
+    "rank": 45,
+    "gc_rank": 39,
+    "rider_name": "Tarozzi Manuele",
+    "team_name": "Bardiani CSF 7 Saber",
+    "time_gap": "+11:52",
+    "time": "7:55",
+    "bib": "25"
+  },
+  {
+    "rank": 46,
+    "gc_rank": 61,
+    "rider_name": "Mifsud Andrea",
+    "team_name": "Team Polti VisitMalta",
+    "time_gap": "+20:28",
+    "time": "8:02",
+    "bib": "165"
+  },
+  {
+    "rank": 47,
+    "gc_rank": 41,
+    "rider_name": "Narváez Jhonatan",
+    "team_name": "UAE Team Emirates - XRG",
+    "time_gap": "+12:49",
+    "time": "8:24",
+    "bib": "195"
+  },
+  {
+    "rank": 48,
+    "gc_rank": 81,
+    "rider_name": "Svestad-Bårdseng Embret",
+    "team_name": "Netcompany INEOS",
+    "time_gap": "+27:54",
+    "time": "13:17",
+    "bib": "96"
+  },
+  {
+    "rank": 49,
+    "gc_rank": 49,
+    "rider_name": "Poels Wout",
+    "team_name": "Unibet Rose Rockets",
+    "time_gap": "+16:17",
+    "time": "16:07",
+    "bib": "207"
+  },
+  {
+    "rank": 50,
+    "gc_rank": 79,
+    "rider_name": "Staune-Mittet Johannes",
+    "team_name": "Decathlon CMA CGM Team",
+    "time_gap": "+26:44",
+    "time": "17:06",
+    "bib": "38"
+  },
+  {
+    "rank": 51,
+    "gc_rank": 60,
+    "rider_name": "Sheffield Magnus",
+    "team_name": "Netcompany INEOS",
+    "time_gap": "+20:11",
+    "time": ",,",
+    "bib": "95"
+  },
+  {
+    "rank": 52,
+    "gc_rank": 52,
+    "rider_name": "Pinarello Alessandro",
+    "team_name": "NSN Cycling Team",
+    "time_gap": "+17:16",
+    "time": ",,",
+    "bib": "101"
+  },
+  {
+    "rank": 53,
+    "gc_rank": 46,
+    "rider_name": "Rubio Einer",
+    "team_name": "Movistar Team",
+    "time_gap": "+16:15",
+    "time": ",,",
+    "bib": "88"
+  },
+  {
+    "rank": 54,
+    "gc_rank": 138,
+    "rider_name": "Rex Tim",
+    "team_name": "Team Visma | Lease a Bike",
+    "time_gap": "+44:08",
+    "time": ",,",
+    "bib": "178"
+  },
+  {
+    "rank": 55,
+    "gc_rank": 92,
+    "rider_name": "Stuyven Jasper",
+    "team_name": "Soudal Quick-Step",
+    "time_gap": "+31:43",
+    "time": ",,",
+    "bib": "135"
+  },
+  {
+    "rank": 56,
+    "gc_rank": 64,
+    "rider_name": "Schultz Nick",
+    "team_name": "NSN Cycling Team",
+    "time_gap": "+21:15",
+    "time": ",,",
+    "bib": "104"
+  },
+  {
+    "rank": 57,
+    "gc_rank": 53,
+    "rider_name": "Ulissi Diego",
+    "team_name": "XDS Astana Team",
+    "time_gap": "+17:16",
+    "time": ",,",
+    "bib": "228"
+  },
+  {
+    "rank": 58,
+    "gc_rank": 48,
+    "rider_name": "Sobrero Matteo",
+    "team_name": "Lidl - Trek",
+    "time_gap": "+16:15",
+    "time": ",,",
+    "bib": "66"
+  },
+  {
+    "rank": 59,
+    "gc_rank": 47,
+    "rider_name": "Zana Filippo",
+    "team_name": "Soudal Quick-Step",
+    "time_gap": "+16:15",
+    "time": ",,",
+    "bib": "138"
+  },
+  {
+    "rank": 60,
+    "gc_rank": 65,
+    "rider_name": "Valgren Michael",
+    "team_name": "EF Education - EasyPost",
+    "time_gap": "+21:41",
+    "time": ",,",
+    "bib": "47"
+  },
+  {
+    "rank": 61,
+    "gc_rank": 55,
+    "rider_name": "Turner Ben",
+    "team_name": "Netcompany INEOS",
+    "time_gap": "+18:38",
+    "time": "17:24",
+    "bib": "98"
+  },
+  {
+    "rank": 62,
+    "gc_rank": 54,
+    "rider_name": "Lemmen Bart",
+    "team_name": "Team Visma | Lease a Bike",
+    "time_gap": "+17:34",
+    "time": ",,",
+    "bib": "176"
+  },
+  {
+    "rank": 63,
+    "gc_rank": 56,
+    "rider_name": "Campenaerts Victor",
+    "team_name": "Team Visma | Lease a Bike",
+    "time_gap": "+18:38",
+    "time": ",,",
+    "bib": "172"
+  },
+  {
+    "rank": 64,
+    "gc_rank": 99,
+    "rider_name": "Tsvetkov Nikita",
+    "team_name": "Bardiani CSF 7 Saber",
+    "time_gap": "+32:58",
+    "time": "17:37",
+    "bib": "26"
+  },
+  {
+    "rank": 65,
+    "gc_rank": 112,
+    "rider_name": "Jacobs Johan",
+    "team_name": "Groupama - FDJ United",
+    "time_gap": "+36:06",
+    "time": ",,",
+    "bib": "54"
+  },
+  {
+    "rank": 66,
+    "gc_rank": 62,
+    "rider_name": "Segaert Alec",
+    "team_name": "Bahrain - Victorious",
+    "time_gap": "+20:42",
+    "time": ",,",
+    "bib": "16"
+  },
+  {
+    "rank": 67,
+    "gc_rank": 85,
+    "rider_name": "Barguil Warren",
+    "team_name": "Team Picnic PostNL",
+    "time_gap": "+29:27",
+    "time": ",,",
+    "bib": "151"
+  },
+  {
+    "rank": 68,
+    "gc_rank": 76,
+    "rider_name": "Pesenti Thomas",
+    "team_name": "Team Polti VisitMalta",
+    "time_gap": "+26:11",
+    "time": ",,",
+    "bib": "166"
+  },
+  {
+    "rank": 69,
+    "gc_rank": 97,
+    "rider_name": "Dversnes Lavik Fredrik",
+    "team_name": "Uno-X Mobility",
+    "time_gap": "+32:14",
+    "time": ",,",
+    "bib": "215"
+  },
+  {
+    "rank": 70,
+    "gc_rank": 115,
+    "rider_name": "Mihkels Madis",
+    "team_name": "EF Education - EasyPost",
+    "time_gap": "+36:19",
+    "time": ",,",
+    "bib": "44"
+  },
+  {
+    "rank": 71,
+    "gc_rank": 102,
+    "rider_name": "Paasschens Mathijs",
+    "team_name": "Bahrain - Victorious",
+    "time_gap": "+34:11",
+    "time": ",,",
+    "bib": "15"
+  },
+  {
+    "rank": 72,
+    "gc_rank": 90,
+    "rider_name": "Hoelgaard Markus",
+    "team_name": "Uno-X Mobility",
+    "time_gap": "+31:14",
+    "time": ",,",
+    "bib": "212"
+  },
+  {
+    "rank": 73,
+    "gc_rank": 68,
+    "rider_name": "Gualdi Simone",
+    "team_name": "Lotto Intermarché",
+    "time_gap": "+21:46",
+    "time": ",,",
+    "bib": "74"
+  },
+  {
+    "rank": 74,
+    "gc_rank": 119,
+    "rider_name": "García Cortina Iván",
+    "team_name": "NSN Cycling Team",
+    "time_gap": "+37:53",
+    "time": ",,",
+    "bib": "109"
+  },
+  {
+    "rank": 75,
+    "gc_rank": 94,
+    "rider_name": "Vernon Ethan",
+    "team_name": "Movistar Team",
+    "time_gap": "+31:55",
+    "time": ",,",
+    "bib": "83"
+  },
+  {
+    "rank": 76,
+    "gc_rank": 67,
+    "rider_name": "Zambanini Edoardo",
+    "team_name": "Bahrain - Victorious",
+    "time_gap": "+21:46",
+    "time": ",,",
+    "bib": "18"
+  },
+  {
+    "rank": 77,
+    "gc_rank": 123,
+    "rider_name": "Shaw James",
+    "team_name": "EF Education - EasyPost",
+    "time_gap": "+38:56",
+    "time": ",,",
+    "bib": "46"
+  },
+  {
+    "rank": 78,
+    "gc_rank": 59,
+    "rider_name": "Oliveira Nelson",
+    "team_name": "Movistar Team",
+    "time_gap": "+20:01",
+    "time": ",,",
+    "bib": "86"
+  },
+  {
+    "rank": 79,
+    "gc_rank": 110,
+    "rider_name": "Ackermann Pascal",
+    "team_name": "Team Jayco AlUla",
+    "time_gap": "+36:06",
+    "time": ",,",
+    "bib": "142"
+  },
+  {
+    "rank": 80,
+    "gc_rank": 105,
+    "rider_name": "Turconi Filippo",
+    "team_name": "Bardiani CSF 7 Saber",
+    "time_gap": "+34:24",
+    "time": ",,",
+    "bib": "27"
+  },
+  {
+    "rank": 81,
+    "gc_rank": 96,
+    "rider_name": "Magli Filippo",
+    "team_name": "Bardiani CSF 7 Saber",
+    "time_gap": "+32:14",
+    "time": ",,",
+    "bib": "21"
+  },
+  {
+    "rank": 82,
+    "gc_rank": 66,
+    "rider_name": "Tonelli Alessandro",
+    "team_name": "Team Polti VisitMalta",
+    "time_gap": "+21:44",
+    "time": ",,",
+    "bib": "168"
+  },
+  {
+    "rank": 83,
+    "gc_rank": 139,
+    "rider_name": "Geens Jonas",
+    "team_name": "Alpecin - Premier Tech",
+    "time_gap": "+44:39",
+    "time": ",,",
+    "bib": "4"
+  },
+  {
+    "rank": 84,
+    "gc_rank": 111,
+    "rider_name": "Maestri Mirco",
+    "team_name": "Team Polti VisitMalta",
+    "time_gap": "+36:06",
+    "time": ",,",
+    "bib": "164"
+  },
+  {
+    "rank": 85,
+    "gc_rank": 130,
+    "rider_name": "Swift Connor",
+    "team_name": "Netcompany INEOS",
+    "time_gap": "+41:35",
+    "time": ",,",
+    "bib": "97"
+  },
+  {
+    "rank": 86,
+    "gc_rank": 88,
+    "rider_name": "Rota Lorenzo",
+    "team_name": "Lotto Intermarché",
+    "time_gap": "+31:07",
+    "time": ",,",
+    "bib": "76"
+  },
+  {
+    "rank": 87,
+    "gc_rank": 89,
+    "rider_name": "Bayer Tobias",
+    "team_name": "Alpecin - Premier Tech",
+    "time_gap": "+31:07",
+    "time": ",,",
+    "bib": "2"
+  },
+  {
+    "rank": 88,
+    "gc_rank": 50,
+    "rider_name": "Engelhardt Felix",
+    "team_name": "Team Jayco AlUla",
+    "time_gap": "+16:46",
+    "time": ",,",
+    "bib": "145"
+  },
+  {
+    "rank": 89,
+    "gc_rank": 75,
+    "rider_name": "Busatto Francesco",
+    "team_name": "Alpecin - Premier Tech",
+    "time_gap": "+25:24",
+    "time": ",,",
+    "bib": "3"
+  },
+  {
+    "rank": 90,
+    "gc_rank": 100,
+    "rider_name": "Rojas Vicente",
+    "team_name": "Bardiani CSF 7 Saber",
+    "time_gap": "+33:19",
+    "time": ",,",
+    "bib": "24"
+  },
+  {
+    "rank": 91,
+    "gc_rank": 77,
+    "rider_name": "Hatherly Alan",
+    "team_name": "Team Jayco AlUla",
+    "time_gap": "+26:11",
+    "time": ",,",
+    "bib": "146"
+  },
+  {
+    "rank": 92,
+    "gc_rank": 116,
+    "rider_name": "van Dijke Mick",
+    "team_name": "Red Bull - BORA - hansgrohe",
+    "time_gap": "+36:19",
+    "time": ",,",
+    "bib": "126"
+  },
+  {
+    "rank": 93,
+    "gc_rank": 122,
+    "rider_name": "Cavagna Rémi",
+    "team_name": "Groupama - FDJ United",
+    "time_gap": "+38:56",
+    "time": ",,",
+    "bib": "51"
+  },
+  {
+    "rank": 94,
+    "gc_rank": 86,
+    "rider_name": "Huens Axel",
+    "team_name": "Groupama - FDJ United",
+    "time_gap": "+30:36",
+    "time": ",,",
+    "bib": "53"
+  },
+  {
+    "rank": 95,
+    "gc_rank": 118,
+    "rider_name": "Sevilla Diego Pablo",
+    "team_name": "Team Polti VisitMalta",
+    "time_gap": "+37:49",
+    "time": ",,",
+    "bib": "167"
+  },
+  {
+    "rank": 96,
+    "gc_rank": 72,
+    "rider_name": "Aerts Toon",
+    "team_name": "Lotto Intermarché",
+    "time_gap": "+25:07",
+    "time": ",,",
+    "bib": "72"
+  },
+  {
+    "rank": 97,
+    "gc_rank": 126,
+    "rider_name": "Hamilton Chris",
+    "team_name": "Team Picnic PostNL",
+    "time_gap": "+39:26",
+    "time": ",,",
+    "bib": "154"
+  },
+  {
+    "rank": 98,
+    "gc_rank": 73,
+    "rider_name": "Haig Jack",
+    "team_name": "Netcompany INEOS",
+    "time_gap": "+25:07",
+    "time": ",,",
+    "bib": "94"
+  },
+  {
+    "rank": 99,
+    "gc_rank": 106,
+    "rider_name": "Bjerg Mikkel",
+    "team_name": "UAE Team Emirates - XRG",
+    "time_gap": "+34:52",
+    "time": ",,",
+    "bib": "193"
+  },
+  {
+    "rank": 100,
+    "gc_rank": 80,
+    "rider_name": "Warbasse Larry",
+    "team_name": "Tudor Pro Cycling Team",
+    "time_gap": "+27:15",
+    "time": ",,",
+    "bib": "188"
+  },
+  {
+    "rank": 101,
+    "gc_rank": 93,
+    "rider_name": "Leemreize Gijs",
+    "team_name": "Team Picnic PostNL",
+    "time_gap": "+31:54",
+    "time": ",,",
+    "bib": "155"
+  },
+  {
+    "rank": 102,
+    "gc_rank": 74,
+    "rider_name": "Andresen Tobias Lund",
+    "team_name": "Decathlon CMA CGM Team",
+    "time_gap": "+25:18",
+    "time": ",,",
+    "bib": "32"
+  },
+  {
+    "rank": 103,
+    "gc_rank": 128,
+    "rider_name": "Planckaert Edward",
+    "team_name": "Alpecin - Premier Tech",
+    "time_gap": "+40:35",
+    "time": ",,",
+    "bib": "5"
+  },
+  {
+    "rank": 104,
+    "gc_rank": 98,
+    "rider_name": "Donovan Mark",
+    "team_name": "Pinarello Q36.5 Pro Cycling Team",
+    "time_gap": "+32:14",
+    "time": ",,",
+    "bib": "114"
+  },
+  {
+    "rank": 105,
+    "gc_rank": 69,
+    "rider_name": "Strong Corbin",
+    "team_name": "NSN Cycling Team",
+    "time_gap": "+21:46",
+    "time": ",,",
+    "bib": "107"
+  },
+  {
+    "rank": 106,
+    "gc_rank": 113,
+    "rider_name": "Bettiol Alberto",
+    "team_name": "XDS Astana Team",
+    "time_gap": "+36:06",
+    "time": ",,",
+    "bib": "222"
+  },
+  {
+    "rank": 107,
+    "gc_rank": 63,
+    "rider_name": "Barta Will",
+    "team_name": "Tudor Pro Cycling Team",
+    "time_gap": "+20:42",
+    "time": ",,",
+    "bib": "182"
+  },
+  {
+    "rank": 108,
+    "gc_rank": 78,
+    "rider_name": "Rolland Brieuc",
+    "team_name": "Groupama - FDJ United",
+    "time_gap": "+26:28",
+    "time": ",,",
+    "bib": "58"
+  },
+  {
+    "rank": 109,
+    "gc_rank": 91,
+    "rider_name": "Bax Sjoerd",
+    "team_name": "Pinarello Q36.5 Pro Cycling Team",
+    "time_gap": "+31:27",
+    "time": ",,",
+    "bib": "111"
+  },
+  {
+    "rank": 110,
+    "gc_rank": 84,
+    "rider_name": "Marcellusi Martin",
+    "team_name": "Bardiani CSF 7 Saber",
+    "time_gap": "+29:27",
+    "time": ",,",
+    "bib": "22"
+  },
+  {
+    "rank": 111,
+    "gc_rank": 120,
+    "rider_name": "Kielich Timo",
+    "team_name": "Team Visma | Lease a Bike",
+    "time_gap": "+37:57",
+    "time": ",,",
+    "bib": "174"
+  },
+  {
+    "rank": 112,
+    "gc_rank": 131,
+    "rider_name": "Ballerini Davide",
+    "team_name": "XDS Astana Team",
+    "time_gap": "+41:45",
+    "time": ",,",
+    "bib": "221"
+  },
+  {
+    "rank": 113,
+    "gc_rank": 58,
+    "rider_name": "Rafferty Darren",
+    "team_name": "EF Education - EasyPost",
+    "time_gap": "+19:53",
+    "time": "17:49",
+    "bib": "45"
+  },
+  {
+    "rank": 114,
+    "gc_rank": 70,
+    "rider_name": "Zukowsky Nickolas",
+    "team_name": "Pinarello Q36.5 Pro Cycling Team",
+    "time_gap": "+22:13",
+    "time": "18:04",
+    "bib": "118"
+  },
+  {
+    "rank": 115,
+    "gc_rank": 95,
+    "rider_name": "Moscon Gianni",
+    "team_name": "Red Bull - BORA - hansgrohe",
+    "time_gap": "+32:11",
+    "time": "19:12",
+    "bib": "124"
+  },
+  {
+    "rank": 116,
+    "gc_rank": 82,
+    "rider_name": "Ganna Filippo",
+    "team_name": "Netcompany INEOS",
+    "time_gap": "+28:20",
+    "time": ",,",
+    "bib": "93"
+  },
+  {
+    "rank": 117,
+    "gc_rank": 117,
+    "rider_name": "Donaldson Robert",
+    "team_name": "Team Jayco AlUla",
+    "time_gap": "+37:41",
+    "time": ",,",
+    "bib": "144"
+  },
+  {
+    "rank": 118,
+    "gc_rank": 101,
+    "rider_name": "Juul-Jensen Christopher",
+    "team_name": "Team Jayco AlUla",
+    "time_gap": "+33:49",
+    "time": ",,",
+    "bib": "147"
+  },
+  {
+    "rank": 119,
+    "gc_rank": 83,
+    "rider_name": "Magnier Paul",
+    "team_name": "Soudal Quick-Step",
+    "time_gap": "+28:30",
+    "time": ",,",
+    "bib": "131"
+  },
+  {
+    "rank": 120,
+    "gc_rank": 103,
+    "rider_name": "Van den Bossche Fabio",
+    "team_name": "Soudal Quick-Step",
+    "time_gap": "+34:14",
+    "time": ",,",
+    "bib": "136"
+  },
+  {
+    "rank": 121,
+    "gc_rank": 141,
+    "rider_name": "van der Lee Jardi Christiaan",
+    "team_name": "EF Education - EasyPost",
+    "time_gap": "+44:53",
+    "time": ",,",
+    "bib": "48"
+  },
+  {
+    "rank": 122,
+    "gc_rank": 57,
+    "rider_name": "Aular Orluis",
+    "team_name": "Movistar Team",
+    "time_gap": "+19:16",
+    "time": ",,",
+    "bib": "82"
+  },
+  {
+    "rank": 123,
+    "gc_rank": 127,
+    "rider_name": "Vergallito Luca",
+    "team_name": "Alpecin - Premier Tech",
+    "time_gap": "+39:47",
+    "time": "19:27",
+    "bib": "8"
+  },
+  {
+    "rank": 124,
+    "gc_rank": 104,
+    "rider_name": "Stannard Robert",
+    "team_name": "Bahrain - Victorious",
+    "time_gap": "+34:18",
+    "time": "19:41",
+    "bib": "17"
+  },
+  {
+    "rank": 125,
+    "gc_rank": 71,
+    "rider_name": "Zwiehoff Ben",
+    "team_name": "Red Bull - BORA - hansgrohe",
+    "time_gap": "+22:49",
+    "time": "22:39",
+    "bib": "128"
+  },
+  {
+    "rank": 126,
+    "gc_rank": 132,
+    "rider_name": "Bastiaens Ayco",
+    "team_name": "Soudal Quick-Step",
+    "time_gap": "+41:56",
+    "time": "22:46",
+    "bib": "132"
+  },
+  {
+    "rank": 127,
+    "gc_rank": 125,
+    "rider_name": "Miholjević Fran",
+    "team_name": "Bahrain - Victorious",
+    "time_gap": "+39:16",
+    "time": "24:39",
+    "bib": "13"
+  },
+  {
+    "rank": 128,
+    "gc_rank": 121,
+    "rider_name": "Rutsch Jonas",
+    "team_name": "Lotto Intermarché",
+    "time_gap": "+38:06",
+    "time": "26:16",
+    "bib": "77"
+  },
+  {
+    "rank": 129,
+    "gc_rank": 140,
+    "rider_name": "Morgado António",
+    "team_name": "UAE Team Emirates - XRG",
+    "time_gap": "+44:43",
+    "time": ",,",
+    "bib": "197"
+  },
+  {
+    "rank": 130,
+    "gc_rank": 87,
+    "rider_name": "Larsen Niklas",
+    "team_name": "Unibet Rose Rockets",
+    "time_gap": "+30:45",
+    "time": "26:36",
+    "bib": "206"
+  },
+  {
+    "rank": 131,
+    "gc_rank": 124,
+    "rider_name": "Pedersen Rasmus Søjberg",
+    "team_name": "Decathlon CMA CGM Team",
+    "time_gap": "+39:12",
+    "time": ",,",
+    "bib": "36"
+  },
+  {
+    "rank": 132,
+    "gc_rank": 134,
+    "rider_name": "Denz Nico",
+    "team_name": "Red Bull - BORA - hansgrohe",
+    "time_gap": "+41:57",
+    "time": ",,",
+    "bib": "123"
+  },
+  {
+    "rank": 133,
+    "gc_rank": 166,
+    "rider_name": "Mullen Ryan",
+    "team_name": "NSN Cycling Team",
+    "time_gap": "+53:38",
+    "time": ",,",
+    "bib": "103"
+  },
+  {
+    "rank": 134,
+    "gc_rank": 135,
+    "rider_name": "Bais Mattia",
+    "team_name": "Team Polti VisitMalta",
+    "time_gap": "+42:26",
+    "time": ",,",
+    "bib": "161"
+  },
+  {
+    "rank": 135,
+    "gc_rank": 114,
+    "rider_name": "Milan Jonathan",
+    "team_name": "Lidl - Trek",
+    "time_gap": "+36:08",
+    "time": ",,",
+    "bib": "65"
+  },
+  {
+    "rank": 136,
+    "gc_rank": 142,
+    "rider_name": "Consonni Simone",
+    "team_name": "Lidl - Trek",
+    "time_gap": "+45:05",
+    "time": ",,",
+    "bib": "62"
+  },
+  {
+    "rank": 137,
+    "gc_rank": 136,
+    "rider_name": "Barthe Cyril",
+    "team_name": "Groupama - FDJ United",
+    "time_gap": "+43:27",
+    "time": ",,",
+    "bib": "52"
+  },
+  {
+    "rank": 138,
+    "gc_rank": 156,
+    "rider_name": "Mozzato Luca",
+    "team_name": "Tudor Pro Cycling Team",
+    "time_gap": "+49:09",
+    "time": ",,",
+    "bib": "185"
+  },
+  {
+    "rank": 139,
+    "gc_rank": 145,
+    "rider_name": "Plowright Jensen",
+    "team_name": "Alpecin - Premier Tech",
+    "time_gap": "+46:56",
+    "time": ",,",
+    "bib": "6"
+  },
+  {
+    "rank": 140,
+    "gc_rank": 146,
+    "rider_name": "Kopecký Matyáš",
+    "team_name": "Unibet Rose Rockets",
+    "time_gap": "+46:56",
+    "time": ",,",
+    "bib": "203"
+  },
+  {
+    "rank": 141,
+    "gc_rank": 168,
+    "rider_name": "Stewart Jake",
+    "team_name": "NSN Cycling Team",
+    "time_gap": "+57:22",
+    "time": ",,",
+    "bib": "106"
+  },
+  {
+    "rank": 142,
+    "gc_rank": 152,
+    "rider_name": "Penhoët Paul",
+    "team_name": "Groupama - FDJ United",
+    "time_gap": "+48:53",
+    "time": ",,",
+    "bib": "56"
+  },
+  {
+    "rank": 143,
+    "gc_rank": 158,
+    "rider_name": "Walscheid Max",
+    "team_name": "Lidl - Trek",
+    "time_gap": "+51:47",
+    "time": ",,",
+    "bib": "68"
+  },
+  {
+    "rank": 144,
+    "gc_rank": 159,
+    "rider_name": "Rochas Rémy",
+    "team_name": "Groupama - FDJ United",
+    "time_gap": "+51:47",
+    "time": ",,",
+    "bib": "57"
+  },
+  {
+    "rank": 145,
+    "gc_rank": 144,
+    "rider_name": "Van Gestel Dries",
+    "team_name": "Soudal Quick-Step",
+    "time_gap": "+46:56",
+    "time": ",,",
+    "bib": "137"
+  },
+  {
+    "rank": 146,
+    "gc_rank": 129,
+    "rider_name": "Naesen Oliver",
+    "team_name": "Decathlon CMA CGM Team",
+    "time_gap": "+41:13",
+    "time": ",,",
+    "bib": "35"
+  },
+  {
+    "rank": 147,
+    "gc_rank": 169,
+    "rider_name": "Smith Dion",
+    "team_name": "NSN Cycling Team",
+    "time_gap": "+57:22",
+    "time": ",,",
+    "bib": "105"
+  },
+  {
+    "rank": 148,
+    "gc_rank": 147,
+    "rider_name": "Kopecký Tomáš",
+    "team_name": "Unibet Rose Rockets",
+    "time_gap": "+46:56",
+    "time": ",,",
+    "bib": "204"
+  },
+  {
+    "rank": 149,
+    "gc_rank": 163,
+    "rider_name": "Lienhard Fabian",
+    "team_name": "Tudor Pro Cycling Team",
+    "time_gap": "+52:33",
+    "time": ",,",
+    "bib": "184"
+  },
+  {
+    "rank": 150,
+    "gc_rank": 162,
+    "rider_name": "Froidevaux Robin",
+    "team_name": "Tudor Pro Cycling Team",
+    "time_gap": "+52:33",
+    "time": ",,",
+    "bib": "183"
+  },
+  {
+    "rank": 151,
+    "gc_rank": 133,
+    "rider_name": "González David",
+    "team_name": "Pinarello Q36.5 Pro Cycling Team",
+    "time_gap": "+41:57",
+    "time": ",,",
+    "bib": "115"
+  },
+  {
+    "rank": 152,
+    "gc_rank": 149,
+    "rider_name": "Teutenberg Tim Torn",
+    "team_name": "Lidl - Trek",
+    "time_gap": "+47:02",
+    "time": ",,",
+    "bib": "67"
+  },
+  {
+    "rank": 153,
+    "gc_rank": 137,
+    "rider_name": "Ghebreigzabhier Amanuel",
+    "team_name": "Lidl - Trek",
+    "time_gap": "+43:27",
+    "time": ",,",
+    "bib": "64"
+  },
+  {
+    "rank": 154,
+    "gc_rank": 165,
+    "rider_name": "Naberman Tim",
+    "team_name": "Team Picnic PostNL",
+    "time_gap": "+53:38",
+    "time": ",,",
+    "bib": "156"
+  },
+  {
+    "rank": 155,
+    "gc_rank": 164,
+    "rider_name": "Price-Pejtersen Johan",
+    "team_name": "Alpecin - Premier Tech",
+    "time_gap": "+52:58",
+    "time": ",,",
+    "bib": "7"
+  },
+  {
+    "rank": 156,
+    "gc_rank": 150,
+    "rider_name": "van Uden Casper",
+    "team_name": "Team Picnic PostNL",
+    "time_gap": "+47:08",
+    "time": ",,",
+    "bib": "158"
+  },
+  {
+    "rank": 157,
+    "gc_rank": 148,
+    "rider_name": "de Vries Hartthijs",
+    "team_name": "Unibet Rose Rockets",
+    "time_gap": "+46:56",
+    "time": ",,",
+    "bib": "202"
+  },
+  {
+    "rank": 158,
+    "gc_rank": 155,
+    "rider_name": "Reinders Elmar",
+    "team_name": "Unibet Rose Rockets",
+    "time_gap": "+49:09",
+    "time": ",,",
+    "bib": "208"
+  },
+  {
+    "rank": 159,
+    "gc_rank": 143,
+    "rider_name": "Gudmestad Tord",
+    "team_name": "Decathlon CMA CGM Team",
+    "time_gap": "+46:56",
+    "time": ",,",
+    "bib": "33"
+  },
+  {
+    "rank": 160,
+    "gc_rank": 107,
+    "rider_name": "Kubiš Lukáš",
+    "team_name": "Unibet Rose Rockets",
+    "time_gap": "+35:37",
+    "time": ",,",
+    "bib": "205"
+  },
+  {
+    "rank": 161,
+    "gc_rank": 153,
+    "rider_name": "Groenewegen Dylan",
+    "team_name": "Unibet Rose Rockets",
+    "time_gap": "+49:05",
+    "time": ",,",
+    "bib": "201"
+  },
+  {
+    "rank": 162,
+    "gc_rank": 154,
+    "rider_name": "Lonardi Giovanni",
+    "team_name": "Team Polti VisitMalta",
+    "time_gap": "+49:09",
+    "time": ",,",
+    "bib": "163"
+  },
+  {
+    "rank": 163,
+    "gc_rank": 109,
+    "rider_name": "Løland Sakarias Koller",
+    "team_name": "Uno-X Mobility",
+    "time_gap": "+35:40",
+    "time": "27:06",
+    "bib": "217"
+  },
+  {
+    "rank": 164,
+    "gc_rank": 160,
+    "rider_name": "Blikra Erlend",
+    "team_name": "Uno-X Mobility",
+    "time_gap": "+51:55",
+    "time": ",,",
+    "bib": "211"
+  },
+  {
+    "rank": 165,
+    "gc_rank": 157,
+    "rider_name": "Livyns Arjen",
+    "team_name": "XDS Astana Team",
+    "time_gap": "+51:11",
+    "time": "27:11",
+    "bib": "223"
+  },
+  {
+    "rank": 166,
+    "gc_rank": 167,
+    "rider_name": "Flynn Sean",
+    "team_name": "Team Picnic PostNL",
+    "time_gap": "+54:34",
+    "time": "27:32",
+    "bib": "153"
+  },
+  {
+    "rank": 167,
+    "gc_rank": 170,
+    "rider_name": "van den Broek Frank",
+    "team_name": "Team Picnic PostNL",
+    "time_gap": "+1:04:16",
+    "time": ",,",
+    "bib": "157"
+  },
+  {
+    "rank": 168,
+    "gc_rank": 161,
+    "rider_name": "Malucelli Matteo",
+    "team_name": "XDS Astana Team",
+    "time_gap": "+52:21",
+    "time": ",,",
+    "bib": "225"
+  },
+  {
+    "rank": 169,
+    "gc_rank": 108,
+    "rider_name": "Christen Fabio",
+    "team_name": "Pinarello Q36.5 Pro Cycling Team",
+    "time_gap": "+35:39",
+    "time": "28:09",
+    "bib": "112"
+  },
+  {
+    "rank": 170,
+    "gc_rank": 151,
+    "rider_name": "Zanoncello Enrico",
+    "team_name": "Bardiani CSF 7 Saber",
+    "time_gap": "+48:48",
+    "time": ",,",
+    "bib": "28"
+  },
+  {
+    "rank": null,
+    "gc_rank": null,
+    "rider_name": "de Jong Timo",
+    "team_name": "Team Picnic PostNL",
+    "time_gap": "",
+    "time": "",
+    "bib": "152"
+  },
+  {
+    "rank": null,
+    "gc_rank": null,
+    "rider_name": "Giddings Joshua",
+    "team_name": "Lotto Intermarché",
+    "time_gap": "",
+    "time": "",
+    "bib": "73"
+  },
+  {
+    "rank": null,
+    "gc_rank": null,
+    "rider_name": "Battistella Samuele",
+    "team_name": "EF Education - EasyPost",
+    "time_gap": "",
+    "time": "",
+    "bib": "42"
+  },
+  {
+    "rank": null,
+    "gc_rank": null,
+    "rider_name": "Menten Milan",
+    "team_name": "Lotto Intermarché",
+    "time_gap": "",
+    "time": "",
+    "bib": "75"
+  }
+]

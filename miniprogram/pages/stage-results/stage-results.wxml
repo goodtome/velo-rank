@@ -1,0 +1,107 @@
+<!--pages/stage-results/stage-results.wxml-->
+<view class="container">
+
+  <!-- 骨架屏加载状态 -->
+  <view wx:if="{{loading}}" class="skeleton-container">
+    <!-- 赛段信息骨架 -->
+    <view class="skeleton-card">
+      <view class="skeleton-item skeleton-title"></view>
+      <view class="skeleton-item skeleton-text"></view>
+    </view>
+    <!-- 成绩表骨架 -->
+    <view class="skeleton-card">
+      <view wx:for="{{[1,2,3,4,5,6,7,8]}}" wx:key="*this" style="display:flex;align-items:center;padding:16rpx 0;border-bottom:1rpx solid #f0f0f0;">
+        <view class="skeleton-item" style="width:60rpx;height:28rpx;margin-right:16rpx;"></view>
+        <view style="flex:1;">
+          <view class="skeleton-item skeleton-text"></view>
+        </view>
+        <view class="skeleton-item" style="width:120rpx;height:28rpx;"></view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 错误状态 -->
+  <view wx:elif="{{loadError}}" class="error-state">
+    <text class="error-state-icon">😵</text>
+    <text class="error-state-text">加载失败，请检查网络</text>
+    <button class="retry-btn" bindtap="retryLoad">重新加载</button>
+  </view>
+
+  <view wx:else>
+    <!-- 赛段信息头 -->
+    <view wx:if="{{type !== 'gc'}}" class="stage-header card">
+      <view class="stage-title-row">
+        <view class="num-badge">{{stage.stage_number}}</view>
+        <view class="stage-title-text">第 {{stage.stage_number}} 赛段</view>
+      </view>
+      <view class="stage-route">{{stage.start_city}} → {{stage.finish_city}}</view>
+      <view class="stage-meta-row">
+        <text class="meta-item">{{stage.date}}</text>
+        <text class="meta-dot">·</text>
+        <text class="meta-item">{{stage.distance_km}}km</text>
+        <text class="meta-dot">·</text>
+        <text class="meta-item stage-type">{{stage.stage_type}}</text>
+      </view>
+    </view>
+
+    <!-- 总成绩榜标题 -->
+    <view wx:if="{{type === 'gc'}}" class="gc-header card">
+      <view class="gc-title">🏆 总成绩榜 (GC)</view>
+      <view class="gc-sub">General Classification</view>
+    </view>
+
+    <!-- 领骑衫 -->
+    <view wx:if="{{type !== 'gc' && jerseys.length > 0}}" class="jerseys-section card">
+      <view class="section-title">领骑衫</view>
+      <view wx:for="{{jerseys}}" wx:key="jersey_type" class="jersey-row">
+        <view class="jersey-dot jersey-{{item.jersey_type}}"></view>
+        <view class="jersey-info">
+          <text class="jersey-type-name">{{item.jersey_type}}</text>
+          <text class="jersey-rider">{{item.rider_name_zh || item.rider_name}}</text>
+          <text class="jersey-team">{{item.uci_code}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 成绩列表 -->
+    <view class="results-section card">
+      <view class="section-title">{{type === 'gc' ? 'GC 排名' : '赛段成绩'}}</view>
+
+      <!-- 表头 -->
+      <view class="result-header">
+        <text class="rh-rank">排名</text>
+        <text class="rh-rider">车手</text>
+        <text class="rh-team">车队</text>
+        <text class="rh-time">成绩</text>
+      </view>
+
+      <!-- 空成绩提示 -->
+      <view wx:if="{{results.length === 0}}" class="empty-state">
+        <text class="empty-state-icon">🏁</text>
+        <text class="empty-state-text">暂无成绩数据</text>
+      </view>
+
+      <!-- 列表 -->
+      <view 
+        wx:for="{{results}}" 
+        wx:key="rank"
+        class="result-row {{index < 3 ? 'result-top3' : ''}}"
+        hover-class="result-row-hover"
+        bindtap="goToRider"
+        data-id="{{item.rider_id}}"
+      >
+        <view class="rr-rank {{index < 3 ? 'rr-rank-top3' : ''}}">{{item.rank}}</view>
+        <view class="rr-rider">
+          <text class="rider-name">{{item.rider_name_zh || item.rider_name}}</text>
+          <text class="rider-nat">{{item.nationality}}</text>
+        </view>
+        <text class="rr-team">{{item.uci_code}}</text>
+        <view class="rr-time">
+          <text wx:if="{{type === 'gc'}}">{{item.total_time}}</text>
+          <text wx:else>{{item.time_gap}}</text>
+          <text wx:if="{{type === 'gc' && item.time_gap}}" class="time-gap">{{item.time_gap}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

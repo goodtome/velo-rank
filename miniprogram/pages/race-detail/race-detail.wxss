@@ -1,0 +1,174 @@
+/* pages/race-detail/race-detail.wxss */
+
+/* 赛事信息头部卡片 */
+.race-card {
+  background: #fff;
+  border-radius: 24rpx;
+  padding: 32rpx;
+  margin-bottom: 32rpx;
+  box-shadow: 0 2rpx 16rpx rgba(33,150,243,0.08);
+}
+
+.race-name {
+  font-size: 38rpx;
+  font-weight: 700;
+  color: #222;
+  margin-bottom: 12rpx;
+}
+
+.race-meta {
+  font-size: 26rpx;
+  color: #888;
+  margin-bottom: 24rpx;
+}
+
+.race-stats {
+  display: flex;
+  justify-content: flex-start;
+  gap: 60rpx;
+  padding-top: 20rpx;
+  border-top: 1rpx solid #f0f0f0;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.stat-val {
+  font-size: 36rpx;
+  font-weight: 700;
+  color: #2196F3;
+}
+
+.stat-label {
+  font-size: 22rpx;
+  color: #999;
+  margin-top: 4rpx;
+}
+
+/* 赛段列表 */
+.section-title {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #333;
+  margin: 32rpx 0 20rpx 8rpx;
+}
+
+.stage-list {
+  margin-bottom: 32rpx;
+}
+
+.stage-item {
+  background: #fff;
+  border-radius: 20rpx;
+  padding: 24rpx 28rpx;
+  margin-bottom: 16rpx;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.05);
+  transition: all 0.15s;
+}
+
+.stage-item-hover {
+  background: #f5f5f5;
+  transform: scale(0.985);
+}
+
+.stage-left {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  overflow: hidden;
+}
+
+.num-badge {
+  margin-right: 20rpx;
+}
+
+.stage-info {
+  flex: 1;
+  overflow: hidden;
+}
+
+.stage-route {
+  font-size: 28rpx;
+  color: #333;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.stage-meta {
+  font-size: 22rpx;
+  color: #999;
+  margin-top: 4rpx;
+}
+
+.arrow {
+  font-size: 30rpx;
+  color: #ccc;
+  flex-shrink: 0;
+  margin-left: 16rpx;
+}
+
+/* GC入口 - 橙黄色渐变卡片 */
+.gc-card {
+  background: linear-gradient(135deg, #FF9800, #F57C00);
+  border-radius: 24rpx;
+  padding: 32rpx;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 4rpx 20rpx rgba(255,152,0,0.25);
+  transition: all 0.15s;
+}
+
+.gc-card-hover {
+  opacity: 0.85;
+  transform: scale(0.985);
+}
+
+.gc-left {
+  display: flex;
+  align-items: center;
+}
+
+.gc-icon {
+  font-size: 44rpx;
+  margin-right: 20rpx;
+}
+
+.gc-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.gc-title {
+  font-size: 32rpx;
+  font-weight: 700;
+  color: #fff;
+}
+
+.gc-sub {
+  font-size: 22rpx;
+  color: rgba(255,255,255,0.8);
+  margin-top: 4rpx;
+}
+
+.arrow-white {
+  font-size: 32rpx;
+  color: rgba(255,255,255,0.8);
+  flex-shrink: 0;
+}
+
+/* loading */
+.loading {
+  text-align: center;
+  padding: 120rpx 0;
+  color: #999;
+  font-size: 28rpx;
+}

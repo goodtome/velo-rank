@@ -1,0 +1,80 @@
+<view class="profile-page">
+  <!-- 用户头像区域 -->
+  <view class="header-section">
+    <view class="avatar-wrapper">
+      <view class="avatar-circle">
+        <text class="avatar-icon">&#x1F464;</text>
+      </view>
+    </view>
+    <text class="nickname">{{t('cyclingEnthusiast')}}</text>
+    <text class="welcome-text">{{t('welcome')}}</text>
+  </view>
+
+  <!-- 应用统计 -->
+  <view class="card-base stats-card">
+    <view class="stats-row">
+      <view class="stats-item">
+        <text class="stats-value text-primary">{{raceCount}}</text>
+        <text class="stats-label">{{t('races')}}</text>
+      </view>
+      <view class="stats-item">
+        <text class="stats-value text-primary">{{riderCount}}</text>
+        <text class="stats-label">{{t('riders')}}</text>
+      </view>
+      <view class="stats-item">
+        <text class="stats-value text-primary">{{teamCount}}</text>
+        <text class="stats-label">{{t('teams')}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 功能菜单列表 -->
+  <view class="card-base menu-card">
+    <view class="menu-item" bindtap="goToSearch">
+      <view class="menu-left">
+        <text class="menu-icon">&#x1F50D;</text>
+        <text class="menu-text">{{t('searchHistory')}}</text>
+      </view>
+      <text class="arrow">&#x203A;</text>
+    </view>
+    <view class="menu-divider"></view>
+    <view class="menu-item" bindtap="goToHome">
+      <view class="menu-left">
+        <text class="menu-icon">&#x1F4CA;</text>
+        <text class="menu-text">{{t('raceData')}}</text>
+      </view>
+      <text class="arrow">&#x203A;</text>
+    </view>
+    <view class="menu-divider"></view>
+    <view class="menu-item" bindtap="clearCache">
+      <view class="menu-left">
+        <text class="menu-icon">&#x1F5D1;</text>
+        <text class="menu-text">{{t('clearCache')}}</text>
+      </view>
+      <text class="arrow">&#x203A;</text>
+    </view>
+    <view class="menu-divider"></view>
+    <view class="menu-item" bindtap="toggleAbout">
+      <view class="menu-left">
+        <text class="menu-icon">&#x2139;</text>
+        <text class="menu-text">{{t('about')}}</text>
+      </view>
+      <text class="arrow">{{showAbout ? '&#x2303;' : '&#x203A;'}}</text>
+    </view>
+    <!-- 关于应用展开区域 -->
+    <view class="about-expand" wx:if="{{showAbout}}">
+      <view class="about-divider"></view>
+      <view class="about-content">
+        <text class="about-name">领骑 Jersey</text>
+        <text class="about-version">v1.0.0</text>
+        <text class="about-desc">{{t('appDesc')}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 底部信息 -->
+  <view class="footer-section">
+    <text class="footer-name">领骑 Jersey v1.0.0</text>
+    <text class="footer-desc">{{t('appDesc')}}</text>
+  </view>
+</view>

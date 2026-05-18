@@ -1,0 +1,126 @@
+<!-- 推送设置页面 -->
+<view class="settings-container">
+  <!-- 页面标题 -->
+  <view class="page-header">
+    <text class="page-title">{{t('pushSettings')}}</text>
+    <text class="page-desc">{{t('pushDesc')}}</text>
+  </view>
+  
+  <!-- 总开关 -->
+  <view class="setting-section">
+    <view class="setting-item">
+      <view class="setting-info">
+        <text class="setting-label">{{t('pushEnabledLabel')}}</text>
+        <text class="setting-desc">{{t('pushEnabledDesc')}}</text>
+      </view>
+      <switch checked="{{pushEnabled}}" bindchange="togglePush" color="#1aad19" />
+    </view>
+  </view>
+  
+  <!-- 推送类型设置 -->
+  <view class="setting-section" wx:if="{{pushEnabled}}">
+    <view class="section-title">{{t('notifyRaceStartLabel')}}</view>
+    
+    <view class="setting-item">
+      <view class="setting-info">
+        <text class="setting-label">{{t('notifyRaceStartLabel')}}</text>
+        <text class="setting-desc">{{t('notifyRaceStartDesc')}}</text>
+      </view>
+      <switch checked="{{notifyRaceStart}}" bindchange="toggleRaceStart" color="#1aad19" />
+    </view>
+    
+    <view class="setting-item">
+      <view class="setting-info">
+        <text class="setting-label">{{t('notifyStageEndLabel')}}</text>
+        <text class="setting-desc">{{t('notifyStageEndDesc')}}</text>
+      </view>
+      <switch checked="{{notifyStageEnd}}" bindchange="toggleStageEnd" color="#1aad19" />
+    </view>
+    
+    <view class="setting-item">
+      <view class="setting-info">
+        <text class="setting-label">{{t('notifyRiderChangeLabel')}}</text>
+        <text class="setting-desc">{{t('notifyRiderChangeDesc')}}</text>
+      </view>
+      <switch checked="{{notifyRiderChange}}" bindchange="toggleRiderChange" color="#1aad19" />
+    </view>
+    
+    <view class="setting-item">
+      <view class="setting-info">
+        <text class="setting-label">{{t('notifyKeyEventsLabel')}}</text>
+        <text class="setting-desc">{{t('notifyKeyEventsDesc')}}</text>
+      </view>
+      <switch checked="{{notifyKeyEvents}}" bindchange="toggleKeyEvents" color="#1aad19" />
+    </view>
+  </view>
+  
+  <!-- 免打扰设置 -->
+  <view class="setting-section" wx:if="{{pushEnabled}}">
+    <view class="section-title">{{t('dndSettings')}}</view>
+    <view class="setting-item">
+      <view class="setting-info">
+        <text class="setting-label">{{t('dndEnabledLabel')}}</text>
+        <text class="setting-desc">{{t('dndEnabledDesc')}}</text>
+      </view>
+      <switch checked="{{dndEnabled}}" bindchange="toggleDnd" color="#1aad19" />
+    </view>
+    
+    <view class="time-picker-group" wx:if="{{dndEnabled}}">
+      <view class="time-picker-item">
+        <text class="time-label">{{t('dndStartLabel')}}</text>
+        <picker mode="time" value="{{dndStart}}" bindchange="onDndStartChange">
+          <view class="time-value">{{dndStart}}</view>
+        </picker>
+      </view>
+      
+      <view class="time-picker-item">
+        <text class="time-label">{{t('dndEndLabel')}}</text>
+        <picker mode="time" value="{{dndEnd}}" bindchange="onDndEndChange">
+          <view class="time-value">{{dndEnd}}</view>
+        </picker>
+      </view>
+    </view>
+    
+    <view class="dnd-tip" wx:if="{{dndEnabled}}">
+      <text>{{t('dndTip')}}</text>
+    </view>
+  </view>
+  
+  <!-- 推送频率 -->
+  <view class="setting-section" wx:if="{{pushEnabled && notifyRiderChange}}">
+    <view class="section-title">{{t('pushFrequencyLabel')}}</view>
+    
+    <view class="frequency-options">
+      <view class="frequency-item {{pushFrequency === 'realtime' ? 'active' : ''}}" 
+            bindtap="setFrequency" data-frequency="realtime">
+        <text class="frequency-name">{{t('freqRealtime')}}</text>
+        <text class="frequency-desc">{{t('freqRealtimeDesc')}}</text>
+      </view>
+      
+      <view class="frequency-item {{pushFrequency === '30min' ? 'active' : ''}}" 
+            bindtap="setFrequency" data-frequency="30min">
+        <text class="frequency-name">{{t('freq30min')}}</text>
+        <text class="frequency-desc">{{t('freq30minDesc')}}</text>
+      </view>
+      
+      <view class="frequency-item {{pushFrequency === 'daily' ? 'active' : ''}}" 
+            bindtap="setFrequency" data-frequency="daily">
+        <text class="frequency-name">{{t('freqDaily')}}</text>
+        <text class="frequency-desc">{{t('freqDailyDesc')}}</text>
+      </view>
+    </view>
+  </view>
+  
+  <!-- 测试推送 -->
+  <view class="setting-section" wx:if="{{pushEnabled}}">
+    <button class="test-btn" bindtap="sendTestNotification">
+      {{t('testPush')}}
+    </button>
+  </view>
+  
+  <!-- 提示信息 -->
+  <view class="tip-section">
+    <view class="tip-icon">💡</view>
+    <text class="tip-text">{{t('pushTip')}}</text>
+  </view>
+</view>

@@ -1,0 +1,81 @@
+<!--pages/race-calendar/race-calendar.wxml-->
+<view class="container">
+  <!-- 顶部月份切换 -->
+  <view class="header">
+    <view class="month-switcher">
+      <view class="arrow" bindtap="prevMonth">←</view>
+      <text class="month-text">{{monthYear}}</text>
+      <view class="arrow" bindtap="nextMonth">→</view>
+    </view>
+    <view class="today-btn" bindtap="goToToday">{{t('today')}}</view>
+  </view>
+
+  <!-- 日历星期头 -->
+  <view class="week-header">
+    <text wx:for="{{weekDays}}" wx:key="index" class="week-day">{{item}}</text>
+  </view>
+
+  <!-- 日历网格 -->
+  <view class="calendar-grid">
+    <view 
+      wx:for="{{calendarDays}}" 
+      wx:key="index"
+      class="day-cell {{item.isCurrentMonth ? '' : 'other-month'}} {{item.isToday ? 'today' : ''}} {{item.races.length > 0 ? 'has-races' : ''}}"
+      bindtap="tapDay"
+      data-day="{{item}}"
+    >
+      <text class="day-number">{{item.day}}</text>
+      <view wx:if="{{item.races.length > 0}}" class="race-dot"></view>
+      <text wx:if="{{item.races.length > 0}}" class="race-count">{{item.races.length}}</text>
+    </view>
+  </view>
+
+  <!-- 当日赛事列表 -->
+  <view class="race-list" wx:if="{{selectedDate && selectedRaces.length > 0}}">
+    <view class="section-title">{{selectedDate}} {{t('races')}} ({{selectedRaces.length}})</view>
+    <view 
+      wx:for="{{selectedRaces}}" 
+      wx:key="id"
+      class="race-card"
+      bindtap="goToRace"
+      data-id="{{item.id}}"
+    >
+      <view class="race-status race-status-{{item.status}}">{{item.statusText}}</view>
+      <view class="race-info">
+        <text class="race-name">{{item.race_name}}</text>
+        <text class="race-category">{{item.category}}</text>
+      </view>
+      <view class="race-action" catchtap="addToCalendar" data-race="{{item}}">
+        <text class="add-icon">+</text>
+        <text class="add-text">{{t('addToCalendar')}}</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="empty-tip" wx:if="{{selectedDate && selectedRaces.length === 0}}">
+    <text>{{t('noRaces')}}</text>
+  </view>
+
+  <!-- 即将开始的赛事 -->
+  <view class="upcoming-section">
+    <view class="section-title">{{t('upcoming')}}</view>
+    <view wx:if="{{upcomingRaces.length > 0}}">
+      <view 
+        wx:for="{{upcomingRaces}}" 
+        wx:key="id"
+        class="race-card"
+        bindtap="goToRace"
+        data-id="{{item.id}}"
+      >
+        <view class="race-countdown">{{item.countdownText}}</view>
+        <view class="race-info">
+          <text class="race-name">{{item.race_name}}</text>
+          <text class="race-date">{{item.start_date}}</text>
+        </view>
+      </view>
+    </view>
+    <view class="empty-tip" wx:else>
+      <text>{{t('noUpcoming')}}</text>
+    </view>
+  </view>
+</view>
