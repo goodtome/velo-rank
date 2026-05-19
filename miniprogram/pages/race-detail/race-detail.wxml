@@ -3,13 +3,11 @@
 
   <!-- 骨架屏加载状态 -->
   <view wx:if="{{loading}}" class="skeleton-container">
-    <!-- 赛事信息骨架 -->
     <view class="skeleton-card">
       <view class="skeleton-item skeleton-title"></view>
       <view class="skeleton-item skeleton-text"></view>
       <view class="skeleton-item skeleton-text-short"></view>
     </view>
-    <!-- 赛段列表骨架 -->
     <view class="skeleton-card" wx:for="{{[1,2,3,4]}}" wx:key="*this">
       <view style="display:flex;align-items:center;">
         <view class="skeleton-item" style="width:56rpx;height:56rpx;border-radius:50%;margin-right:20rpx;"></view>
@@ -24,34 +22,64 @@
   <!-- 错误状态 -->
   <view wx:elif="{{loadError}}" class="error-state">
     <text class="error-state-icon">😵</text>
-    <text class="error-state-text">{{t('errorNetwork')}}</text>
-    <button class="retry-btn" bindtap="retryLoad">{{t('retry')}}</button>
+    <text class="error-state-text">加载失败，请检查网络</text>
+    <button class="retry-btn" bindtap="retryLoad">重新加载</button>
   </view>
 
   <view wx:else>
     <!-- 赛事信息头部卡片 -->
     <view class="race-card card">
       <view class="race-name">{{race.race_name_zh || race.race_name}}</view>
-      <view class="race-meta">{{race.start_date}} {{t('to')}} {{race.end_date}}</view>
+      <view class="race-name-en" wx:if="{{race.race_name_en && race.race_name_zh}}">{{race.race_name_en}}</view>
+      <view class="race-meta-row">
+        <text class="tag tag-blue" wx:if="{{race.category}}">{{categoryName(race.category)}}</text>
+        <text class="tag tag-green" wx:if="{{race.gender}}">{{race.gender === 'MEN' ? '男子' : '女子'}}</text>
+        <text class="race-date">{{formatDate(race.start_date)}} — {{formatDate(race.end_date)}}</text>
+      </view>
       <view class="race-stats">
         <view class="stat">
-          <view class="stat-val">{{race.total_stages}}</view>
-          <view class="stat-label">{{t('stages')}}</view>
+          <view class="stat-val">{{race.total_stages || '-'}}</view>
+          <view class="stat-label">赛段</view>
         </view>
         <view class="stat">
-          <view class="stat-val">{{race.total_distance}}</view>
-          <view class="stat-label">{{t('km')}}</view>
+          <view class="stat-val">{{race.total_distance || '-'}}</view>
+          <view class="stat-label">公里</view>
+        </view>
+        <view class="stat">
+          <view class="stat-val">{{stages.length}}</view>
+          <view class="stat-label">已录入</view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 领骑衫展示 -->
+    <view wx:if="{{jerseys.length > 0}}" class="jerseys-section card">
+      <view class="section-label">领骑衫</view>
+      <view class="jerseys-grid">
+        <view wx:for="{{jerseys}}" wx:key="jersey_type" class="jersey-card">
+          <view class="jersey-circle-lg jersey-{{item.jersey_type}}"></view>
+          <view class="jersey-detail">
+            <text class="jersey-type-label">{{jerseyTypeName(item.jersey_type)}}</text>
+            <text class="jersey-rider">{{item.rider_name_zh || item.rider_name}}</text>
+            <text class="jersey-team">{{item.team_name_zh || item.team_name}}</text>
+          </view>
+          <view class="jersey-extra" wx:if="{{item.points}}">
+            <text class="jersey-points">{{item.points}}分</text>
+          </view>
+          <view class="jersey-extra" wx:elif="{{item.time_gap}}">
+            <text class="jersey-points">{{item.time_gap}}</text>
+          </view>
         </view>
       </view>
     </view>
 
     <!-- 赛段列表 -->
-    <view class="section-title">{{t('stageList').replace('{count}', stages.length)}}</view>
+    <view class="section-label" style="margin-top:8rpx;">赛段列表 ({{stages.length}})</view>
 
     <!-- 空赛段列表提示 -->
     <view wx:if="{{stages.length === 0}}" class="empty-state">
       <text class="empty-state-icon">📋</text>
-      <text class="empty-state-text">{{t('noStageData')}}</text>
+      <text class="empty-state-text">暂无赛段数据</text>
     </view>
 
     <view class="stage-list" wx:if="{{stages.length > 0}}">
@@ -67,21 +95,25 @@
         <view class="stage-left">
           <view class="num-badge">{{item.stage_number}}</view>
           <view class="stage-info">
-            <view class="stage-route">{{item.start_city}} → {{item.end_city}}</view>
-            <view class="stage-meta">{{item.date}} · {{item.distance_km}}km</view>
+            <view class="stage-route">{{item.stage_name}}</view>
+            <view class="stage-meta-row">
+              <text>{{formatDate(item.date)}}</text>
+              <text wx:if="{{item.distance_km}}"> · {{item.distance_km}}km</text>
+              <text class="stage-type-tag tag-{{item.stage_type}}" wx:if="{{item.stage_type}}">{{item.stage_type}}</text>
+            </view>
           </view>
         </view>
         <view class="arrow">></view>
       </view>
     </view>
 
-    <!-- GC入口 - 橙黄色渐变卡片 -->
+    <!-- GC入口 -->
     <view class="gc-card" hover-class="gc-card-hover" bindtap="onGCTap">
       <view class="gc-left">
         <view class="gc-icon">🏆</view>
         <view class="gc-text">
-          <view class="gc-title">{{t('gcTitle')}}</view>
-          <view class="gc-sub">{{t('gcSub')}}</view>
+          <view class="gc-title">总成绩榜 (GC)</view>
+          <view class="gc-sub">General Classification</view>
         </view>
       </view>
       <view class="arrow-white">></view>

@@ -4,14 +4,14 @@
  */
 
 const { get } = require('../../utils/request');
-const { showError, showSuccess } = require('../../utils/util');
-const { t, getLocale } = require('../../utils/i18n');
+const { showError } = require('../../utils/util');
 
 Page({
   data: {
     raceId: '',
-    race: null,
+    race: {},
     stages: [],
+    jerseys: [],
     loading: true,
     loadError: false
   },
@@ -19,69 +19,104 @@ Page({
   onLoad(options) {
     const { id } = options || {};
     if (!id) {
-      showError(t('missingRaceId', getLocale()));
+      showError('缺少赛事ID');
       return;
     }
     
-    this.initI18n();
     this.setData({ raceId: id });
     this.loadData();
   },
 
   /**
-   * 初始化i18n
-   */
-  initI18n() {
-    const locale = getLocale();
-    this.t = (key) => t(key, locale);
-    this.setData({
-      t: this.t
-    });
-  },
-
-  /**
-   * 加载赛事数据
+   * 加载赛事数据 — 并行请求
    */
   async loadData() {
     this.setData({ loading: true, loadError: false });
 
     try {
-      const res = await get(`/races/${this.data.raceId}`);
-      
-      if (res && res.code === 200 && res.data) {
-        this.setData({ race: res.data });
-        await this.loadStages();
-      } else {
-        this.setData({ loading: false });
-        showError(this.t('raceNotFound'));
+      // 并行请求赛事详情、赛段列表、领骑衫
+      const [raceRes, stagesRes, jerseysRes] = await Promise.all([
+        get(`/races/${this.data.raceId}`),
+        get(`/races/${this.data.raceId}/stages`),
+        get(`/races/${this.data.raceId}/latest-jerseys`)
+      ]);
+
+      let race = {};
+      let stages = [];
+      let jerseys = [];
+
+      if (raceRes && raceRes.code === 200 && raceRes.data) {
+        race = raceRes.data;
       }
+      if (stagesRes && stagesRes.code === 200 && Array.isArray(stagesRes.data)) {
+        stages = stagesRes.data;
+      }
+      if (jerseysRes && jerseysRes.code === 200 && Array.isArray(jerseysRes.data)) {
+        jerseys = jerseysRes.data;
+      }
+
+      // 设置导航栏标题
+      const title = race.race_name_zh || race.race_name || '赛事详情';
+      wx.setNavigationBarTitle({ title });
+
+      this.setData({
+        race,
+        stages,
+        jerseys,
+        loading: false
+      });
     } catch (err) {
       console.error('加载赛事失败:', err);
       this.setData({ loading: false, loadError: true });
-      showError(this.t('errorNetwork'));
+      showError('网络请求失败');
     }
   },
 
   /**
-   * 加载赛段列表
+   * 格式化日期
    */
-  async loadStages() {
-    try {
-      const res = await get(`/races/${this.data.raceId}/stages`);
-      
-      if (res && res.code === 200 && Array.isArray(res.data)) {
-        this.setData({
-          stages: res.data,
-          loading: false
-        });
-      } else {
-        this.setData({ loading: false });
-      }
-    } catch (err) {
-      console.error('加载赛段失败:', err);
-      this.setData({ loading: false, loadError: true });
-      showError(this.t('errorNetwork'));
-    }
+  formatDate(dateStr) {
+    if (!dateStr) return '';
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return dateStr;
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${month}-${day}`;
+  },
+
+  /**
+   * 领骑衫类型中文名
+   */
+  jerseyTypeName(type) {
+    const map = {
+      'pink': '粉衫 GC',
+      'PINK': '粉衫 GC',
+      'purple': '紫衫 积分',
+      'PURPLE': '紫衫 积分',
+      'blue': '蓝衫 冲刺',
+      'BLUE': '蓝衫 冲刺',
+      'BLUE_SPRINT': '蓝衫 冲刺',
+      'white': '白衫 青年',
+      'WHITE': '白衫 青年',
+      'WHITE_YOUTH': '白衫 青年'
+    };
+    return map[type] || type;
+  },
+
+  /**
+   * 赛事类别中文名
+   */
+  categoryName(cat) {
+    const map = {
+      'Grand Tour': '大环赛',
+      'GRAND_TOUR': '大环赛',
+      'WorldTour': '世巡赛',
+      'ProSeries': '职业系列赛',
+      'Continental': '洲际赛',
+      'Women-WorldTour': '女子世巡赛',
+      'Women-ProSeries': '女子职业系列赛'
+    };
+    return map[cat] || cat;
   },
 
   /**
@@ -99,7 +134,7 @@ Page({
     const { raceId } = this.data;
 
     if (!stageId) {
-      showError(this.t('dataError'));
+      showError('赛段数据异常');
       return;
     }
 

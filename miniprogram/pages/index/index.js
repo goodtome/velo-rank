@@ -4,76 +4,89 @@
  */
 
 const { get } = require('../../utils/request');
-const { showError, formatDate } = require('../../utils/util');
-const { t, getLocale } = require('../../utils/i18n');
+const { showError } = require('../../utils/util');
 
 Page({
   data: {
     currentSeason: 2026,
     activeRaces: [],
-    upcomingRaces: [],
+    recentRaces: [],
     loading: true,
     loadError: false
   },
 
   onLoad() {
-    this.initI18n();
     this.loadRaces();
   },
 
   /**
-   * 初始化i18n
-   */
-  initI18n() {
-    const locale = getLocale();
-    this.t = (key) => t(key, locale);
-    this.setData({
-      t: this.t
-    });
-  },
-
-  /**
-   * 加载赛事数据
+   * 加载赛事数据 — 并行请求进行中+近期赛事
    */
   async loadRaces() {
     this.setData({ loading: true, loadError: false });
 
     try {
-      const res = await get('/races', {
-        season: this.data.currentSeason,
-        limit: 50
-      });
+      const [activeRes, recentRes] = await Promise.all([
+        get('/races/active'),
+        get('/races/recent', { limit: 5 })
+      ]);
 
-      if (res && res.code === 200 && Array.isArray(res.data)) {
-        // 使用本地时间（修复UTC时间Bug）
-        const now = formatDate(new Date());
-        const active = [];
-        const upcoming = [];
+      let activeRaces = [];
+      let recentRaces = [];
 
-        res.data.forEach(race => {
-          if (race.start_date && race.start_date <= now && race.end_date >= now) {
-            active.push(race);
-          } else if (race.start_date && race.start_date > now) {
-            upcoming.push(race);
-          } else {
-            // 已结束的比赛也放在活跃列表
-            active.push(race);
-          }
-        });
-
-        this.setData({
-          activeRaces: active,
-          upcomingRaces: upcoming,
-          loading: false
-        });
-      } else {
-        this.setData({ loading: false });
+      // 处理进行中赛事
+      if (activeRes && activeRes.code === 200 && Array.isArray(activeRes.data)) {
+        activeRaces = activeRes.data.map(race => ({
+          ...race,
+          start_date: this.formatDate(race.start_date),
+          end_date: this.formatDate(race.end_date)
+        }));
       }
+
+      // 处理近期完赛
+      if (recentRes && recentRes.code === 200 && Array.isArray(recentRes.data)) {
+        recentRaces = recentRes.data.map(race => ({
+          ...race,
+          start_date: this.formatDate(race.start_date),
+          end_date: this.formatDate(race.end_date)
+        }));
+      }
+
+      // 如果没有进行中赛事，用全部赛事兜底
+      if (activeRaces.length === 0 && recentRaces.length === 0) {
+        const allRes = await get('/races', { season: this.data.currentSeason, limit: 20 });
+        if (allRes && allRes.code === 200 && Array.isArray(allRes.data)) {
+          recentRaces = allRes.data.map(race => ({
+            ...race,
+            start_date: this.formatDate(race.start_date),
+            end_date: this.formatDate(race.end_date)
+          }));
+        }
+      }
+
+      this.setData({
+        activeRaces,
+        recentRaces,
+        loading: false
+      });
     } catch (err) {
       console.error('加载赛事失败:', err);
       this.setData({ loading: false, loadError: true });
       showError('网络请求失败');
     }
+  },
+
+  /**
+   * 格式化日期 YYYY-MM-DD
+   */
+  formatDate(dateStr) {
+    if (!dateStr) return '';
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return dateStr;
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   },
 
   /**

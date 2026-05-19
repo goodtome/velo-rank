@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const pool = require('../config/db-pool');
-const { VALIDATION, ERROR_CODE } = require('../constants');
+const { PAGINATION, VALIDATION, ERROR_CODE } = require('../constants');
 const { AppError, asyncHandler } = require('../middleware/errorHandler');
 
 // GET /api/v1/stages/:id - 获取赛段详情
@@ -31,10 +31,11 @@ router.get('/:id/results', asyncHandler(async (req, res) => {
   }
     
   // 验证并限制查询结果数量
-  const limitNum = Math.min(VALIDATION.MAX_LIMIT, Math.max(1, parseInt(limit) || 20));
-  if (isNaN(parseInt(limit))) {
+  const parsedLimit = parseInt(limit);
+  if (isNaN(parsedLimit)) {
     throw new AppError('无效的limit参数', ERROR_CODE.BAD_REQUEST);
   }
+  const limitNum = Math.min(PAGINATION.MAX_LIMIT, Math.max(1, parsedLimit));
     
   // 使用参数化查询避免语法问题
   const sql = `
@@ -81,22 +82,21 @@ router.get('/:id/jerseys', asyncHandler(async (req, res) => {
     
   const [rows] = await pool.query(sql, [stageId]);
     
-  // 转换为对象格式（按jersey_type分组）
-  const jerseys = {};
-  rows.forEach(row => {
-    jerseys[row.jersey_type] = {
-      rider_name: row.rider_name,
-      rider_name_zh: row.rider_name_zh,
-      team_name: row.team_name,
-      team_name_zh: row.team_name_zh,
-      time_gap: row.time_gap,
-      points: row.points
-    };
-  });
+  // 转换为数组格式（前端需要遍历），同时保留对象格式兼容
+  const jerseysList = rows.map(row => ({
+    jersey_type: row.jersey_type,
+    rider_name: row.rider_name,
+    rider_name_zh: row.rider_name_zh,
+    team_name: row.team_name,
+    team_name_zh: row.team_name_zh,
+    uci_code: row.uci_code,
+    time_gap: row.time_gap,
+    points: row.points
+  }));
     
   res.json({
     code: 200,
-    data: jerseys
+    data: jerseysList
   });
 }));
 

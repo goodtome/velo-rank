@@ -124,11 +124,122 @@ router.get('/stats/overview', asyncHandler(async (req, res) => {
   res.json({ code: 200, data: stats });
 }));
 
+// GET /api/v1/races/active - 获取当前进行中赛事（含最新领骑衫）
+router.get('/active', asyncHandler(async (req, res) => {
+  const today = new Date().toISOString().split('T')[0];
+  
+  // 查询进行中的赛事
+  const [activeRaces] = await pool.query(`
+    SELECT * FROM races 
+    WHERE is_active = 1 
+      AND start_date <= ? 
+      AND end_date >= ?
+    ORDER BY start_date ASC
+  `, [today, today]);
+
+  // 为每个赛事附加最新领骑衫信息
+  const racesWithJerseys = await Promise.all(activeRaces.map(async (race) => {
+    // 找最新有领骑衫数据的赛段
+    const [latestWithJerseys] = await pool.query(`
+      SELECT s.id FROM stages s
+      JOIN jerseys j ON j.stage_id = s.id
+      WHERE s.race_id = ?
+      ORDER BY s.stage_number DESC
+      LIMIT 1
+    `, [race.id]);
+
+    let jerseys = [];
+    if (latestWithJerseys.length > 0) {
+      const [jerseyRows] = await pool.query(`
+        SELECT j.jersey_type, j.time_gap, j.points,
+               r.rider_name, r.rider_name_zh, r.nationality,
+               t.team_name, t.team_name_zh, t.uci_code
+        FROM jerseys j
+        JOIN riders r ON j.rider_id = r.id
+        JOIN teams t ON j.team_id = t.id
+        WHERE j.stage_id = ?
+      `, [latestWithJerseys[0].id]);
+      jerseys = jerseyRows;
+    }
+
+    return { ...race, jerseys };
+  }));
+
+  res.json({ code: 200, data: racesWithJerseys });
+}));
+
+// GET /api/v1/races/recent - 获取近期已结束赛事
+router.get('/recent', asyncHandler(async (req, res) => {
+  const today = new Date().toISOString().split('T')[0];
+  const limit = Math.min(20, Math.max(1, parseInt(req.query.limit) || 10));
+  
+  const [rows] = await pool.query(`
+    SELECT * FROM races 
+    WHERE is_active = 1 
+      AND end_date < ?
+    ORDER BY end_date DESC
+    LIMIT ?
+  `, [today, limit]);
+
+  res.json({ code: 200, data: rows });
+}));
+
+// GET /api/v1/races/upcoming - 获取即将开始的赛事
+router.get('/upcoming', asyncHandler(async (req, res) => {
+  const today = new Date().toISOString().split('T')[0];
+  const limit = Math.min(20, Math.max(1, parseInt(req.query.limit) || 10));
+  
+  const [rows] = await pool.query(`
+    SELECT * FROM races 
+    WHERE is_active = 1 
+      AND start_date > ?
+    ORDER BY start_date ASC
+    LIMIT ?
+  `, [today, limit]);
+
+  res.json({ code: 200, data: rows });
+}));
+
+// GET /api/v1/races/:id/latest-jerseys - 获取赛事最新领骑衫
+router.get('/:id/latest-jerseys', asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  
+  if (!id || id.trim() === '') {
+    throw new AppError('无效的赛事ID', ERROR_CODE.BAD_REQUEST);
+  }
+
+  // 查找该赛事最新有领骑衫数据的赛段
+  const [latestWithJerseys] = await pool.query(`
+    SELECT s.id FROM stages s
+    JOIN jerseys j ON j.stage_id = s.id
+    WHERE s.race_id = ?
+    ORDER BY s.stage_number DESC
+    LIMIT 1
+  `, [id]);
+
+  if (latestWithJerseys.length === 0) {
+    return res.json({ code: 200, data: [] });
+  }
+
+  const [jerseys] = await pool.query(`
+    SELECT j.jersey_type, j.time_gap, j.points,
+           r.rider_name, r.rider_name_zh, r.nationality, r.photo_url,
+           t.team_name, t.team_name_zh, t.uci_code
+    FROM jerseys j
+    JOIN riders r ON j.rider_id = r.id
+    JOIN teams t ON j.team_id = t.id
+    WHERE j.stage_id = ?
+  `, [latestWithJerseys[0].id]);
+
+  res.json({ code: 200, data: jerseys });
+}));
+
 // POST /api/v1/races - 创建赛事
 router.post('/', asyncHandler(async (req, res) => {
   const {
     race_name,
     race_name_en,
+    race_name_zh,
     race_code,
     category,
     gender,
@@ -159,11 +270,10 @@ router.post('/', asyncHandler(async (req, res) => {
 
   const id = require('crypto').randomUUID();
   
-  // 12个字段，12个?占位符
-  const sql = `INSERT INTO races (id, race_name, race_name_en, race_code, category, gender, season, country, start_date, end_date, total_stages, total_distance) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+  const sql = `INSERT INTO races (id, race_name, race_name_en, race_name_zh, race_code, category, gender, season, country, start_date, end_date, total_stages, total_distance) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
   
   await pool.query(sql, [
-    id, race_name, race_name_en || null, race_code, category || null, gender || null,
+    id, race_name, race_name_en || null, race_name_zh || null, race_code, category || null, gender || null,
     season, country || null, start_date || null, end_date || null, total_stages || null, total_distance || null
   ]);
 
@@ -200,6 +310,7 @@ router.put('/:id', asyncHandler(async (req, res) => {
   const {
     race_name,
     race_name_en,
+    race_name_zh,
     race_code,
     category,
     gender,
@@ -237,6 +348,10 @@ router.put('/:id', asyncHandler(async (req, res) => {
   if (race_name_en !== undefined) {
     updates.push('race_name_en = ?');
     params.push(race_name_en);
+  }
+  if (race_name_zh !== undefined) {
+    updates.push('race_name_zh = ?');
+    params.push(race_name_zh || null);
   }
   if (race_code !== undefined) {
     updates.push('race_code = ?');

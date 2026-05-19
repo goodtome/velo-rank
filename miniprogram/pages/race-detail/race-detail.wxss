@@ -5,7 +5,7 @@
   background: #fff;
   border-radius: 24rpx;
   padding: 32rpx;
-  margin-bottom: 32rpx;
+  margin-bottom: 24rpx;
   box-shadow: 0 2rpx 16rpx rgba(33,150,243,0.08);
 }
 
@@ -13,13 +13,26 @@
   font-size: 38rpx;
   font-weight: 700;
   color: #222;
-  margin-bottom: 12rpx;
+  margin-bottom: 6rpx;
 }
 
-.race-meta {
-  font-size: 26rpx;
+.race-name-en {
+  font-size: 24rpx;
+  color: #999;
+  margin-bottom: 16rpx;
+}
+
+.race-meta-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12rpx;
+  margin-bottom: 20rpx;
+}
+
+.race-date {
+  font-size: 24rpx;
   color: #888;
-  margin-bottom: 24rpx;
 }
 
 .race-stats {
@@ -48,16 +61,96 @@
   margin-top: 4rpx;
 }
 
-/* 赛段列表 */
-.section-title {
+/* ====== 领骑衫区域 ====== */
+.jerseys-section {
+  background: #fff;
+  border-radius: 24rpx;
+  padding: 28rpx;
+  margin-bottom: 24rpx;
+  box-shadow: 0 2rpx 16rpx rgba(0,0,0,0.05);
+}
+
+.section-label {
   font-size: 30rpx;
   font-weight: 600;
   color: #333;
-  margin: 32rpx 0 20rpx 8rpx;
+  margin-bottom: 20rpx;
 }
 
+.jerseys-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+}
+
+.jersey-card {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  min-width: 45%;
+  background: #f8f9fa;
+  border-radius: 16rpx;
+  padding: 16rpx;
+}
+
+.jersey-circle-lg {
+  width: 48rpx;
+  height: 48rpx;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-right: 14rpx;
+}
+
+.jersey-pink { background: linear-gradient(135deg, #ff69b4, #ff1493); }
+.jersey-purple { background: linear-gradient(135deg, #9b59b6, #8e44ad); }
+.jersey-blue { background: linear-gradient(135deg, #3498db, #2980b9); }
+.jersey-white { background: linear-gradient(135deg, #ecf0f1, #bdc3c7); }
+.jersey-BLUE_SPRINT { background: linear-gradient(135deg, #3498db, #2980b9); }
+.jersey-WHITE_YOUTH { background: linear-gradient(135deg, #ecf0f1, #bdc3c7); }
+
+.jersey-detail {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden;
+}
+
+.jersey-type-label {
+  font-size: 20rpx;
+  color: #999;
+}
+
+.jersey-rider {
+  font-size: 26rpx;
+  font-weight: 600;
+  color: #222;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.jersey-team {
+  font-size: 20rpx;
+  color: #999;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.jersey-extra {
+  flex-shrink: 0;
+  margin-left: 8rpx;
+}
+
+.jersey-points {
+  font-size: 22rpx;
+  color: #2196F3;
+  font-weight: 600;
+}
+
+/* ====== 赛段列表 ====== */
 .stage-list {
-  margin-bottom: 32rpx;
+  margin-bottom: 24rpx;
 }
 
 .stage-item {
@@ -84,13 +177,10 @@
   overflow: hidden;
 }
 
-.num-badge {
-  margin-right: 20rpx;
-}
-
 .stage-info {
   flex: 1;
   overflow: hidden;
+  margin-left: 20rpx;
 }
 
 .stage-route {
@@ -102,11 +192,27 @@
   text-overflow: ellipsis;
 }
 
-.stage-meta {
+.stage-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
   font-size: 22rpx;
   color: #999;
-  margin-top: 4rpx;
+  margin-top: 6rpx;
+  flex-wrap: wrap;
 }
+
+.stage-type-tag {
+  font-size: 20rpx;
+  padding: 2rpx 12rpx;
+  border-radius: 6rpx;
+}
+
+.tag-Flat { background: #e8f5e9; color: #388E3C; }
+.tag-Hills { background: #fff3e0; color: #F57C00; }
+.tag-Mountain { background: #fce4ec; color: #c62828; }
+.tag-TTT { background: #e3f2fd; color: #1565C0; }
+.tag-ITT { background: #e3f2fd; color: #1565C0; }
 
 .arrow {
   font-size: 30rpx;
@@ -115,7 +221,7 @@
   margin-left: 16rpx;
 }
 
-/* GC入口 - 橙黄色渐变卡片 */
+/* ====== GC入口 ====== */
 .gc-card {
   background: linear-gradient(135deg, #FF9800, #F57C00);
   border-radius: 24rpx;
@@ -163,12 +269,4 @@
   font-size: 32rpx;
   color: rgba(255,255,255,0.8);
   flex-shrink: 0;
-}
-
-/* loading */
-.loading {
-  text-align: center;
-  padding: 120rpx 0;
-  color: #999;
-  font-size: 28rpx;
 }

@@ -3,8 +3,16 @@
 
   <!-- 骨架屏加载状态 -->
   <view wx:if="{{loading}}" class="skeleton-container">
-    <view class="skeleton-card" wx:for="{{[1,2,3]}}" wx:key="*this">
+    <view class="skeleton-card">
       <view class="skeleton-item skeleton-title"></view>
+      <view class="skeleton-item skeleton-text"></view>
+      <view class="skeleton-item skeleton-text-short"></view>
+    </view>
+    <view class="skeleton-card">
+      <view class="skeleton-item skeleton-title"></view>
+      <view class="skeleton-item skeleton-text"></view>
+    </view>
+    <view class="skeleton-card" wx:for="{{[1,2,3]}}" wx:key="*this">
       <view class="skeleton-item skeleton-text"></view>
       <view class="skeleton-item skeleton-text-short"></view>
     </view>
@@ -13,61 +21,89 @@
   <!-- 错误状态 -->
   <view wx:elif="{{loadError}}" class="error-state">
     <text class="error-state-icon">😵</text>
-    <text class="error-state-text">{{t('errorNetwork')}}</text>
-    <button class="retry-btn" bindtap="retryLoad">{{t('retry')}}</button>
+    <text class="error-state-text">加载失败，请检查网络</text>
+    <button class="retry-btn" bindtap="retryLoad">重新加载</button>
   </view>
 
   <!-- 空状态 -->
-  <view wx:elif="{{!loading && activeRaces.length === 0 && upcomingRaces.length === 0}}" class="empty-state">
+  <view wx:elif="{{!loading && activeRaces.length === 0 && recentRaces.length === 0}}" class="empty-state">
     <text class="empty-state-icon">🚴</text>
-    <text class="empty-state-text">{{t('noData')}}</text>
-    <text class="empty-state-desc">{{t('pullToRefresh')}}</text>
+    <text class="empty-state-text">暂无赛事数据</text>
+    <text class="empty-state-desc">下拉刷新试试</text>
   </view>
 
   <view wx:else>
-    <!-- 进行中的赛事 -->
+
+    <!-- 进行中的赛事 Hero卡片 -->
     <view wx:if="{{activeRaces.length > 0}}" class="section">
       <view class="section-header">
-        <view class="section-dot dot-green"></view>
-        <view class="section-title">{{t('todayRace')}}</view>
+        <view class="live-dot"></view>
+        <view class="section-title">正在进行</view>
       </view>
 
       <view 
         wx:for="{{activeRaces}}" 
         wx:key="id"
-        class="race-card"
-        hover-class="race-card-hover"
+        class="hero-card"
+        hover-class="hero-card-hover"
         bindtap="onRaceTap"
         data-race-id="{{item.id}}"
       >
-        <view class="race-status-badge">{{t('statusActive')}}</view>
-        <view class="race-name">{{item.race_name_zh || item.race_name}}</view>
-        <view class="race-meta">{{item.start_date}} {{t('to')}} {{item.end_date}}</view>
-        <view class="race-meta">{{t('totalStages')}} {{item.total_stages}} {{t('stages')}}</view>
-        <view class="race-arrow">></view>
+        <!-- 赛事头部 -->
+        <view class="hero-header">
+          <view class="hero-badge">LIVE</view>
+          <view class="hero-race-name">{{item.race_name_zh || item.race_name}}</view>
+        </view>
+        <view class="hero-meta">
+          <text>{{item.start_date}} — {{item.end_date}}</text>
+          <text class="hero-stages">{{item.total_stages}}个赛段</text>
+        </view>
+
+        <!-- 领骑衫展示 -->
+        <view wx:if="{{item.jerseys && item.jerseys.length > 0}}" class="jerseys-row">
+          <view wx:for="{{item.jerseys}}" wx:for-item="jersey" wx:key="jersey_type" class="jersey-item">
+            <view class="jersey-circle jersey-{{jersey.jersey_type}}"></view>
+            <view class="jersey-info">
+              <text class="jersey-rider-name">{{jersey.rider_name_zh || jersey.rider_name}}</text>
+              <text class="jersey-team-name">{{jersey.team_name_zh || jersey.team_name}}</text>
+            </view>
+          </view>
+        </view>
+
+        <!-- 查看详情提示 -->
+        <view class="hero-footer">
+          <text class="hero-link">查看详情 ></text>
+        </view>
       </view>
     </view>
 
-    <!-- 近期赛事 -->
-    <view class="section">
+    <!-- 近期已结束赛事 -->
+    <view wx:if="{{recentRaces.length > 0}}" class="section">
       <view class="section-header">
-        <view class="section-dot dot-blue"></view>
-        <view class="section-title">{{t('upcomingRace')}}</view>
+        <view class="section-dot dot-gray"></view>
+        <view class="section-title">近期完赛</view>
       </view>
 
       <view 
-        wx:for="{{upcomingRaces}}" 
+        wx:for="{{recentRaces}}" 
         wx:key="id"
         class="race-card"
         hover-class="race-card-hover"
         bindtap="onRaceTap"
         data-race-id="{{item.id}}"
       >
-        <view class="race-name">{{item.race_name_zh || item.race_name}}</view>
-        <view class="race-meta">{{item.start_date}} {{t('to')}} {{item.end_date}}</view>
-        <view class="race-meta">{{t('totalStages')}} {{item.total_stages}} {{t('stages')}}</view>
-        <view class="race-arrow">></view>
+        <view class="race-card-left">
+          <view class="race-card-name">{{item.race_name_zh || item.race_name}}</view>
+          <view class="race-card-meta">
+            <text>{{item.start_date}} — {{item.end_date}}</text>
+          </view>
+        </view>
+        <view class="race-card-right">
+          <text class="race-card-stages">{{item.total_stages}}赛段</text>
+          <text class="race-card-arrow">></text>
+        </view>
       </view>
     </view>
+
   </view>
 </view>

@@ -16,7 +16,10 @@ Page({
     jerseys: [],
     loading: true,
     loadError: false,
-    type: 'stage'
+    type: 'stage',
+    currentPage: 1,
+    pageSize: 30,
+    hasMore: false
   },
 
   onLoad(options) {
@@ -36,6 +39,37 @@ Page({
       wx.setNavigationBarTitle({ title: `第 ${stageNumber} 赛段成绩` });
       this.loadStageResults();
     }
+  },
+
+  /**
+   * 格式化日期
+   */
+  formatDate(dateStr) {
+    if (!dateStr) return '';
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return dateStr;
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${month}-${day}`;
+  },
+
+  /**
+   * 领骑衫类型中文名
+   */
+  jerseyTypeName(type) {
+    const map = {
+      'pink': '粉衫 GC',
+      'PINK': '粉衫 GC',
+      'purple': '紫衫 积分',
+      'PURPLE': '紫衫 积分',
+      'blue': '蓝衫 冲刺',
+      'BLUE': '蓝衫 冲刺',
+      'BLUE_SPRINT': '蓝衫 冲刺',
+      'white': '白衫 青年',
+      'WHITE': '白衫 青年',
+      'WHITE_YOUTH': '白衫 青年'
+    };
+    return map[type] || type;
   },
 
   /**
@@ -70,7 +104,10 @@ Page({
         results = resultsRes.data;
       }
 
-      this.setData({ results });
+      this.setData({ 
+        results,
+        hasMore: results.length >= 100 
+      });
 
       // 加载领骑衫信息
       await this.loadJerseys();
@@ -85,14 +122,24 @@ Page({
    * 加载领骑衫信息
    */
   async loadJerseys() {
-    const { stageId } = this.data;
+    const { stageId, raceId } = this.data;
 
     try {
-      const res = await get(`/stages/${stageId}/jerseys`);
+      // 优先用赛事最新领骑衫（数据更全）
+      let jerseysRes;
+      if (raceId) {
+        jerseysRes = await get(`/races/${raceId}/latest-jerseys`);
+      }
       
+      // 如果赛事领骑衫为空，尝试赛段领骑衫
       let jerseys = [];
-      if (res && res.code === 200 && Array.isArray(res.data)) {
-        jerseys = res.data;
+      if (jerseysRes && jerseysRes.code === 200 && Array.isArray(jerseysRes.data) && jerseysRes.data.length > 0) {
+        jerseys = jerseysRes.data;
+      } else {
+        const stageJerseysRes = await get(`/stages/${stageId}/jerseys`);
+        if (stageJerseysRes && stageJerseysRes.code === 200 && Array.isArray(stageJerseysRes.data)) {
+          jerseys = stageJerseysRes.data;
+        }
       }
 
       this.setData({ 
@@ -102,7 +149,6 @@ Page({
     } catch (err) {
       console.error('加载领骑衫失败:', err);
       this.setData({ loading: false, loadError: true });
-      showError('网络请求失败');
     }
   },
 

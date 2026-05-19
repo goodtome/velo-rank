@@ -1,6 +1,6 @@
 /* pages/stage-results/stage-results.wxss */
 
-/* 赛段信息头 */
+/* ====== 赛段信息头 ====== */
 .stage-header {
   background: #fff;
   border-radius: 24rpx;
@@ -13,14 +13,26 @@
   display: flex;
   align-items: center;
   margin-bottom: 12rpx;
+  gap: 12rpx;
 }
 
 .stage-title-text {
   font-size: 32rpx;
   font-weight: 700;
   color: #222;
-  margin-left: 16rpx;
 }
+
+.stage-type-tag {
+  font-size: 20rpx;
+  padding: 4rpx 12rpx;
+  border-radius: 6rpx;
+}
+
+.tag-Flat { background: #e8f5e9; color: #388E3C; }
+.tag-Hills { background: #fff3e0; color: #F57C00; }
+.tag-Mountain { background: #fce4ec; color: #c62828; }
+.tag-TTT { background: #e3f2fd; color: #1565C0; }
+.tag-ITT { background: #e3f2fd; color: #1565C0; }
 
 .stage-route {
   font-size: 28rpx;
@@ -36,21 +48,20 @@
   color: #999;
 }
 
-.stage-type {
-  background: #e3f2fd;
-  color: #2196F3;
-  padding: 4rpx 12rpx;
-  border-radius: 8rpx;
-  font-size: 22rpx;
-}
-
-/* GC头部 */
+/* ====== GC头部 ====== */
 .gc-header {
   background: linear-gradient(135deg, #FF9800, #F57C00);
   border-radius: 24rpx;
   padding: 32rpx;
   margin-bottom: 24rpx;
   color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+}
+
+.gc-icon {
+  font-size: 48rpx;
 }
 
 .gc-title {
@@ -64,7 +75,7 @@
   opacity: 0.85;
 }
 
-/* 领骑衫 */
+/* ====== 领骑衫 ====== */
 .jerseys-section {
   background: #fff;
   border-radius: 24rpx;
@@ -73,46 +84,74 @@
   box-shadow: 0 2rpx 16rpx rgba(0,0,0,0.05);
 }
 
-.jersey-row {
+.section-label {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 16rpx;
+}
+
+.jerseys-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+}
+
+.jersey-card {
   display: flex;
   align-items: center;
-  padding: 16rpx 0;
-  border-bottom: 1rpx solid #f5f5f5;
+  flex: 1;
+  min-width: 45%;
+  background: #f8f9fa;
+  border-radius: 14rpx;
+  padding: 14rpx;
 }
 
-.jersey-row:last-child {
-  border-bottom: none;
+.jersey-circle-md {
+  width: 40rpx;
+  height: 40rpx;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-right: 12rpx;
 }
 
-.jersey-dot {
-  width: 44rpx;
-  height: 44rpx;
-  margin-right: 20rpx;
-}
+.jersey-pink { background: linear-gradient(135deg, #ff69b4, #ff1493); }
+.jersey-purple { background: linear-gradient(135deg, #9b59b6, #8e44ad); }
+.jersey-blue { background: linear-gradient(135deg, #3498db, #2980b9); }
+.jersey-white { background: linear-gradient(135deg, #ecf0f1, #bdc3c7); }
+.jersey-BLUE_SPRINT { background: linear-gradient(135deg, #3498db, #2980b9); }
+.jersey-WHITE_YOUTH { background: linear-gradient(135deg, #ecf0f1, #bdc3c7); }
 
-
-.jersey-info {
+.jersey-detail {
   display: flex;
   flex-direction: column;
+  overflow: hidden;
+  flex: 1;
 }
 
 .jersey-type-name {
-  font-size: 26rpx;
-  font-weight: 600;
-  color: #333;
-}
-
-.jersey-rider {
-  font-size: 22rpx;
-  color: #666;
-}
-
-.jersey-team {
   font-size: 20rpx;
   color: #999;
 }
 
-/* 成绩列表 */
+.jersey-rider {
+  font-size: 24rpx;
+  font-weight: 600;
+  color: #222;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.jersey-team {
+  font-size: 18rpx;
+  color: #999;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ====== 成绩列表 ====== */
 .results-section {
   background: #fff;
   border-radius: 24rpx;
@@ -134,7 +173,7 @@
 
 .rh-rank { width: 80rpx; }
 .rh-rider { flex: 1; padding: 0 12rpx; }
-.rh-team { width: 100rpx; text-align: center; }
+.rh-team { width: 120rpx; text-align: center; }
 .rh-time { width: 160rpx; text-align: right; }
 
 /* 列表行 */
@@ -150,12 +189,27 @@
   background: #f8f9fa;
 }
 
+/* 前三名高亮 */
 .result-top3 {
-  background: #f0f7ff;
-  border-radius: 12rpx;
-  padding: 20rpx 12rpx;
-  margin: 4rpx 0;
+  border-radius: 14rpx;
+  padding: 20rpx 10rpx;
+  margin: 6rpx 0;
   border-bottom: none;
+}
+
+.result-gold {
+  background: linear-gradient(135deg, #fff8e1, #fff3e0);
+  border-left: 4rpx solid #FFD700;
+}
+
+.result-silver {
+  background: linear-gradient(135deg, #f5f5f5, #eeeeee);
+  border-left: 4rpx solid #C0C0C0;
+}
+
+.result-bronze {
+  background: linear-gradient(135deg, #fbe9e7, #ffccbc);
+  border-left: 4rpx solid #CD7F32;
 }
 
 .rr-rank {
@@ -163,11 +217,11 @@
   font-size: 28rpx;
   font-weight: 600;
   color: #999;
+  text-align: center;
 }
 
-.rr-rank-top3 {
-  color: #2196F3;
-  font-weight: 700;
+.rr-rank-medal {
+  font-size: 32rpx;
 }
 
 .rr-rider {
@@ -190,10 +244,13 @@
 }
 
 .rr-team {
-  width: 100rpx;
-  font-size: 22rpx;
+  width: 120rpx;
+  font-size: 20rpx;
   color: #888;
   text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .rr-time {
@@ -201,8 +258,12 @@
   display: flex;
   flex-direction: column;
   align-items: flex-end;
+}
+
+.time-main {
   font-size: 26rpx;
   color: #222;
+  font-weight: 500;
 }
 
 .time-gap {
@@ -211,10 +272,10 @@
   margin-top: 2rpx;
 }
 
-/* loading */
-.loading {
+/* 加载更多 */
+.load-more {
   text-align: center;
-  padding: 120rpx 0;
-  color: #999;
-  font-size: 28rpx;
+  padding: 24rpx;
+  color: #2196F3;
+  font-size: 26rpx;
 }
