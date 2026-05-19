@@ -3,6 +3,7 @@
   padding: 20rpx;
   background: #f5f5f5;
   min-height: 100vh;
+  padding-bottom: 40rpx;
 }
 
 /* 顶部月份切换 */
@@ -10,63 +11,108 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 30rpx 20rpx;
-  background: white;
-  border-radius: 16rpx;
+  padding: 30rpx 24rpx;
+  background: linear-gradient(135deg, #1a1a2e, #16213e);
+  border-radius: 20rpx;
   margin-bottom: 20rpx;
 }
 
 .month-switcher {
   display: flex;
   align-items: center;
-  gap: 30rpx;
+  gap: 24rpx;
 }
 
-.arrow {
+.arrow-btn {
+  width: 64rpx;
+  height: 64rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255,255,255,0.1);
+  border-radius: 50%;
+}
+
+.arrow-icon {
   font-size: 40rpx;
-  padding: 10rpx 20rpx;
-  color: #07c160;
+  color: #fff;
+  font-weight: 300;
 }
 
 .month-text {
   font-size: 36rpx;
   font-weight: bold;
+  color: #fff;
+  min-width: 240rpx;
+  text-align: center;
 }
 
 .today-btn {
-  background: #07c160;
+  background: rgba(7, 193, 96, 0.9);
   color: white;
-  padding: 10rpx 30rpx;
+  padding: 12rpx 32rpx;
   border-radius: 30rpx;
-  font-size: 28rpx;
+  font-size: 26rpx;
+  font-weight: 500;
+}
+
+/* 加载状态 */
+.loading-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20rpx;
+  gap: 12rpx;
+}
+
+.loading-spinner {
+  width: 32rpx;
+  height: 32rpx;
+  border: 4rpx solid #e0e0e0;
+  border-top-color: #07c160;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.loading-text {
+  font-size: 26rpx;
+  color: #999;
 }
 
 /* 星期头 */
 .week-header {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  background: white;
+  background: #fff;
   padding: 20rpx 0;
-  border-radius: 16rpx;
-  margin-bottom: 20rpx;
+  border-radius: 16rpx 16rpx 0 0;
+  margin-bottom: 0;
 }
 
 .week-day {
   text-align: center;
-  font-size: 28rpx;
+  font-size: 26rpx;
   color: #666;
   font-weight: bold;
+}
+
+.week-day.weekend {
+  color: #e74c3c;
 }
 
 /* 日历网格 */
 .calendar-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 10rpx;
-  background: white;
-  padding: 20rpx;
-  border-radius: 16rpx;
-  margin-bottom: 30rpx;
+  gap: 4rpx;
+  background: #fff;
+  padding: 12rpx 16rpx 20rpx;
+  border-radius: 0 0 16rpx 16rpx;
+  margin-bottom: 20rpx;
 }
 
 .day-cell {
@@ -77,55 +123,87 @@
   justify-content: center;
   border-radius: 12rpx;
   position: relative;
-  background: #fafafa;
+  transition: all 0.2s ease;
 }
 
 .day-cell.other-month {
-  opacity: 0.3;
+  opacity: 0.25;
 }
 
 .day-cell.today {
   background: #07c160;
-  color: white;
 }
 
-.day-number {
-  font-size: 32rpx;
+.day-cell.today .day-number {
+  color: #fff;
+}
+
+.day-cell.selected {
+  background: rgba(7, 193, 96, 0.15);
+  box-shadow: 0 0 0 2rpx #07c160;
+}
+
+.day-cell.has-races .day-number {
   font-weight: bold;
 }
 
+.day-number {
+  font-size: 30rpx;
+  font-weight: 500;
+  color: #333;
+}
+
+.race-dots {
+  display: flex;
+  gap: 4rpx;
+  position: absolute;
+  bottom: 6rpx;
+  flex-wrap: wrap;
+  justify-content: center;
+  max-width: 80%;
+}
+
 .race-dot {
-  width: 12rpx;
-  height: 12rpx;
-  background: #07c160;
+  width: 10rpx;
+  height: 10rpx;
   border-radius: 50%;
-  position: absolute;
-  bottom: 8rpx;
 }
 
-.today .race-dot {
-  background: white;
+/* 图例 */
+.legend {
+  display: flex;
+  justify-content: center;
+  gap: 24rpx;
+  padding: 16rpx;
+  margin-bottom: 24rpx;
+  flex-wrap: wrap;
 }
 
-.race-count {
-  font-size: 20rpx;
-  color: #07c160;
-  position: absolute;
-  top: 4rpx;
-  right: 8rpx;
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
 }
 
-.today .race-count {
-  color: white;
+.legend-dot {
+  width: 16rpx;
+  height: 16rpx;
+  border-radius: 50%;
+}
+
+.legend-text {
+  font-size: 22rpx;
+  color: #666;
 }
 
 /* 赛事列表 */
 .section-title {
-  font-size: 32rpx;
+  font-size: 30rpx;
   font-weight: bold;
   margin-bottom: 20rpx;
-  padding-left: 10rpx;
-  border-left: 8rpx solid #07c160;
+  padding-left: 12rpx;
+  border-left: 6rpx solid #07c160;
+  color: #333;
 }
 
 .race-list {
@@ -133,33 +211,41 @@
 }
 
 .race-card {
-  background: white;
-  padding: 30rpx;
+  background: #fff;
+  padding: 28rpx;
   border-radius: 16rpx;
-  margin-bottom: 20rpx;
+  margin-bottom: 16rpx;
   display: flex;
   align-items: center;
   gap: 20rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.04);
+  transition: transform 0.2s;
 }
 
+.race-card:active {
+  transform: scale(0.98);
+}
+
+/* 赛事状态标签 */
 .race-status {
-  padding: 8rpx 20rpx;
+  padding: 8rpx 16rpx;
   border-radius: 20rpx;
-  font-size: 24rpx;
+  font-size: 22rpx;
   white-space: nowrap;
+  font-weight: 500;
 }
 
-.race-status-ongoing {
+.status-ongoing {
   background: #e8f5e9;
   color: #07c160;
 }
 
-.race-status-upcoming {
+.status-upcoming {
   background: #e3f2fd;
   color: #1976d2;
 }
 
-.race-status-finished {
+.status-finished {
   background: #f5f5f5;
   color: #999;
 }
@@ -168,62 +254,100 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 8rpx;
+  gap: 6rpx;
+  min-width: 0;
 }
 
 .race-name {
   font-size: 30rpx;
   font-weight: bold;
+  color: #333;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.race-meta {
+  display: flex;
+  gap: 16rpx;
+  align-items: center;
 }
 
 .race-category {
-  font-size: 24rpx;
-  color: #666;
-}
-
-.race-date {
-  font-size: 24rpx;
+  font-size: 22rpx;
   color: #999;
 }
 
+.race-dates {
+  font-size: 22rpx;
+  color: #bbb;
+}
+
 .race-action {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 10rpx 20rpx;
-  background: #f5f5f5;
-  border-radius: 12rpx;
+  padding: 12rpx;
 }
 
 .add-icon {
-  font-size: 40rpx;
-  color: #07c160;
-}
-
-.add-text {
-  font-size: 20rpx;
-  color: #666;
+  font-size: 36rpx;
 }
 
 /* 倒计时 */
 .race-countdown {
-  font-size: 28rpx;
+  font-size: 26rpx;
   color: #ff9800;
   font-weight: bold;
   white-space: nowrap;
+  padding: 8rpx 16rpx;
+  background: #fff8e1;
+  border-radius: 16rpx;
+}
+
+/* 赛事类型标签 */
+.race-category-tag {
+  font-size: 20rpx;
+  padding: 6rpx 14rpx;
+  border-radius: 10rpx;
+  background: #f0f0f0;
+  color: #666;
+  white-space: nowrap;
+}
+
+.race-category-tag.gt {
+  background: #fce4ec;
+  color: #e74c3c;
+}
+
+.race-date {
+  font-size: 22rpx;
+  color: #999;
 }
 
 /* 空状态 */
 .empty-tip {
-  text-align: center;
-  padding: 60rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 50rpx;
+  gap: 12rpx;
+}
+
+.empty-icon {
+  font-size: 48rpx;
+}
+
+.empty-text {
   color: #999;
   font-size: 28rpx;
 }
 
 /* 即将开始区域 */
 .upcoming-section {
-  background: white;
-  padding: 30rpx;
+  background: #fff;
+  padding: 28rpx;
   border-radius: 16rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.04);
+}
+
+.upcoming-card {
+  background: #fafbfc;
 }

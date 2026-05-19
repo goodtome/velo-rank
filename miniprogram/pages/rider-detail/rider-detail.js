@@ -11,8 +11,10 @@ Page({
   data: {
     riderId: '',
     rider: null,
+    results: [],
     loading: true,
-    loadError: false
+    loadError: false,
+    resultsLoading: false
   },
 
   onLoad(options) {
@@ -45,7 +47,7 @@ Page({
    */
   async loadRiderDetail() {
     this.setData({ loading: true, loadError: false });
-
+    
     try {
       const res = await get(`/riders/${this.data.riderId}`);
       
@@ -54,6 +56,8 @@ Page({
           rider: res.data, 
           loading: false 
         });
+        // 加载车手成绩
+        this.loadRiderResults();
       } else {
         this.setData({ 
           rider: null, 
@@ -65,6 +69,29 @@ Page({
       console.error('加载车手详情失败:', err);
       this.setData({ loading: false, loadError: true });
       showError(this.t('errorNetwork'));
+    }
+  },
+
+  /**
+   * 加载车手历史成绩
+   */
+  async loadRiderResults() {
+    this.setData({ resultsLoading: true });
+    
+    try {
+      const res = await get(`/riders/${this.data.riderId}/results?limit=20`);
+      
+      if (res && res.code === 200) {
+        this.setData({ 
+          results: res.data || [],
+          resultsLoading: false 
+        });
+      } else {
+        this.setData({ resultsLoading: false });
+      }
+    } catch (err) {
+      console.error('加载车手成绩失败:', err);
+      this.setData({ resultsLoading: false });
     }
   },
 

@@ -1,45 +1,67 @@
-/* 推送设置页面样式 */
+/* 推送设置页面样式 - 升级版 */
 .settings-container {
   background: #f5f5f5;
   min-height: 100vh;
-  padding-bottom: 40rpx;
+  padding-bottom: 60rpx;
 }
 
 /* 页面标题 */
 .page-header {
-  background: linear-gradient(135deg, #1aad19, #12b365);
+  background: linear-gradient(135deg, #1a1a2e, #16213e);
   color: #fff;
-  padding: 40rpx 30rpx;
+  padding: 50rpx 30rpx 40rpx;
+  position: relative;
 }
 
 .page-title {
   display: block;
-  font-size: 40rpx;
+  font-size: 44rpx;
   font-weight: bold;
-  margin-bottom: 10rpx;
+  margin-bottom: 12rpx;
 }
 
 .page-desc {
   display: block;
   font-size: 26rpx;
-  opacity: 0.9;
+  opacity: 0.7;
+}
+
+.sync-status {
+  position: absolute;
+  right: 30rpx;
+  top: 50rpx;
+  font-size: 24rpx;
+  padding: 8rpx 20rpx;
+  border-radius: 20rpx;
+}
+
+.sync-status.synced {
+  background: rgba(7, 193, 96, 0.2);
+  color: #07c160;
+}
+
+.sync-status.error {
+  background: rgba(255, 68, 68, 0.2);
+  color: #ff4444;
 }
 
 /* 设置区块 */
 .setting-section {
   background: #fff;
-  margin: 20rpx;
+  margin: 20rpx 24rpx;
   border-radius: 20rpx;
   overflow: hidden;
-  box-shadow: 0 2rpx 10rpx rgba(0,0,0,0.05);
+  box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.06);
 }
 
 .section-title {
   display: block;
-  font-size: 30rpx;
+  font-size: 28rpx;
   font-weight: bold;
-  color: #333;
-  padding: 30rpx 30rpx 10rpx;
+  color: #666;
+  padding: 28rpx 30rpx 8rpx;
+  text-transform: uppercase;
+  letter-spacing: 2rpx;
 }
 
 /* 设置项 */
@@ -47,8 +69,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 30rpx;
-  border-bottom: 1rpx solid #f0f0f0;
+  padding: 28rpx 30rpx;
+  border-bottom: 1rpx solid #f5f5f5;
 }
 
 .setting-item:last-child {
@@ -64,118 +86,140 @@
   display: block;
   font-size: 32rpx;
   color: #333;
-  margin-bottom: 8rpx;
+  margin-bottom: 6rpx;
+  font-weight: 500;
 }
 
 .setting-desc {
   display: block;
   font-size: 24rpx;
   color: #999;
+  line-height: 1.5;
 }
 
 /* 时间选择器 */
 .time-picker-group {
   display: flex;
-  padding: 20rpx 30rpx;
-  gap: 20rpx;
+  padding: 20rpx 30rpx 10rpx;
+  align-items: center;
+  gap: 16rpx;
 }
 
 .time-picker-item {
   flex: 1;
-  background: #f9f9f9;
+  background: #f8f9fa;
   padding: 20rpx;
-  border-radius: 10rpx;
+  border-radius: 16rpx;
+  text-align: center;
 }
 
 .time-label {
   display: block;
-  font-size: 24rpx;
+  font-size: 22rpx;
   color: #999;
   margin-bottom: 10rpx;
 }
 
 .time-value {
-  font-size: 32rpx;
+  font-size: 36rpx;
   font-weight: bold;
   color: #333;
 }
 
+.time-range-arrow {
+  font-size: 32rpx;
+  color: #ccc;
+}
+
 .dnd-tip {
-  padding: 20rpx 30rpx 30rpx;
+  padding: 16rpx 30rpx 28rpx;
   font-size: 24rpx;
-  color: #666;
+  color: #999;
   line-height: 1.6;
 }
 
 /* 推送频率选项 */
 .frequency-options {
   display: flex;
-  padding: 20rpx 30rpx 30rpx;
-  gap: 15rpx;
+  padding: 16rpx 30rpx 28rpx;
+  gap: 16rpx;
 }
 
 .frequency-item {
   flex: 1;
-  background: #f9f9f9;
-  padding: 20rpx;
-  border-radius: 15rpx;
+  background: #f8f9fa;
+  padding: 24rpx 16rpx;
+  border-radius: 16rpx;
   text-align: center;
   border: 2rpx solid transparent;
-  transition: all 0.3s;
+  transition: all 0.3s ease;
 }
 
 .frequency-item.active {
-  background: rgba(26, 173, 25, 0.1);
-  border-color: #1aad19;
+  background: rgba(7, 193, 96, 0.08);
+  border-color: #07c160;
 }
 
 .frequency-name {
   display: block;
-  font-size: 28rpx;
+  font-size: 30rpx;
   font-weight: bold;
   color: #333;
   margin-bottom: 8rpx;
 }
 
 .frequency-item.active .frequency-name {
-  color: #1aad19;
+  color: #07c160;
 }
 
 .frequency-desc {
   display: block;
-  font-size: 20rpx;
+  font-size: 22rpx;
   color: #999;
+}
+
+.frequency-item.active .frequency-desc {
+  color: #07c160;
+  opacity: 0.7;
 }
 
 /* 测试按钮 */
 .test-btn {
   margin: 30rpx;
-  background: #1aad19;
+  background: linear-gradient(135deg, #07c160, #06ad56);
   color: #fff;
   border-radius: 50rpx;
   font-size: 32rpx;
-  padding: 25rpx 0;
+  padding: 24rpx 0;
+  border: none;
+  box-shadow: 0 4rpx 12rpx rgba(7, 193, 96, 0.3);
+}
+
+.test-btn[disabled] {
+  background: #ccc;
+  box-shadow: none;
 }
 
 /* 提示信息 */
 .tip-section {
   display: flex;
   align-items: flex-start;
-  margin: 20rpx 30rpx;
-  padding: 20rpx;
-  background: #fff8e1;
-  border-radius: 15rpx;
-  border-left: 8rpx solid #ffc107;
+  margin: 20rpx 24rpx;
+  padding: 24rpx;
+  background: linear-gradient(135deg, #fff8e1, #fffde7);
+  border-radius: 16rpx;
+  border-left: 6rpx solid #ffc107;
 }
 
 .tip-icon {
   font-size: 36rpx;
-  margin-right: 15rpx;
+  margin-right: 16rpx;
+  flex-shrink: 0;
 }
 
 .tip-text {
   flex: 1;
-  font-size: 26rpx;
+  font-size: 24rpx;
   color: #666;
   line-height: 1.6;
 }

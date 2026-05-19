@@ -124,6 +124,83 @@ router.get('/stats/overview', asyncHandler(async (req, res) => {
   res.json({ code: 200, data: stats });
 }));
 
+// GET /api/v1/races/calendar - 获取赛事日历数据（指定月份）
+router.get('/calendar', asyncHandler(async (req, res) => {
+  const { year, month } = req.query;
+  
+  const yearNum = parseInt(year) || new Date().getFullYear();
+  const monthNum = parseInt(month) || (new Date().getMonth() + 1);
+  
+  if (monthNum < 1 || monthNum > 12) {
+    throw new AppError('月份必须在1-12之间', ERROR_CODE.BAD_REQUEST);
+  }
+  if (yearNum < 2020 || yearNum > 2030) {
+    throw new AppError('年份必须在2020-2030之间', ERROR_CODE.BAD_REQUEST);
+  }
+  
+  // 查询该月及可能跨越该月的赛事
+  // 赛事可能在月初之前开始但在月内结束，或在月内开始但在月后结束
+  const monthStart = `${yearNum}-${String(monthNum).padStart(2, '0')}-01`;
+  const lastDay = new Date(yearNum, monthNum, 0).getDate();
+  const monthEnd = `${yearNum}-${String(monthNum).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
+  
+  const [races] = await pool.query(`
+    SELECT id, race_name, race_name_zh, race_name_en, race_code, category, gender,
+           season, country, start_date, end_date, total_stages, logo_url
+    FROM races 
+    WHERE is_active = 1
+      AND start_date <= ? 
+      AND end_date >= ?
+    ORDER BY start_date ASC
+  `, [monthEnd, monthStart]);
+  
+  // 计算每个赛事的状态
+  const today = new Date().toISOString().split('T')[0];
+  const racesWithStatus = races.map(race => {
+    // 统一将datetime转为日期字符串（处理UTC时区问题）
+    const startDate = race.start_date ? new Date(race.start_date).toISOString().split('T')[0] : '';
+    const endDate = race.end_date ? new Date(race.end_date).toISOString().split('T')[0] : '';
+    
+    let status = 'upcoming';
+    if (startDate && endDate) {
+      if (startDate <= today && endDate >= today) {
+        status = 'ongoing';
+      } else if (endDate < today) {
+        status = 'finished';
+      }
+    }
+    
+    // 计算赛事覆盖的日期列表（用于日历标记）
+    const raceDays = [];
+    if (startDate && endDate) {
+      // 用纯日期字符串操作，避免时区问题
+      let current = new Date(startDate + 'T12:00:00Z'); // 用中午UTC避免跨天
+      const endDt = new Date(endDate + 'T12:00:00Z');
+      while (current <= endDt) {
+        raceDays.push(current.toISOString().split('T')[0]);
+        current = new Date(current.getTime() + 86400000); // +1天
+      }
+    }
+    
+    return {
+      ...race,
+      start_date: startDate,
+      end_date: endDate,
+      status,
+      raceDays
+    };
+  });
+  
+  res.json({ 
+    code: 200, 
+    data: {
+      year: yearNum,
+      month: monthNum,
+      races: racesWithStatus
+    }
+  });
+}));
+
 // GET /api/v1/races/active - 获取当前进行中赛事（含最新领骑衫）
 router.get('/active', asyncHandler(async (req, res) => {
   const today = new Date().toISOString().split('T')[0];

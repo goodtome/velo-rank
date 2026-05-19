@@ -10,10 +10,11 @@ App({
     // 小程序启动时的初始化逻辑
     console.log('领骑小程序启动');
 
-    // 获取系统信息
-    const systemInfo = wx.getSystemInfoSync();
-    this.globalData.systemInfo = systemInfo;
-    this.globalData.statusBarHeight = systemInfo.statusBarHeight;
+    // 获取系统信息（使用新API替换废弃的wx.getSystemInfoSync）
+    const windowInfo = wx.getWindowInfo();
+    const deviceInfo = wx.getDeviceInfo();
+    this.globalData.statusBarHeight = windowInfo.statusBarHeight;
+    this.globalData.systemInfo = { ...windowInfo, ...deviceInfo };
 
     // 根据环境设置API地址
     const config = getConfig();

@@ -2,125 +2,131 @@
 <view class="settings-container">
   <!-- 页面标题 -->
   <view class="page-header">
-    <text class="page-title">{{t('pushSettings')}}</text>
-    <text class="page-desc">{{t('pushDesc')}}</text>
+    <text class="page-title">推送设置</text>
+    <text class="page-desc">管理您的推送通知偏好</text>
+    <view class="sync-status {{syncStatus}}" wx:if="{{syncStatus}}">
+      <text wx:if="{{syncStatus === 'synced'}}">✓ 已同步</text>
+      <text wx:if="{{syncStatus === 'error'}}">⚠ 同步失败</text>
+    </view>
   </view>
-  
+
   <!-- 总开关 -->
   <view class="setting-section">
     <view class="setting-item">
       <view class="setting-info">
-        <text class="setting-label">{{t('pushEnabledLabel')}}</text>
-        <text class="setting-desc">{{t('pushEnabledDesc')}}</text>
+        <text class="setting-label">推送通知</text>
+        <text class="setting-desc">总开关，关闭后不再接收任何推送</text>
       </view>
-      <switch checked="{{pushEnabled}}" bindchange="togglePush" color="#1aad19" />
+      <switch checked="{{pushEnabled}}" bindchange="togglePush" color="#07c160" />
     </view>
   </view>
-  
+
   <!-- 推送类型设置 -->
   <view class="setting-section" wx:if="{{pushEnabled}}">
-    <view class="section-title">{{t('notifyRaceStartLabel')}}</view>
-    
+    <view class="section-title">通知类型</view>
+
     <view class="setting-item">
       <view class="setting-info">
-        <text class="setting-label">{{t('notifyRaceStartLabel')}}</text>
-        <text class="setting-desc">{{t('notifyRaceStartDesc')}}</text>
+        <text class="setting-label">🚴 赛事开始</text>
+        <text class="setting-desc">赛事发车前30分钟提醒</text>
       </view>
-      <switch checked="{{notifyRaceStart}}" bindchange="toggleRaceStart" color="#1aad19" />
+      <switch checked="{{notifyRaceStart}}" bindchange="toggleRaceStart" color="#07c160" />
     </view>
-    
+
     <view class="setting-item">
       <view class="setting-info">
-        <text class="setting-label">{{t('notifyStageEndLabel')}}</text>
-        <text class="setting-desc">{{t('notifyStageEndDesc')}}</text>
+        <text class="setting-label">🏁 赛段结束</text>
+        <text class="setting-desc">每个赛段结束后推送成绩</text>
       </view>
-      <switch checked="{{notifyStageEnd}}" bindchange="toggleStageEnd" color="#1aad19" />
+      <switch checked="{{notifyStageEnd}}" bindchange="toggleStageEnd" color="#07c160" />
     </view>
-    
+
     <view class="setting-item">
       <view class="setting-info">
-        <text class="setting-label">{{t('notifyRiderChangeLabel')}}</text>
-        <text class="setting-desc">{{t('notifyRiderChangeDesc')}}</text>
+        <text class="setting-label">📊 排名变化</text>
+        <text class="setting-desc">关注车手排名变动通知</text>
       </view>
-      <switch checked="{{notifyRiderChange}}" bindchange="toggleRiderChange" color="#1aad19" />
+      <switch checked="{{notifyRiderChange}}" bindchange="toggleRiderChange" color="#07c160" />
     </view>
-    
+
     <view class="setting-item">
       <view class="setting-info">
-        <text class="setting-label">{{t('notifyKeyEventsLabel')}}</text>
-        <text class="setting-desc">{{t('notifyKeyEventsDesc')}}</text>
+        <text class="setting-label">⚡ 关键事件</text>
+        <text class="setting-desc">摔车、退赛、领骑衫易主等</text>
       </view>
-      <switch checked="{{notifyKeyEvents}}" bindchange="toggleKeyEvents" color="#1aad19" />
+      <switch checked="{{notifyKeyEvents}}" bindchange="toggleKeyEvents" color="#07c160" />
     </view>
   </view>
-  
+
   <!-- 免打扰设置 -->
   <view class="setting-section" wx:if="{{pushEnabled}}">
-    <view class="section-title">{{t('dndSettings')}}</view>
+    <view class="section-title">免打扰时段</view>
     <view class="setting-item">
       <view class="setting-info">
-        <text class="setting-label">{{t('dndEnabledLabel')}}</text>
-        <text class="setting-desc">{{t('dndEnabledDesc')}}</text>
+        <text class="setting-label">🌙 免打扰模式</text>
+        <text class="setting-desc">在指定时段内不推送通知</text>
       </view>
-      <switch checked="{{dndEnabled}}" bindchange="toggleDnd" color="#1aad19" />
+      <switch checked="{{dndEnabled}}" bindchange="toggleDnd" color="#07c160" />
     </view>
-    
+
     <view class="time-picker-group" wx:if="{{dndEnabled}}">
       <view class="time-picker-item">
-        <text class="time-label">{{t('dndStartLabel')}}</text>
+        <text class="time-label">开始时间</text>
         <picker mode="time" value="{{dndStart}}" bindchange="onDndStartChange">
           <view class="time-value">{{dndStart}}</view>
         </picker>
       </view>
-      
+
+      <view class="time-range-arrow">→</view>
+
       <view class="time-picker-item">
-        <text class="time-label">{{t('dndEndLabel')}}</text>
+        <text class="time-label">结束时间</text>
         <picker mode="time" value="{{dndEnd}}" bindchange="onDndEndChange">
           <view class="time-value">{{dndEnd}}</view>
         </picker>
       </view>
     </view>
-    
+
     <view class="dnd-tip" wx:if="{{dndEnabled}}">
-      <text>{{t('dndTip')}}</text>
+      <text>免打扰时段内不会收到任何推送通知，赛段结束后仍可查看历史记录</text>
     </view>
   </view>
-  
+
   <!-- 推送频率 -->
   <view class="setting-section" wx:if="{{pushEnabled && notifyRiderChange}}">
-    <view class="section-title">{{t('pushFrequencyLabel')}}</view>
-    
+    <view class="section-title">推送频率</view>
+
     <view class="frequency-options">
-      <view class="frequency-item {{pushFrequency === 'realtime' ? 'active' : ''}}" 
+      <view class="frequency-item {{pushFrequency === 'realtime' ? 'active' : ''}}"
             bindtap="setFrequency" data-frequency="realtime">
-        <text class="frequency-name">{{t('freqRealtime')}}</text>
-        <text class="frequency-desc">{{t('freqRealtimeDesc')}}</text>
+        <text class="frequency-name">实时</text>
+        <text class="frequency-desc">变化即推送</text>
       </view>
-      
-      <view class="frequency-item {{pushFrequency === '30min' ? 'active' : ''}}" 
+
+      <view class="frequency-item {{pushFrequency === '30min' ? 'active' : ''}}"
             bindtap="setFrequency" data-frequency="30min">
-        <text class="frequency-name">{{t('freq30min')}}</text>
-        <text class="frequency-desc">{{t('freq30minDesc')}}</text>
+        <text class="frequency-name">30分钟</text>
+        <text class="frequency-desc">汇总推送</text>
       </view>
-      
-      <view class="frequency-item {{pushFrequency === 'daily' ? 'active' : ''}}" 
+
+      <view class="frequency-item {{pushFrequency === 'daily' ? 'active' : ''}}"
             bindtap="setFrequency" data-frequency="daily">
-        <text class="frequency-name">{{t('freqDaily')}}</text>
-        <text class="frequency-desc">{{t('freqDailyDesc')}}</text>
+        <text class="frequency-name">每日</text>
+        <text class="frequency-desc">每日汇总</text>
       </view>
     </view>
   </view>
-  
+
   <!-- 测试推送 -->
   <view class="setting-section" wx:if="{{pushEnabled}}">
-    <button class="test-btn" bindtap="sendTestNotification">
-      {{t('testPush')}}
+    <button class="test-btn" bindtap="sendTestNotification" disabled="{{syncing}}">
+      发送测试推送
     </button>
   </view>
-  
+
   <!-- 提示信息 -->
   <view class="tip-section">
     <view class="tip-icon">💡</view>
-    <text class="tip-text">{{t('pushTip')}}</text>
+    <text class="tip-text">推送通知需要您在手机系统设置中允许"领骑"应用发送通知。如果收不到推送，请检查系统通知权限。</text>
   </view>
 </view>

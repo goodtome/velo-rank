@@ -160,3 +160,111 @@
   align-items: center;
   gap: 12rpx;
 }
+
+/* 历史成绩 */
+.results-card {
+  margin-bottom: 24rpx;
+}
+
+.results-loading {
+  padding: 24rpx 0;
+}
+
+.result-skeleton {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16rpx 0;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.empty-results {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48rpx 0;
+  color: #999;
+  font-size: 28rpx;
+}
+
+.result-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20rpx 0;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.result-item:last-child {
+  border-bottom: none;
+}
+
+.result-left {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  gap: 16rpx;
+}
+
+.result-rank {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #333;
+  min-width: 48rpx;
+  text-align: center;
+}
+
+.result-info {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.result-race {
+  font-size: 26rpx;
+  color: #333;
+  font-weight: 500;
+}
+
+.result-stage {
+  font-size: 22rpx;
+  color: #999;
+  margin-top: 4rpx;
+}
+
+.result-right {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.result-gap {
+  font-size: 26rpx;
+  color: #666;
+  font-weight: 500;
+}
+
+/* 标签颜色 */
+.tag-green {
+  background: #e8f5e9;
+  color: #2e7d32;
+  padding: 4rpx 12rpx;
+  border-radius: 6rpx;
+  font-size: 20rpx;
+}
+
+.tag-orange {
+  background: #fff3e0;
+  color: #e65100;
+  padding: 4rpx 12rpx;
+  border-radius: 6rpx;
+  font-size: 20rpx;
+}
+
+.tag-red {
+  background: #ffebee;
+  color: #c62828;
+  padding: 4rpx 12rpx;
+  border-radius: 6rpx;
+  font-size: 20rpx;
+}

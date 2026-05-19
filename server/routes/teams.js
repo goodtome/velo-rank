@@ -62,14 +62,13 @@ router.get('/', async (req, res) => {
 router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
-
-    // 验证ID
-    const teamId = parseInt(id);
-    if (isNaN(teamId) || teamId <= 0) {
+    
+    // UUID是字符串，不要用parseInt()
+    if (!id || id.trim() === '') {
       return sendError(res, 400, '无效的车队ID');
     }
 
-    const [rows] = await pool.query('SELECT * FROM teams WHERE id = ?', [teamId]);
+    const [rows] = await pool.query('SELECT * FROM teams WHERE id = ?', [id]);
     if (rows.length === 0) {
       return res.status(404).json({ code: 404, message: '车队不存在' });
     }
@@ -82,7 +81,7 @@ router.get('/:id', async (req, res) => {
       WHERE sr.team_id = ?
       ORDER BY r.rider_name
       LIMIT 100
-    `, [teamId]);
+    `, [id]);
 
     const team = rows[0];
     team.riders = riderRows;

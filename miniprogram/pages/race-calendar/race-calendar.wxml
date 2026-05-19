@@ -3,79 +3,122 @@
   <!-- 顶部月份切换 -->
   <view class="header">
     <view class="month-switcher">
-      <view class="arrow" bindtap="prevMonth">←</view>
-      <text class="month-text">{{monthYear}}</text>
-      <view class="arrow" bindtap="nextMonth">→</view>
+      <view class="arrow-btn" bindtap="prevMonth">
+        <text class="arrow-icon">‹</text>
+      </view>
+      <text class="month-text">{{monthText}}</text>
+      <view class="arrow-btn" bindtap="nextMonth">
+        <text class="arrow-icon">›</text>
+      </view>
     </view>
-    <view class="today-btn" bindtap="goToToday">{{t('today')}}</view>
+    <view class="today-btn" bindtap="goToToday">今天</view>
+  </view>
+
+  <!-- 加载状态 -->
+  <view class="loading-bar" wx:if="{{loading}}">
+    <view class="loading-spinner"></view>
+    <text class="loading-text">加载中...</text>
   </view>
 
   <!-- 日历星期头 -->
   <view class="week-header">
-    <text wx:for="{{weekDays}}" wx:key="index" class="week-day">{{item}}</text>
+    <text wx:for="{{weekDays}}" wx:key="index"
+          class="week-day {{index === 0 || index === 6 ? 'weekend' : ''}}">{{item}}</text>
   </view>
 
   <!-- 日历网格 -->
   <view class="calendar-grid">
-    <view 
-      wx:for="{{calendarDays}}" 
+    <view
+      wx:for="{{calendarDays}}"
       wx:key="index"
-      class="day-cell {{item.isCurrentMonth ? '' : 'other-month'}} {{item.isToday ? 'today' : ''}} {{item.races.length > 0 ? 'has-races' : ''}}"
+      class="day-cell {{item.isCurrentMonth ? '' : 'other-month'}} {{item.isToday ? 'today' : ''}} {{item.races.length > 0 ? 'has-races' : ''}} {{selectedDate === item.date ? 'selected' : ''}}"
       bindtap="tapDay"
       data-day="{{item}}"
     >
       <text class="day-number">{{item.day}}</text>
-      <view wx:if="{{item.races.length > 0}}" class="race-dot"></view>
-      <text wx:if="{{item.races.length > 0}}" class="race-count">{{item.races.length}}</text>
+      <view class="race-dots" wx:if="{{item.raceDots.length > 0}}">
+        <view wx:for="{{item.raceDots}}" wx:for-item="dot" wx:key="index"
+              class="race-dot" style="background: {{dot.color}}"></view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 图例 -->
+  <view class="legend">
+    <view class="legend-item">
+      <view class="legend-dot" style="background: #07c160"></view>
+      <text class="legend-text">进行中</text>
+    </view>
+    <view class="legend-item">
+      <view class="legend-dot" style="background: #e74c3c"></view>
+      <text class="legend-text">大环赛</text>
+    </view>
+    <view class="legend-item">
+      <view class="legend-dot" style="background: #f39c12"></view>
+      <text class="legend-text">多日赛</text>
+    </view>
+    <view class="legend-item">
+      <view class="legend-dot" style="background: #3498db"></view>
+      <text class="legend-text">单日赛</text>
     </view>
   </view>
 
   <!-- 当日赛事列表 -->
   <view class="race-list" wx:if="{{selectedDate && selectedRaces.length > 0}}">
-    <view class="section-title">{{selectedDate}} {{t('races')}} ({{selectedRaces.length}})</view>
-    <view 
-      wx:for="{{selectedRaces}}" 
+    <view class="section-title">{{selectedDate}} 赛事 ({{selectedRaces.length}})</view>
+    <view
+      wx:for="{{selectedRaces}}"
       wx:key="id"
       class="race-card"
       bindtap="goToRace"
       data-id="{{item.id}}"
     >
-      <view class="race-status race-status-{{item.status}}">{{item.statusText}}</view>
+      <view class="race-status status-{{item.status}}">
+        {{item.status === 'ongoing' ? '● 进行中' : item.status === 'upcoming' ? '○ 即将开始' : '— 已结束'}}
+      </view>
       <view class="race-info">
-        <text class="race-name">{{item.race_name}}</text>
-        <text class="race-category">{{item.category}}</text>
+        <text class="race-name">{{item.race_name_zh || item.race_name}}</text>
+        <view class="race-meta">
+          <text class="race-category">{{item.category === 'GRAND_TOUR' ? '大环赛' : item.category === 'STAGE_RACE' ? '多日赛' : item.category === 'ONE_DAY' ? '单日赛' : item.category || '赛事'}}</text>
+          <text class="race-dates">{{item.start_date}} ~ {{item.end_date}}</text>
+        </view>
       </view>
       <view class="race-action" catchtap="addToCalendar" data-race="{{item}}">
-        <text class="add-icon">+</text>
-        <text class="add-text">{{t('addToCalendar')}}</text>
+        <text class="add-icon">📅</text>
       </view>
     </view>
   </view>
 
+  <!-- 选中无赛事 -->
   <view class="empty-tip" wx:if="{{selectedDate && selectedRaces.length === 0}}">
-    <text>{{t('noRaces')}}</text>
+    <text class="empty-icon">🚴</text>
+    <text class="empty-text">{{selectedDate}} 暂无赛事</text>
   </view>
 
   <!-- 即将开始的赛事 -->
   <view class="upcoming-section">
-    <view class="section-title">{{t('upcoming')}}</view>
+    <view class="section-title">即将开始</view>
     <view wx:if="{{upcomingRaces.length > 0}}">
-      <view 
-        wx:for="{{upcomingRaces}}" 
+      <view
+        wx:for="{{upcomingRaces}}"
         wx:key="id"
-        class="race-card"
+        class="race-card upcoming-card"
         bindtap="goToRace"
         data-id="{{item.id}}"
       >
         <view class="race-countdown">{{item.countdownText}}</view>
         <view class="race-info">
-          <text class="race-name">{{item.race_name}}</text>
-          <text class="race-date">{{item.start_date}}</text>
+          <text class="race-name">{{item.race_name_zh || item.race_name}}</text>
+          <text class="race-date">{{item.start_date}} ~ {{item.end_date}}</text>
+        </view>
+        <view class="race-category-tag {{item.category === 'GRAND_TOUR' ? 'gt' : ''}}">
+          {{item.category === 'GRAND_TOUR' ? '大环赛' : item.category === 'STAGE_RACE' ? '多日赛' : item.category === 'ONE_DAY' ? '单日赛' : '赛事'}}
         </view>
       </view>
     </view>
     <view class="empty-tip" wx:else>
-      <text>{{t('noUpcoming')}}</text>
+      <text class="empty-icon">📭</text>
+      <text class="empty-text">暂无即将开始的赛事</text>
     </view>
   </view>
 </view>

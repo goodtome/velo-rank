@@ -30,6 +30,22 @@
 
   <!-- 功能菜单列表 -->
   <view class="card-base menu-card">
+    <view class="menu-item" bindtap="goToCalendar">
+      <view class="menu-left">
+        <text class="menu-icon">📅</text>
+        <text class="menu-text">赛事日历</text>
+      </view>
+      <text class="arrow">&#x203A;</text>
+    </view>
+    <view class="menu-divider"></view>
+    <view class="menu-item" bindtap="goToPushSettings">
+      <view class="menu-left">
+        <text class="menu-icon">🔔</text>
+        <text class="menu-text">推送设置</text>
+      </view>
+      <text class="arrow">&#x203A;</text>
+    </view>
+    <view class="menu-divider"></view>
     <view class="menu-item" bindtap="goToSearch">
       <view class="menu-left">
         <text class="menu-icon">&#x1F50D;</text>

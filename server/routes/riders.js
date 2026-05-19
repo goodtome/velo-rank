@@ -62,14 +62,13 @@ router.get('/', async (req, res) => {
 router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
-
-    // 验证ID
-    const riderId = parseInt(id);
-    if (isNaN(riderId) || riderId <= 0) {
+    
+    // UUID是字符串，不要用parseInt()
+    if (!id || id.trim() === '') {
       return sendError(res, 400, '无效的车手ID');
     }
 
-    const [rows] = await pool.query('SELECT * FROM riders WHERE id = ?', [riderId]);
+    const [rows] = await pool.query('SELECT * FROM riders WHERE id = ?', [id]);
     if (rows.length === 0) {
       return res.status(404).json({ code: 404, message: '车手不存在' });
     }
@@ -84,7 +83,7 @@ router.get('/:id', async (req, res) => {
       WHERE sr.rider_id = ?
       ORDER BY sr.created_at DESC
       LIMIT 1
-    `, [riderId]);
+    `, [id]);
 
     if (teamRows.length > 0) {
       rider.team_id = teamRows[0].team_id;
@@ -98,6 +97,59 @@ router.get('/:id', async (req, res) => {
   } catch (err) {
     console.error('获取车手详情失败:', err);
     sendError(res, 500, '获取车手详情失败', err.message);
+  }
+});
+
+// GET /api/v1/riders/:id/results - 车手历史成绩
+router.get('/:id/results', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { limit = 50, offset = 0 } = req.query;
+    
+    if (!id || id.trim() === '') {
+      return sendError(res, 400, '无效的车手ID');
+    }
+    
+    // 验证分页参数
+    const limitNum = Math.min(MAX_LIMIT, Math.max(1, parseInt(limit) || 50));
+    const offsetNum = Math.max(0, Math.min(MAX_OFFSET, parseInt(offset) || 0));
+    
+    if (isNaN(parseInt(limit)) || isNaN(parseInt(offset))) {
+      return sendError(res, 400, '无效的分页参数');
+    }
+    
+    // 查询车手成绩
+    const [rows] = await pool.query(`
+      SELECT sr.\`rank\`, sr.time_gap, sr.nationality,
+             s.stage_number, s.stage_name, s.date, s.stage_type,
+             r.race_name, r.race_name_zh
+      FROM stage_results sr
+      JOIN stages s ON sr.stage_id = s.id
+      JOIN races r ON s.race_id = r.id
+      WHERE sr.rider_id = ?
+      ORDER BY r.season DESC, s.stage_number
+      LIMIT ? OFFSET ?
+    `, [id, limitNum, offsetNum]);
+    
+    // 查询总数
+    const [countRows] = await pool.query(
+      'SELECT COUNT(*) as total FROM stage_results WHERE rider_id = ?',
+      [id]
+    );
+    
+    res.json({
+      code: 200,
+      data: rows,
+      pagination: {
+        total: countRows[0].total,
+        limit: limitNum,
+        offset: offsetNum
+      },
+      message: 'success'
+    });
+  } catch (err) {
+    console.error('获取车手成绩失败:', err);
+    sendError(res, 500, '获取车手成绩失败', err.message);
   }
 });
 

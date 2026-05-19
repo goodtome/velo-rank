@@ -22,15 +22,15 @@ module.exports = {
    * 获取当前环境
    */
   getEnv() {
-    const systemInfo = wx.getSystemInfoSync();
-    return systemInfo.platform === 'devtools' ? 'development' : 'production';
+    const deviceInfo = wx.getDeviceInfo();
+    return deviceInfo.platform === 'devtools' ? 'development' : 'production';
   },
 
   /**
    * 获取配置
    */
   getConfig() {
-    const env = this.getEnv();
+    const env = module.exports.getEnv();
     return ENV[env];
   }
 };
