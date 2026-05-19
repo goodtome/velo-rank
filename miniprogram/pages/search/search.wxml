@@ -5,7 +5,7 @@
     <input
       class="search-input"
       type="text"
-      placeholder="{{t('searchPlaceholder')}}"
+      placeholder="搜索车手、车队、赛事"
       value="{{keyword}}"
       bindinput="onInput"
       confirm-type="search"
@@ -23,22 +23,22 @@
     data-type="riders"
     bindtap="switchTab"
   >
-    <text>{{t('searchRiders')}}</text>
+    <text>车手</text>
   </view>
   <view
     class="tab-item {{searchType === 'teams' ? 'tab-active' : ''}}"
     data-type="teams"
     bindtap="switchTab"
   >
-    <text>{{t('searchTeams')}}</text>
+    <text>车队</text>
   </view>
 </view>
 
 <!-- 搜索历史（未搜索时显示） -->
 <view class="container" wx:if="{{!searched && !loading && !keyword && searchHistory.length > 0}}">
   <view class="history-header">
-    <text class="history-title">{{t('searchHistoryTitle')}}</text>
-    <text class="history-clear" bindtap="clearHistory">{{t('clearHistory')}}</text>
+    <text class="history-title">搜索历史</text>
+    <text class="history-clear" bindtap="clearHistory">清除</text>
   </view>
   <view class="history-list">
     <view
@@ -56,20 +56,20 @@
 <!-- 初始状态 -->
 <view class="initial-state" wx:if="{{!searched && !loading && !keyword && searchHistory.length === 0}}">
   <text class="initial-icon">🔍</text>
-  <text class="initial-text">{{t('initialText')}}</text>
+  <text class="initial-text">搜索车手或车队名称</text>
 </view>
 
 <!-- 加载中 -->
 <view class="loading-container" wx:if="{{loading}}">
   <view class="loading-spinner"></view>
-  <text class="loading-text">{{t('searching')}}</text>
+  <text class="loading-text">搜索中...</text>
 </view>
 
 <!-- 错误状态 -->
 <view class="error-state" wx:if="{{!loading && loadError}}">
   <text class="error-state-icon">⚠️</text>
-  <text class="error-state-text">{{t('searchFailed')}}</text>
-  <button class="retry-btn" bindtap="retrySearch">{{t('retrySearch')}}</button>
+  <text class="error-state-text">搜索失败，请检查网络</text>
+  <button class="retry-btn" bindtap="retrySearch">重新搜索</button>
 </view>
 
 <!-- 搜索结果列表 -->
@@ -77,7 +77,7 @@
   <!-- 无结果 -->
   <view class="empty-state" wx:if="{{results.length === 0}}">
     <text class="empty-state-icon">🔍</text>
-    <text class="empty-state-text">{{t('noResults')}}</text>
+    <text class="empty-state-text">未找到相关结果</text>
   </view>
   
   <!-- 车手结果 -->
