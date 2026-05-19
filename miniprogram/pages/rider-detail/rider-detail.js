@@ -6,6 +6,7 @@
 const { get } = require('../../utils/request');
 const { showError } = require('../../utils/util');
 const { t, getLocale } = require('../../utils/i18n');
+const { getCountryName } = require('../../utils/country-map');
 
 Page({
   data: {
@@ -52,12 +53,14 @@ Page({
       const res = await get(`/riders/${this.data.riderId}`);
       
       if (res && res.code === 200 && res.data) {
-        // 计算状态文本
+        // 计算状态文本和国籍中文名
         const statusText = res.data.is_retired ? '已退役' : '现役';
+        const nationalityZh = getCountryName(res.data.nationality);
         
         this.setData({ 
           rider: res.data, 
           statusText: statusText,
+          nationalityZh: nationalityZh,
           loading: false 
         });
         // 加载车手成绩

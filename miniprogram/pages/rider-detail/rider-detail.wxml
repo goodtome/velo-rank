@@ -52,7 +52,7 @@
         <view class="header-info">
           <text class="rider-name-zh">{{rider.rider_name_zh || rider.rider_name}}</text>
           <text wx:if="{{rider.rider_name_zh && rider.rider_name}}" class="rider-name-en">{{rider.rider_name}}</text>
-          <view wx:if="{{rider.nationality}}" class="nationality-tag">{{rider.nationality}}</view>
+          <view wx:if="{{rider.nationality}}" class="nationality-tag">{{nationalityZh}}</view>
         </view>
       </view>
     </view>
@@ -63,7 +63,7 @@
 
       <view class="info-item">
         <text class="info-label">国籍</text>
-        <text class="info-value">{{rider.nationality || '-'}}</text>
+        <text class="info-value">{{nationalityZh || '-'}}</text>
       </view>
 
       <view wx:if="{{rider.birth_date}}" class="info-item">

@@ -7,6 +7,7 @@ const { get } = require('../../utils/request');
 const { debounce, showError } = require('../../utils/util');
 const { t, getLocale } = require('../../utils/i18n');
 const { DEBOUNCE, STORAGE, PAGINATION } = require('../../utils/constants');
+const { getCountryName } = require('../../utils/country-map');
 
 Page({
   data: {
@@ -135,7 +136,10 @@ Page({
       let results = [];
       if (res && res.code === 200) {
         if (this.data.searchType === 'riders' && Array.isArray(res.data.riders)) {
-          results = res.data.riders;
+          results = res.data.riders.map(rider => ({
+            ...rider,
+            nationalityZh: getCountryName(rider.nationality)
+          }));
         } else if (this.data.searchType === 'teams' && Array.isArray(res.data.teams)) {
           results = res.data.teams;
         }
