@@ -131,7 +131,7 @@
         <div class="form-row">
           <label>类别：</label>
           <select id="raceCategory" style="width: 200px;">
-            <option value="GRAND_TOUR">Grand Tour</option>
+            <option value="Grand Tour">Grand Tour</option>
             <option value="WorldTour">WorldTour</option>
             <option value="ProSeries">ProSeries</option>
             <option value="Continental">Continental</option>
@@ -265,16 +265,24 @@
       <h2>👕 领骑衫管理</h2>
       <p style="color: #666; margin-bottom: 16px;">查看和管理领骑衫持有者</p>
       
-      <div style="margin-bottom: 16px;">
-        <label style="font-weight: 500; margin-right: 8px;">选择赛段：</label>
-        <select id="jerseyStageSelect" onchange="loadJerseys()" style="width: 300px;">
-          <option value="">请先选择赛事和赛段...</option>
-        </select>
+      <div style="margin-bottom: 16px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+        <div>
+          <label style="font-weight: 500; margin-right: 8px;">选择赛事：</label>
+          <select id="jerseyRaceSelect" onchange="loadJerseyStages()" style="width: 250px;">
+            <option value="">请选择赛事...</option>
+          </select>
+        </div>
+        <div>
+          <label style="font-weight: 500; margin-right: 8px;">选择赛段：</label>
+          <select id="jerseyStageSelect" onchange="loadJerseys()" style="width: 250px;">
+            <option value="">请先选择赛事...</option>
+          </select>
+        </div>
         <button class="btn btn-success" onclick="loadJerseys()">刷新</button>
       </div>
       
       <div id="jerseysList" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 16px;">
-        <div style="text-align: center; color: #999; padding: 20px;">请先选择赛段</div>
+        <div style="text-align: center; color: #999; padding: 20px;">请先选择赛事和赛段</div>
       </div>
     </div>
 
@@ -369,29 +377,85 @@
     <!-- 成绩录入 -->
     <div class="card">
       <h2>✏️ 成绩录入</h2>
-      <p style="color: #666; margin-bottom: 16px;">手动录入赛段成绩（开发阶段使用）</p>
+      <p style="color: #666; margin-bottom: 16px;">手动录入赛段成绩</p>
       
-      <div class="form-row">
-        <label>赛事：</label>
-        <select id="raceSelect">
-          <option value="">请先同步赛事数据</option>
-        </select>
-      </div>
-      <div class="form-row">
-        <label>赛段：</label>
-        <select id="stageSelect">
-          <option value="">请先选择赛事</option>
-        </select>
-      </div>
-      
-      <div style="margin: 20px 0; padding: 16px; background: #f5f5f5; border-radius: 4px;">
-        <h3 style="font-size: 16px; margin-bottom: 12px;">成绩列表</h3>
-        <div id="resultsForm">
-          <p style="color: #999;">请先选择赛事和赛段</p>
+      <div style="display: flex; gap: 12px; align-items: center; margin-bottom: 16px; flex-wrap: wrap;">
+        <div>
+          <label style="font-weight: 500; margin-right: 8px;">选择赛事：</label>
+          <select id="resultRaceSelect" onchange="loadResultStages()" style="width: 250px;">
+            <option value="">请选择赛事...</option>
+          </select>
+        </div>
+        <div>
+          <label style="font-weight: 500; margin-right: 8px;">选择赛段：</label>
+          <select id="resultStageSelect" onchange="loadExistingResults()" style="width: 250px;">
+            <option value="">请先选择赛事...</option>
+          </select>
         </div>
       </div>
       
-      <button class="btn btn-success" onclick="saveResults()">保存成绩</button>
+      <!-- 现有成绩列表 -->
+      <div id="existingResultsSection" style="display: none; margin-bottom: 20px;">
+        <h3 style="font-size: 16px; margin-bottom: 12px; color: #333;">当前成绩（<span id="resultCount">0</span>条）</h3>
+        <div style="max-height: 300px; overflow-y: auto;">
+          <table>
+            <thead>
+              <tr>
+                <th>名次</th>
+                <th>车手</th>
+                <th>车队</th>
+                <th>差距</th>
+              </tr>
+            </thead>
+            <tbody id="existingResultsBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 新增成绩表单 -->
+      <div style="padding: 20px; background: #f5f5f5; border-radius: 8px; margin-bottom: 16px;">
+        <h3 style="font-size: 16px; margin-bottom: 16px; color: #333;">新增成绩</h3>
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px;">
+          <div>
+            <label style="font-size: 13px; color: #666; display: block; margin-bottom: 4px;">名次</label>
+            <input type="number" id="resultRank" placeholder="1" min="1" style="width: 100%;" />
+          </div>
+          <div>
+            <label style="font-size: 13px; color: #666; display: block; margin-bottom: 4px;">车手名称</label>
+            <input type="text" id="resultRiderName" placeholder="Paul MAGNIER" style="width: 100%;" />
+          </div>
+          <div>
+            <label style="font-size: 13px; color: #666; display: block; margin-bottom: 4px;">车队名称</label>
+            <input type="text" id="resultTeamName" placeholder="SOUDAL QUICK-STEP" style="width: 100%;" />
+          </div>
+          <div>
+            <label style="font-size: 13px; color: #666; display: block; margin-bottom: 4px;">时间差距</label>
+            <input type="text" id="resultTimeGap" placeholder="+0:00 或 5:07:51" style="width: 100%;" />
+          </div>
+        </div>
+        <div style="margin-top: 16px;">
+          <button class="btn btn-success" onclick="addResultEntry()">添加到列表</button>
+          <button class="btn btn-primary" onclick="saveAllResults()" style="margin-left: 8px;">批量保存</button>
+          <button class="btn btn-danger" onclick="clearResultEntries()" style="margin-left: 8px;">清空列表</button>
+        </div>
+      </div>
+
+      <!-- 待保存成绩列表 -->
+      <div id="pendingResultsSection" style="display: none;">
+        <h3 style="font-size: 16px; margin-bottom: 12px; color: #333;">待保存成绩（<span id="pendingCount">0</span>条）</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>名次</th>
+              <th>车手</th>
+              <th>车队</th>
+              <th>差距</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="pendingResultsBody"></tbody>
+        </table>
+      </div>
     </div>
 
     <!-- 导入脚本生成器 -->
@@ -462,6 +526,13 @@
   <script>
     const API_BASE = 'http://localhost:3000';
 
+    // ===== 工具函数 =====
+    function formatDate(dateStr) {
+      if (!dateStr) return '-';
+      const d = new Date(dateStr);
+      return d.toISOString().split('T')[0];
+    }
+
     // ===== 实时数据库统计 =====
     const statLabels = {
       races: '赛事', stages: '赛段', riders: '车手',
@@ -488,6 +559,9 @@
       }
     }
 
+    // ===== 赛事列表缓存 =====
+    let allRaces = [];
+
     // ===== 赛事管理 =====
     let isEditingRace = false;
 
@@ -497,9 +571,8 @@
       document.getElementById('raceName').value = '';
       document.getElementById('raceNameEn').value = '';
       document.getElementById('raceCode').value = '';
-      document.getElementById('raceCategory').value = 'GRAND_TOUR';
-      document.getElementById('raceGender').value = 'MEN';
-      document.getElementById('raceSeason').value = new Date().getFullYear();
+      document.getElementById('raceCategory').value = 'Grand Tour';
+      document.getElementById('raceGender').value = 'MEN'; = new Date().getFullYear();
       document.getElementById('raceCountry').value = '';
       document.getElementById('raceStartDate').value = '';
       document.getElementById('raceEndDate').value = '';
@@ -528,7 +601,6 @@
         total_distance: parseInt(document.getElementById('raceTotalDistance').value) || null
       };
 
-      // 数据校验
       if (!raceData.race_name || !raceData.race_code || !raceData.season) {
         alert('❌ 请填写必填字段（赛事名称、赛事代码、赛季）');
         return;
@@ -570,15 +642,15 @@
         const result = await res.json();
         
         if (result.code === 200) {
-          const races = result.data;
+          allRaces = result.data;
           let html = '';
           
-          races.forEach(race => {
+          allRaces.forEach(race => {
             html += `
               <tr>
                 <td>${race.race_name}</td>
                 <td><span class="badge badge-blue">${race.race_code}</span></td>
-                <td>${race.category}</td>
+                <td>${race.category || '-'}</td>
                 <td>${race.season}</td>
                 <td>${race.total_stages || '-'}</td>
                 <td>
@@ -591,12 +663,14 @@
           
           document.getElementById('racesTableBody').innerHTML = html || '<tr><td colspan="6" style="text-align: center; color: #999;">暂无赛事数据</td></tr>';
           
-          // 更新赛段管理中的赛事下拉框
+          // 更新所有赛事下拉框
           let options = '<option value="">请选择赛事...</option>';
-          races.forEach(race => {
-            options += `<option value="${race.id}">${race.race_name} (${race.race_code})</option>`;
+          allRaces.forEach(race => {
+            options += `<option value="${race.id}">${race.race_name} (${race.season})</option>`;
           });
           document.getElementById('stageRaceSelect').innerHTML = options;
+          document.getElementById('jerseyRaceSelect').innerHTML = options;
+          document.getElementById('resultRaceSelect').innerHTML = options;
         }
       } catch (err) {
         console.error('加载赛事列表失败:', err);
@@ -614,12 +688,12 @@
           document.getElementById('raceName').value = race.race_name || '';
           document.getElementById('raceNameEn').value = race.race_name_en || '';
           document.getElementById('raceCode').value = race.race_code || '';
-          document.getElementById('raceCategory').value = race.category || 'GRAND_TOUR';
+          document.getElementById('raceCategory').value = race.category || 'Grand Tour';
           document.getElementById('raceGender').value = race.gender || 'MEN';
           document.getElementById('raceSeason').value = race.season || new Date().getFullYear();
           document.getElementById('raceCountry').value = race.country || '';
-          document.getElementById('raceStartDate').value = race.start_date || '';
-          document.getElementById('raceEndDate').value = race.end_date || '';
+          document.getElementById('raceStartDate').value = formatDate(race.start_date);
+          document.getElementById('raceEndDate').value = formatDate(race.end_date);
           document.getElementById('raceTotalStages').value = race.total_stages || '';
           document.getElementById('raceTotalDistance').value = race.total_distance || '';
           
@@ -632,7 +706,7 @@
     }
 
     async function deleteRace(raceId) {
-      if (!confirm('确定要删除这个赛事吗？此操作不可恢复！')) {
+      if (!confirm('确定要删除这个赛事吗？关联的赛段数据也会被删除！')) {
         return;
       }
 
@@ -682,17 +756,18 @@
     async function saveStage() {
       const raceId = document.getElementById('stageRaceSelect').value;
       const stageId = document.getElementById('stageId').value;
+      const stageNumber = parseInt(document.getElementById('stageNumber').value);
       
       const stageData = {
         race_id: raceId,
-        stage_number: parseInt(document.getElementById('stageNumber').value),
+        stage_number: stageNumber,
         stage_name: document.getElementById('stageName').value,
+        stage_code: `${allRaces.find(r => r.id === raceId)?.race_code || 'race'}-s${stageNumber}`,
         date: document.getElementById('stageDate').value || null,
         distance_km: parseInt(document.getElementById('stageDistance').value) || null,
         stage_type: document.getElementById('stageType').value
       };
 
-      // 数据校验
       if (!stageData.stage_number || !stageData.stage_name) {
         alert('❌ 请填写必填字段（赛段编号、赛段名称）');
         return;
@@ -705,6 +780,9 @@
         if (isEditingStage && stageId) {
           url = `${API_BASE}/api/v1/stages/${stageId}`;
           method = 'PUT';
+          // PUT不需要race_id和stage_code
+          delete stageData.race_id;
+          delete stageData.stage_code;
         }
 
         const res = await fetch(url, {
@@ -748,9 +826,9 @@
               <tr>
                 <td>${stage.stage_number}</td>
                 <td>${stage.stage_name || '-'}</td>
-                <td>${stage.date || '-'}</td>
+                <td>${formatDate(stage.date)}</td>
                 <td>${stage.distance_km ? stage.distance_km + 'km' : '-'}</td>
-                <td><span class="badge badge-green">${stage.stage_type}</span></td>
+                <td><span class="badge badge-green">${stage.stage_type || '-'}</span></td>
                 <td>
                   <button class="btn btn-primary btn-sm" onclick="editStage('${stage.id}')">编辑</button>
                   <button class="btn btn-danger btn-sm" onclick="deleteStage('${stage.id}')" style="margin-left: 4px;">删除</button>
@@ -776,7 +854,7 @@
           document.getElementById('stageId').value = stage.id;
           document.getElementById('stageNumber').value = stage.stage_number || '';
           document.getElementById('stageName').value = stage.stage_name || '';
-          document.getElementById('stageDate').value = stage.date || '';
+          document.getElementById('stageDate').value = formatDate(stage.date);
           document.getElementById('stageDistance').value = stage.distance_km || '';
           document.getElementById('stageType').value = stage.stage_type || 'Flat';
           
@@ -789,7 +867,7 @@
     }
 
     async function deleteStage(stageId) {
-      if (!confirm('确定要删除这个赛段吗？此操作不可恢复！')) {
+      if (!confirm('确定要删除这个赛段吗？关联的成绩和领骑衫也会被删除！')) {
         return;
       }
 
@@ -813,10 +891,35 @@
     }
 
     // ===== 领骑衫管理 =====
+    async function loadJerseyStages() {
+      const raceId = document.getElementById('jerseyRaceSelect').value;
+      const stageSelect = document.getElementById('jerseyStageSelect');
+      
+      if (!raceId) {
+        stageSelect.innerHTML = '<option value="">请先选择赛事...</option>';
+        return;
+      }
+
+      try {
+        const res = await fetch(`${API_BASE}/api/v1/races/${raceId}/stages`);
+        const result = await res.json();
+        
+        if (result.code === 200) {
+          let options = '<option value="">请选择赛段...</option>';
+          result.data.forEach(stage => {
+            options += `<option value="${stage.id}">Stage ${stage.stage_number} - ${stage.stage_name || ''}</option>`;
+          });
+          stageSelect.innerHTML = options;
+        }
+      } catch (err) {
+        console.error('加载赛段列表失败:', err);
+      }
+    }
+
     async function loadJerseys() {
       const stageId = document.getElementById('jerseyStageSelect').value;
       if (!stageId) {
-        document.getElementById('jerseysList').innerHTML = '<div style="text-align: center; color: #999; padding: 20px;">请先选择赛段</div>';
+        document.getElementById('jerseysList').innerHTML = '<div style="text-align: center; color: #999; padding: 20px;">请先选择赛事和赛段</div>';
         return;
       }
 
@@ -830,18 +933,25 @@
           
           const jerseyNames = {
             'pink': { name: '粉衫（总成绩领先）', color: '#ff69b4' },
+            'PINK': { name: '粉衫（总成绩领先）', color: '#ff69b4' },
             'purple': { name: '紫衫（冲刺积分）', color: '#800080' },
-            'blue': { name: '蓝衫（爬坡积分）', color: '#0000ff' },
-            'white': { name: '白衫（青年最佳）', color: '#ffffff' }
+            'PURPLE': { name: '紫衫（冲刺积分）', color: '#800080' },
+            'blue': { name: '蓝衫（爬坡积分）', color: '#4169E1' },
+            'BLUE_SPRINT': { name: '蓝衫（冲刺积分）', color: '#4169E1' },
+            'white': { name: '白衫（青年最佳）', color: '#333' },
+            'WHITE_YOUTH': { name: '白衫（青年最佳）', color: '#333' }
           };
 
           Object.entries(jerseys).forEach(([type, data]) => {
             const jersey = jerseyNames[type] || { name: type, color: '#999' };
+            const borderBg = type.toLowerCase().includes('white') ? '#e8e8e8' : jersey.color;
             html += `
-              <div style="padding: 16px; background: #f5f5f5; border-radius: 8px; border-left: 4px solid ${jersey.color};">
+              <div style="padding: 16px; background: #f5f5f5; border-radius: 8px; border-left: 4px solid ${borderBg};">
                 <div style="font-weight: 600; margin-bottom: 8px; color: ${jersey.color};">${jersey.name}</div>
-                <div style="font-size: 14px; margin-bottom: 4px;"><strong>车手：</strong>${data.rider_name}</div>
-                <div style="font-size: 13px; color: #666;"><strong>车队：</strong>${data.team_name}</div>
+                <div style="font-size: 14px; margin-bottom: 4px;"><strong>车手：</strong>${data.rider_name_zh || data.rider_name}</div>
+                <div style="font-size: 13px; color: #666;"><strong>车队：</strong>${data.team_name_zh || data.team_name}</div>
+                ${data.points ? `<div style="font-size: 13px; color: #666;"><strong>积分：</strong>${data.points}</div>` : ''}
+                ${data.time_gap ? `<div style="font-size: 13px; color: #666;"><strong>差距：</strong>${data.time_gap}</div>` : ''}
               </div>
             `;
           });
@@ -853,6 +963,185 @@
       }
     }
 
+    // ===== 成绩录入 =====
+    let pendingResults = [];
+
+    async function loadResultStages() {
+      const raceId = document.getElementById('resultRaceSelect').value;
+      const stageSelect = document.getElementById('resultStageSelect');
+      
+      if (!raceId) {
+        stageSelect.innerHTML = '<option value="">请先选择赛事...</option>';
+        return;
+      }
+
+      try {
+        const res = await fetch(`${API_BASE}/api/v1/races/${raceId}/stages`);
+        const result = await res.json();
+        
+        if (result.code === 200) {
+          let options = '<option value="">请选择赛段...</option>';
+          result.data.forEach(stage => {
+            options += `<option value="${stage.id}">Stage ${stage.stage_number} - ${stage.stage_name || ''}</option>`;
+          });
+          stageSelect.innerHTML = options;
+        }
+      } catch (err) {
+        console.error('加载赛段列表失败:', err);
+      }
+    }
+
+    async function loadExistingResults() {
+      const stageId = document.getElementById('resultStageSelect').value;
+      const section = document.getElementById('existingResultsSection');
+      
+      if (!stageId) {
+        section.style.display = 'none';
+        return;
+      }
+
+      try {
+        const res = await fetch(`${API_BASE}/api/v1/stages/${stageId}/results?limit=200`);
+        const result = await res.json();
+        
+        if (result.code === 200) {
+          const results = result.data;
+          section.style.display = 'block';
+          document.getElementById('resultCount').textContent = results.length;
+          
+          let html = '';
+          results.forEach(r => {
+            html += `
+              <tr>
+                <td>${r.rank || '-'}</td>
+                <td>${r.rider_name_zh || r.rider_name}</td>
+                <td>${r.team_name_zh || r.team_name}</td>
+                <td>${r.time_gap || '-'}</td>
+              </tr>
+            `;
+          });
+          
+          document.getElementById('existingResultsBody').innerHTML = html || '<tr><td colspan="4" style="text-align:center;color:#999;">暂无成绩</td></tr>';
+        }
+      } catch (err) {
+        console.error('加载成绩失败:', err);
+      }
+    }
+
+    function addResultEntry() {
+      const rank = parseInt(document.getElementById('resultRank').value);
+      const riderName = document.getElementById('resultRiderName').value.trim();
+      const teamName = document.getElementById('resultTeamName').value.trim();
+      const timeGap = document.getElementById('resultTimeGap').value.trim();
+
+      if (!rank || !riderName || !teamName) {
+        alert('❌ 请填写名次、车手名称和车队名称');
+        return;
+      }
+
+      pendingResults.push({ rank, rider_name: riderName, team_name: teamName, time_gap: timeGap || '+0:00' });
+      renderPendingResults();
+
+      // 清空输入
+      document.getElementById('resultRank').value = rank + 1;
+      document.getElementById('resultRiderName').value = '';
+      document.getElementById('resultTeamName').value = '';
+      document.getElementById('resultTimeGap').value = '';
+      document.getElementById('resultRiderName').focus();
+    }
+
+    function removeResultEntry(index) {
+      pendingResults.splice(index, 1);
+      renderPendingResults();
+    }
+
+    function clearResultEntries() {
+      if (pendingResults.length > 0 && !confirm('确定清空所有待保存成绩？')) return;
+      pendingResults = [];
+      renderPendingResults();
+    }
+
+    function renderPendingResults() {
+      const section = document.getElementById('pendingResultsSection');
+      if (pendingResults.length === 0) {
+        section.style.display = 'none';
+        return;
+      }
+      
+      section.style.display = 'block';
+      document.getElementById('pendingCount').textContent = pendingResults.length;
+      
+      let html = '';
+      pendingResults.forEach((r, i) => {
+        html += `
+          <tr>
+            <td>${r.rank}</td>
+            <td>${r.rider_name}</td>
+            <td>${r.team_name}</td>
+            <td>${r.time_gap}</td>
+            <td><button class="btn btn-danger btn-sm" onclick="removeResultEntry(${i})">删除</button></td>
+          </tr>
+        `;
+      });
+      document.getElementById('pendingResultsBody').innerHTML = html;
+    }
+
+    async function saveAllResults() {
+      const stageId = document.getElementById('resultStageSelect').value;
+      if (!stageId) {
+        alert('❌ 请先选择赛段');
+        return;
+      }
+      if (pendingResults.length === 0) {
+        alert('❌ 没有待保存的成绩');
+        return;
+      }
+
+      // 获取赛事code用于生成stage_code
+      const raceId = document.getElementById('resultRaceSelect').value;
+      const race = allRaces.find(r => r.id === raceId);
+
+      // 构造导入数据
+      const stageInfo = {
+        race_code: race?.race_code || 'unknown',
+        stage_number: parseInt(document.getElementById('resultStageSelect').selectedOptions[0].text.match(/Stage (\d+)/)?.[1] || '1'),
+        stage_name: document.getElementById('resultStageSelect').selectedOptions[0].text.replace(/^Stage \d+ - /, ''),
+        date: formatDate(new Date()),
+        distance_km: 0,
+        stage_type: 'Flat'
+      };
+
+      const importData = {
+        stage_info: stageInfo,
+        results: pendingResults,
+        jerseys: []
+      };
+
+      if (!confirm(`确定保存 ${pendingResults.length} 条成绩到当前赛段？`)) return;
+
+      try {
+        const res = await fetch(`${API_BASE}/api/v1/admin/import-stage`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(importData)
+        });
+
+        const result = await res.json();
+        
+        if (result.code === 200) {
+          alert(`✅ 成绩保存成功！\n${result.message}`);
+          pendingResults = [];
+          renderPendingResults();
+          loadExistingResults();
+          loadDbStats();
+        } else {
+          alert(`❌ 保存失败: ${result.message}`);
+        }
+      } catch (err) {
+        alert('❌ 保存失败: ' + err.message);
+      }
+    }
+
     // ===== 数据校验 =====
     async function validateData() {
       const resultDiv = document.getElementById('validationResult');
@@ -860,41 +1149,80 @@
       resultDiv.querySelector('div').innerHTML = '<span style="color: #1890ff;">⏳ 校验中...</span>';
 
       try {
-        // 检查数据完整性
-        const checks = [
-          { name: '赛事数据', url: '/api/v1/races' },
-          { name: '车手数据', url: '/api/v1/riders?limit=1' },
-          { name: '车队数据', url: '/api/v1/teams?limit=1' }
-        ];
+        let html = '<h3 style="font-size: 16px; margin-bottom: 12px;">📊 数据校验报告</h3>';
+        let issues = 0;
 
-        let html = '<h3 style="font-size: 16px; margin-bottom: 12px;">数据校验报告</h3>';
-        
-        for (const check of checks) {
-          try {
-            const res = await fetch(`${API_BASE}${check.url}`);
-            const data = await res.json();
-            
-            if (data.code === 200) {
-              html += `<div style="padding: 8px; color: #52c41a;">✅ ${check.name}: 正常</div>`;
-            } else {
-              html += `<div style="padding: 8px; color: #ff4d4f;">❌ ${check.name}: ${data.message}</div>`;
+        // 1. 检查赛事数据
+        const racesRes = await fetch(`${API_BASE}/api/v1/races`);
+        const racesData = await racesRes.json();
+        if (racesData.code === 200) {
+          const races = racesData.data;
+          html += `<div style="padding: 8px; color: #52c41a;">✅ 赛事数据: ${races.length} 条记录</div>`;
+          
+          // 检查赛事完整性
+          races.forEach(race => {
+            if (!race.start_date || !race.end_date) {
+              html += `<div style="padding: 4px 8px 4px 32px; color: #faad14;">⚠️ ${race.race_name} 缺少日期信息</div>`;
+              issues++;
             }
-          } catch (err) {
-            html += `<div style="padding: 8px; color: #ff4d4f;">❌ ${check.name}: 请求失败</div>`;
+            if (!race.total_stages) {
+              html += `<div style="padding: 4px 8px 4px 32px; color: #faad14;">⚠️ ${race.race_name} 缺少总赛段数</div>`;
+              issues++;
+            }
+          });
+        } else {
+          html += `<div style="padding: 8px; color: #ff4d4f;">❌ 赛事数据: 获取失败</div>`;
+          issues++;
+        }
+
+        // 2. 检查赛段数据
+        for (const race of (racesData.data || [])) {
+          const stagesRes = await fetch(`${API_BASE}/api/v1/races/${race.id}/stages`);
+          const stagesData = await stagesRes.json();
+          if (stagesData.code === 200) {
+            const stages = stagesData.data;
+            html += `<div style="padding: 8px; color: #52c41a;">✅ ${race.race_name} 赛段: ${stages.length} 条</div>`;
+            
+            // 检查赛段成绩完整性
+            for (const stage of stages) {
+              const resultsRes = await fetch(`${API_BASE}/api/v1/stages/${stage.id}/results?limit=200`);
+              const resultsData = await resultsRes.json();
+              if (resultsData.code === 200) {
+                const count = resultsData.data.length;
+                if (count === 0) {
+                  html += `<div style="padding: 4px 8px 4px 32px; color: #ff4d4f;">❌ Stage ${stage.stage_number} 没有成绩数据</div>`;
+                  issues++;
+                }
+              }
+            }
           }
         }
 
-        // 检查中文名称覆盖率
-        const statsRes = await fetch(`${API_BASE}/api/v1/admin/translation-stats`);
-        const statsResult = await statsRes.json();
-        
-        if (statsResult.code === 200) {
-          html += `<div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #e8e8e8;">
-            <div style="font-weight: 600; margin-bottom: 8px;">中文名称覆盖率：</div>
-            <div style="padding: 4px 0;">车手: ${statsResult.data.riders.percentage}%</div>
-            <div style="padding: 4px 0;">车队: ${statsResult.data.teams.percentage}%</div>
-          </div>`;
+        // 3. 翻译统计
+        try {
+          const statsRes = await fetch(`${API_BASE}/api/v1/admin/translation-stats`);
+          const statsResult = await statsRes.json();
+          
+          if (statsResult.code === 200) {
+            const stats = statsResult.data;
+            html += `
+              <div style="margin-top: 16px; padding-top: 12px; border-top: 1px solid #e8e8e8;">
+                <div style="font-weight: 600; margin-bottom: 8px;">🌐 中文名称覆盖率：</div>
+                <div style="padding: 4px 0;">赛事: ${stats.races.translated}/${stats.races.total} (${stats.races.percentage}%)</div>
+                <div style="padding: 4px 0;">赛段: ${stats.stages.translated}/${stats.stages.total} (${stats.stages.percentage}%)</div>
+                <div style="padding: 4px 0;">车手: ${stats.riders.translated}/${stats.riders.total} (${stats.riders.percentage}%)</div>
+                <div style="padding: 4px 0;">车队: ${stats.teams.translated}/${stats.teams.total} (${stats.teams.percentage}%)</div>
+              </div>`;
+          }
+        } catch (e) {
+          // 翻译统计不是必须的
         }
+
+        // 4. 汇总
+        html += `
+          <div style="margin-top: 16px; padding: 12px; background: ${issues > 0 ? '#fff7e6' : '#f6ffed'}; border-radius: 8px; border-left: 4px solid ${issues > 0 ? '#faad14' : '#52c41a'};">
+            <strong>${issues > 0 ? '⚠️ 发现 ' + issues + ' 个问题' : '✅ 数据校验通过，未发现问题'}</strong>
+          </div>`;
 
         resultDiv.querySelector('div').innerHTML = html;
       } catch (err) {
@@ -970,11 +1298,6 @@
       }
     }
 
-    // 保存成绩
-    async function saveResults() {
-      alert('保存成绩功能需要在MySQL配置完成后实现');
-    }
-
     // ===== 导入脚本生成器 =====
     
     // 加载JSON模板
@@ -989,8 +1312,8 @@
           "stage_type": "Flat"
         },
         "results": [
-          { "rank": 1, "rider_name": "Paul MAGNIER", "team_name": "SOUDAL QUICK-STEP", "time_gap": "3h 45' 12\"" },
-          { "rank": 2, "rider_name": "Rider Name", "team_name": "Team Name", "time_gap": "+ 0\"" }
+          { "rank": 1, "rider_name": "Paul MAGNIER", "team_name": "SOUDAL QUICK-STEP", "time_gap": "5:07:51" },
+          { "rank": 2, "rider_name": "Rider Name", "team_name": "Team Name", "time_gap": "+0:00" }
         ],
         "jerseys": [
           { "jersey_type": "pink", "rider_name": "Paul MAGNIER", "team_name": "SOUDAL QUICK-STEP" }
@@ -1066,13 +1389,11 @@
       
       try {
         const data = JSON.parse(jsonInput);
-        const stageNum = data.stage_info?.stage_number || 'N/A';
         
         const btn = document.getElementById('executeBtn');
         btn.textContent = '执行中...';
         btn.disabled = true;
         
-        // 调用后端执行导入脚本
         const res = await fetch(`${API_BASE}/api/v1/admin/import-stage`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -1083,6 +1404,7 @@
         
         if (result.code === 200) {
           alert(`✅ 导入成功！\n\n${result.message}`);
+          loadDbStats();
         } else {
           alert(`❌ 导入失败: ${result.message}`);
         }
@@ -1167,9 +1489,14 @@
           `;
           
           document.getElementById('translationStats').innerHTML = html;
+
+          // 更新剩余数量
+          document.getElementById('ridersRemaining').textContent = stats.riders.total - stats.riders.translated;
+          document.getElementById('teamsRemaining').textContent = stats.teams.total - stats.teams.translated;
         }
       } catch (err) {
         console.error('加载翻译统计失败:', err);
+        document.getElementById('translationStats').innerHTML = '<div style="color:#999;padding:12px;">加载统计失败</div>';
       }
     }
     
@@ -1205,7 +1532,7 @@
             `;
           });
           
-          document.getElementById('ridersTableBody').innerHTML = html;
+          document.getElementById('ridersTableBody').innerHTML = html || '<tr><td colspan="3" style="text-align:center;color:#999;">全部已翻译！</td></tr>';
           
           // 分页
           const totalPages = Math.ceil(total / PAGE_SIZE);
@@ -1244,8 +1571,8 @@
         const result = await res.json();
         
         if (result.code === 200) {
-          alert('✅ 更新成功！');
-          loadRidersWithoutZh(currentRiderPage);
+          input.style.borderColor = '#52c41a';
+          setTimeout(() => loadRidersWithoutZh(currentRiderPage), 500);
           loadTranslationStats();
         } else {
           alert(`❌ 更新失败: ${result.message}`);
@@ -1287,7 +1614,7 @@
             `;
           });
           
-          document.getElementById('teamsTableBody').innerHTML = html;
+          document.getElementById('teamsTableBody').innerHTML = html || '<tr><td colspan="3" style="text-align:center;color:#999;">全部已翻译！</td></tr>';
           
           // 分页
           const totalPages = Math.ceil(total / PAGE_SIZE);
@@ -1326,8 +1653,8 @@
         const result = await res.json();
         
         if (result.code === 200) {
-          alert('✅ 更新成功！');
-          loadTeamsWithoutZh(currentTeamPage);
+          input.style.borderColor = '#52c41a';
+          setTimeout(() => loadTeamsWithoutZh(currentTeamPage), 500);
           loadTranslationStats();
         } else {
           alert(`❌ 更新失败: ${result.message}`);
@@ -1352,6 +1679,8 @@
       loadDbStats();
       loadTranslationStats();
       loadRaces();
+      loadRidersWithoutZh(0);
+      loadTeamsWithoutZh(0);
     };
   </script>
 </body>

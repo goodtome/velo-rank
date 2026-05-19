@@ -7,9 +7,9 @@ const { AppError, asyncHandler } = require('../middleware/errorHandler');
 // GET /api/v1/stages/:id - 获取赛段详情
 router.get('/:id', asyncHandler(async (req, res) => {
   const { id } = req.params;
-  const stageId = parseInt(id);
+  const stageId = id; // UUID是字符串，不要用parseInt()
   
-  if (isNaN(stageId) || stageId < VALIDATION.MIN_ID) {
+  if (!id || id.trim() === '') {
     throw new AppError('无效的赛段ID', ERROR_CODE.BAD_REQUEST);
   }
   
@@ -25,17 +25,17 @@ router.get('/:id/results', asyncHandler(async (req, res) => {
   const { id } = req.params;
   const { limit = 20 } = req.query;
   
-  const stageId = parseInt(id);
-  if (isNaN(stageId) || stageId < VALIDATION.MIN_ID) {
+  const stageId = id; // UUID是字符串
+  if (!id || id.trim() === '') {
     throw new AppError('无效的赛段ID', ERROR_CODE.BAD_REQUEST);
   }
-  
+    
   // 验证并限制查询结果数量
   const limitNum = Math.min(VALIDATION.MAX_LIMIT, Math.max(1, parseInt(limit) || 20));
   if (isNaN(parseInt(limit))) {
     throw new AppError('无效的limit参数', ERROR_CODE.BAD_REQUEST);
   }
-  
+    
   // 使用参数化查询避免语法问题
   const sql = `
     SELECT sr.*, r.rider_name, r.rider_name_zh, r.nationality, r.photo_url,
@@ -47,9 +47,9 @@ router.get('/:id/results', asyncHandler(async (req, res) => {
     ORDER BY sr.\`rank\`
     LIMIT ?
   `;
-  
+    
   const [rows] = await pool.query(sql, [stageId, limitNum]);
-  
+    
   res.json({
     code: 200,
     data: rows,
@@ -62,12 +62,12 @@ router.get('/:id/results', asyncHandler(async (req, res) => {
 // GET /api/v1/stages/:id/jerseys - 获取领骑衫持有者
 router.get('/:id/jerseys', asyncHandler(async (req, res) => {
   const { id } = req.params;
-  const stageId = parseInt(id);
-  
-  if (isNaN(stageId) || stageId < VALIDATION.MIN_ID) {
+  const stageId = id; // UUID是字符串
+    
+  if (!id || id.trim() === '') {
     throw new AppError('无效的赛段ID', ERROR_CODE.BAD_REQUEST);
   }
-  
+    
   // 查询领骑衫持有者，联表查询车手和车队信息
   const sql = `
     SELECT j.*, 
@@ -78,9 +78,9 @@ router.get('/:id/jerseys', asyncHandler(async (req, res) => {
     JOIN teams t ON j.team_id = t.id
     WHERE j.stage_id = ?
   `;
-  
+    
   const [rows] = await pool.query(sql, [stageId]);
-  
+    
   // 转换为对象格式（按jersey_type分组）
   const jerseys = {};
   rows.forEach(row => {
@@ -93,7 +93,7 @@ router.get('/:id/jerseys', asyncHandler(async (req, res) => {
       points: row.points
     };
   });
-  
+    
   res.json({
     code: 200,
     data: jerseys
@@ -145,12 +145,19 @@ router.post('/', asyncHandler(async (req, res) => {
   }
 
   const id = require('crypto').randomUUID();
-  // 修正：8个字段对应8个?占位符（包含stage_code）
-  const sql = `INSERT INTO stages (id, race_id, stage_number, stage_name, stage_code, date, distance_km, stage_type) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
   
+  // 修正：8个字段，8个?占位符，SQL在一行
+  const sql = 'INSERT INTO stages (id, race_id, stage_number, stage_name, stage_code, date, distance_km, stage_type) VALUES (?, ?, ?, ?, ?, ?, ?, ?)';
+    
   await pool.query(sql, [
-    id, race_id, stage_number, stage_name, stage_code || null, date || null,
-    distance_km || null, stage_type || 'Flat'
+    id, 
+    race_id, 
+    stage_number, 
+    stage_name,
+    stage_code || null,
+    date || null,
+    distance_km || null,
+    stage_type || 'Flat'
   ]);
 
   res.status(201).json({
@@ -163,15 +170,16 @@ router.post('/', asyncHandler(async (req, res) => {
 // PUT /api/v1/stages/:id - 更新赛段
 router.put('/:id', asyncHandler(async (req, res) => {
   const { id } = req.params;
-  const stageId = parseInt(id);
-  
-  if (isNaN(stageId) || stageId < VALIDATION.MIN_ID) {
+  const stageId = id; // UUID是字符串
+    
+  if (!id || id.trim() === '') {
     throw new AppError('无效的赛段ID', ERROR_CODE.BAD_REQUEST);
   }
 
   const {
     stage_number,
     stage_name,
+    stage_code,
     date,
     distance_km,
     stage_type
@@ -211,13 +219,17 @@ router.put('/:id', asyncHandler(async (req, res) => {
   const updates = [];
   const params = [];
 
-  if (stage_number) {
+  if (stage_number !== undefined) {
     updates.push('stage_number = ?');
     params.push(stage_number);
   }
-  if (stage_name) {
+  if (stage_name !== undefined) {
     updates.push('stage_name = ?');
     params.push(stage_name);
+  }
+  if (stage_code !== undefined) {
+    updates.push('stage_code = ?');
+    params.push(stage_code);
   }
   if (date !== undefined) {
     updates.push('date = ?');
@@ -227,7 +239,7 @@ router.put('/:id', asyncHandler(async (req, res) => {
     updates.push('distance_km = ?');
     params.push(distance_km || null);
   }
-  if (stage_type) {
+  if (stage_type !== undefined) {
     updates.push('stage_type = ?');
     params.push(stage_type);
   }
@@ -239,20 +251,26 @@ router.put('/:id', asyncHandler(async (req, res) => {
   params.push(stageId); // WHERE id = ?
 
   const sql = `UPDATE stages SET ${updates.join(', ')} WHERE id = ?`;
-  await pool.query(sql, params);
-
-  res.json({
-    code: 200,
-    message: '赛段更新成功'
-  });
+    
+  try {
+    await pool.query(sql, params);
+      
+    res.json({
+      code: 200,
+      message: '赛段更新成功'
+    });
+  } catch (err) {
+    console.error('更新赛段失败:', err);
+    throw new AppError('更新赛段失败: ' + err.message, ERROR_CODE.INTERNAL_ERROR);
+  }
 }));
 
 // DELETE /api/v1/stages/:id - 删除赛段
 router.delete('/:id', asyncHandler(async (req, res) => {
   const { id } = req.params;
-  const stageId = parseInt(id);
-  
-  if (isNaN(stageId) || stageId < VALIDATION.MIN_ID) {
+  const stageId = id; // UUID是字符串
+    
+  if (!id || id.trim() === '') {
     throw new AppError('无效的赛段ID', ERROR_CODE.BAD_REQUEST);
   }
 
@@ -265,7 +283,7 @@ router.delete('/:id', asyncHandler(async (req, res) => {
   // 删除关联的赛段成绩和领骑衫数据
   await pool.query('DELETE FROM stage_results WHERE stage_id = ?', [stageId]);
   await pool.query('DELETE FROM jerseys WHERE stage_id = ?', [stageId]);
-  
+    
   // 删除赛段
   await pool.query('DELETE FROM stages WHERE id = ?', [stageId]);
 
