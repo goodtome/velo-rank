@@ -3,7 +3,7 @@
   <view class="header-section">
     <view class="avatar-wrapper">
       <view class="avatar-circle">
-        <text class="avatar-icon">&#x1F464;</text>
+        <text class="avatar-icon">👤</text>
       </view>
     </view>
     <text class="nickname">{{t('cyclingEnthusiast')}}</text>
@@ -35,7 +35,7 @@
         <text class="menu-icon">📅</text>
         <text class="menu-text">赛事日历</text>
       </view>
-      <text class="arrow">&#x203A;</text>
+      <text class="arrow">›</text>
     </view>
     <view class="menu-divider"></view>
     <view class="menu-item" bindtap="goToPushSettings">
@@ -43,39 +43,39 @@
         <text class="menu-icon">🔔</text>
         <text class="menu-text">推送设置</text>
       </view>
-      <text class="arrow">&#x203A;</text>
+      <text class="arrow">›</text>
     </view>
     <view class="menu-divider"></view>
     <view class="menu-item" bindtap="goToSearch">
       <view class="menu-left">
-        <text class="menu-icon">&#x1F50D;</text>
+        <text class="menu-icon">🔍</text>
         <text class="menu-text">{{t('searchHistory')}}</text>
       </view>
-      <text class="arrow">&#x203A;</text>
+      <text class="arrow">›</text>
     </view>
     <view class="menu-divider"></view>
     <view class="menu-item" bindtap="goToHome">
       <view class="menu-left">
-        <text class="menu-icon">&#x1F4CA;</text>
+        <text class="menu-icon">📊</text>
         <text class="menu-text">{{t('raceData')}}</text>
       </view>
-      <text class="arrow">&#x203A;</text>
+      <text class="arrow">›</text>
     </view>
     <view class="menu-divider"></view>
     <view class="menu-item" bindtap="clearCache">
       <view class="menu-left">
-        <text class="menu-icon">&#x1F5D1;</text>
+        <text class="menu-icon">🗑️</text>
         <text class="menu-text">{{t('clearCache')}}</text>
       </view>
-      <text class="arrow">&#x203A;</text>
+      <text class="arrow">›</text>
     </view>
     <view class="menu-divider"></view>
     <view class="menu-item" bindtap="toggleAbout">
       <view class="menu-left">
-        <text class="menu-icon">&#x2139;</text>
+        <text class="menu-icon">ℹ️</text>
         <text class="menu-text">{{t('about')}}</text>
       </view>
-      <text class="arrow">{{showAbout ? '&#x2303;' : '&#x203A;'}}</text>
+      <text class="arrow">{{showAbout ? '^' : '›'}}</text>
     </view>
     <!-- 关于应用展开区域 -->
     <view class="about-expand" wx:if="{{showAbout}}">
