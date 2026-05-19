@@ -7,6 +7,7 @@ const { get } = require('../../utils/request');
 const { showError } = require('../../utils/util');
 const { t, getLocale } = require('../../utils/i18n');
 const { getCountryName } = require('../../utils/country-map');
+const { formatRiderName, toTitleCase } = require('../../utils/string-format');
 
 Page({
   data: {
@@ -53,14 +54,18 @@ Page({
       const res = await get(`/riders/${this.data.riderId}`);
       
       if (res && res.code === 200 && res.data) {
-        // 计算状态文本和国籍中文名
+        // 计算状态文本、国籍中文名、格式化名字
         const statusText = res.data.is_retired ? '已退役' : '现役';
         const nationalityZh = getCountryName(res.data.nationality);
+        const riderName = formatRiderName(res.data);
+        const teamName = res.data.team_name ? toTitleCase(res.data.team_name) : '';
         
         this.setData({ 
           rider: res.data, 
           statusText: statusText,
           nationalityZh: nationalityZh,
+          riderName: riderName,
+          teamName: teamName,
           loading: false 
         });
         // 加载车手成绩

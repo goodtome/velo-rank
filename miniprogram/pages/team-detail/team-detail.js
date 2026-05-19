@@ -5,6 +5,7 @@
 
 const { get } = require('../../utils/request');
 const { showError } = require('../../utils/util');
+const { formatTeamName } = require('../../utils/string-format');
 
 Page({
   data: {
@@ -38,9 +39,19 @@ Page({
       const res = await get(`/teams/${this.data.teamId}`);
       
       if (res && res.code === 200 && res.data) {
+        // 格式化车队名字
+        const teamName = formatTeamName(res.data);
+        // 格式化车手名字
+        const riders = (res.data.riders || []).map(rider => ({
+          ...rider,
+          displayName: rider.rider_name_zh || rider.rider_name,
+          displaySub: rider.rider_name_zh ? rider.rider_name : ''
+        }));
+
         this.setData({
           team: res.data,
-          riders: res.data.riders || [],
+          teamName: teamName,
+          riders: riders,
           loading: false
         });
       } else {

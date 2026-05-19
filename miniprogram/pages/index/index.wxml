@@ -72,7 +72,7 @@
 
         <!-- 查看详情提示 -->
         <view class="hero-footer">
-          <text class="hero-link">查看详情 ></text>
+          <text class="hero-link">查看详情 ›</text>
         </view>
       </view>
     </view>

@@ -8,6 +8,7 @@ const { debounce, showError } = require('../../utils/util');
 const { t, getLocale } = require('../../utils/i18n');
 const { DEBOUNCE, STORAGE, PAGINATION } = require('../../utils/constants');
 const { getCountryName } = require('../../utils/country-map');
+const { formatRiderName, formatTeamName } = require('../../utils/string-format');
 
 Page({
   data: {
@@ -136,12 +137,24 @@ Page({
       let results = [];
       if (res && res.code === 200) {
         if (this.data.searchType === 'riders' && Array.isArray(res.data.riders)) {
-          results = res.data.riders.map(rider => ({
-            ...rider,
-            nationalityZh: getCountryName(rider.nationality)
-          }));
+          results = res.data.riders.map(rider => {
+            const name = formatRiderName(rider);
+            return {
+              ...rider,
+              nationalityZh: getCountryName(rider.nationality),
+              displayName: name.zh || name.en,
+              displaySub: name.zh ? name.en : ''
+            };
+          });
         } else if (this.data.searchType === 'teams' && Array.isArray(res.data.teams)) {
-          results = res.data.teams;
+          results = res.data.teams.map(team => {
+            const name = formatTeamName(team);
+            return {
+              ...team,
+              displayName: name.zh || name.en,
+              displaySub: name.zh ? name.en : ''
+            };
+          });
         }
       }
 

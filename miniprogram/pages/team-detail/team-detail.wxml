@@ -53,8 +53,8 @@
         </view>
         <!-- 名称信息 -->
         <view class="header-info">
-          <text class="team-name-zh">{{team.team_name_zh || team.team_name}}</text>
-          <text wx:if="{{team.team_name_en}}" class="team-name-en">{{team.team_name_en}}</text>
+          <text class="team-name-zh">{{teamName.zh || teamName.en}}</text>
+          <text wx:if="{{teamName.zh && teamName.en}}" class="team-name-en">{{teamName.en}}</text>
           <view wx:if="{{team.uci_code}}" class="uci-code-tag">{{team.uci_code}}</view>
         </view>
       </view>
@@ -69,14 +69,14 @@
         <text class="info-value">{{team.uci_code}}</text>
       </view>
 
-      <view wx:if="{{team.team_name_en}}" class="info-item">
+      <view wx:if="{{teamName.en}}" class="info-item">
         <text class="info-label">英文名</text>
-        <text class="info-value">{{team.team_name_en}}</text>
+        <text class="info-value">{{teamName.en}}</text>
       </view>
 
       <view wx:if="{{team.team_name}}" class="info-item">
         <text class="info-label">名称</text>
-        <text class="info-value">{{team.team_name}}</text>
+        <text class="info-value">{{teamName.en}}</text>
       </view>
 
       <view wx:if="{{team.bike_brand}}" class="info-item">
@@ -91,8 +91,8 @@
       <view wx:for="{{riders}}" wx:key="id" class="rider-item" bindtap="goToRider" data-id="{{item.id}}" hover-class="rider-item-hover">
         <view class="rider-info">
           <text wx:if="{{item.nationality}}" class="rider-nationality">{{item.nationality}}</text>
-          <text class="rider-name-zh">{{item.rider_name_zh || item.rider_name}}</text>
-          <text wx:if="{{item.rider_name_en}}" class="rider-name-en">{{item.rider_name_en}}</text>
+          <text class="rider-name-zh">{{item.displayName}}</text>
+          <text wx:if="{{item.displaySub}}" class="rider-name-en">{{item.displaySub}}</text>
         </view>
         <text class="arrow">›</text>
       </view>

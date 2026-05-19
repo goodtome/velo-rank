@@ -50,8 +50,8 @@
         </view>
         <!-- 名称信息 -->
         <view class="header-info">
-          <text class="rider-name-zh">{{rider.rider_name_zh || rider.rider_name}}</text>
-          <text wx:if="{{rider.rider_name_zh && rider.rider_name}}" class="rider-name-en">{{rider.rider_name}}</text>
+          <text class="rider-name-zh">{{riderName.zh || riderName.en}}</text>
+          <text wx:if="{{riderName.zh && riderName.en}}" class="rider-name-en">{{riderName.en}}</text>
           <view wx:if="{{rider.nationality}}" class="nationality-tag">{{nationalityZh}}</view>
         </view>
       </view>
@@ -97,8 +97,8 @@
       <view class="section-title">所属车队</view>
       <view class="team-row">
         <view class="team-info">
-          <text class="team-name-zh">{{rider.team_name_zh || rider.team_name}}</text>
-          <text wx:if="{{rider.team_name_en}}" class="team-name-en">{{rider.team_name_en}}</text>
+          <text class="team-name-zh">{{rider.team_name_zh || teamName}}</text>
+          <text wx:if="{{rider.team_name_zh && teamName}}" class="team-name-en">{{teamName}}</text>
         </view>
         <view class="team-right">
           <text wx:if="{{rider.uci_code}}" class="tag tag-blue">{{rider.uci_code}}</text>
