@@ -458,6 +458,45 @@
       </div>
     </div>
 
+    <!-- CSV数据导入（带编码检测） -->
+    <div class="card">
+      <h2>📥 CSV数据导入（编码检测）</h2>
+      <p style="color: #666; margin-bottom: 16px;">上传CSV文件，系统自动检测编码并预览数据，防止乱码入库</p>
+      
+      <div style="margin-bottom: 16px;">
+        <label style="font-weight: 600; color: #333; display: block; margin-bottom: 8px;">步骤1: 上传CSV文件</label>
+        <input type="file" id="csvFileInput" accept=".csv" style="width: auto; margin-bottom: 12px;" onchange="handleCsvUpload()" />
+        <div id="encodingStatus" style="margin-top: 8px; padding: 8px 12px; border-radius: 4px; font-size: 13px; display: none;">
+        </div>
+      </div>
+
+      <div id="csvPreviewSection" style="display: none; margin-top: 20px; padding-top: 16px; border-top: 1px solid #f0f0f0;">
+        <label style="font-weight: 600; color: #333; display: block; margin-bottom: 12px;">步骤2: 预览数据（请确认中文显示正常）</label>
+        <div style="overflow-x: auto; max-height: 400px; overflow-y: auto;">
+          <table id="csvPreviewTable" style="width: 100%; border-collapse: collapse; font-size: 13px;">
+            <thead id="csvPreviewHeader"></thead>
+            <tbody id="csvPreviewBody"></tbody>
+          </table>
+        </div>
+        <div id="csvPreviewWarning" style="margin-top: 12px; padding: 10px 14px; border-radius: 4px; font-size: 13px; display: none;">
+        </div>
+        <div style="margin-top: 16px;">
+          <button class="btn btn-success" onclick="confirmCsvImport()" id="confirmImportBtn" disabled>确认导入</button>
+          <button class="btn" onclick="cancelCsvImport()" style="background: #d9d9d9; margin-left: 8px;">取消</button>
+        </div>
+      </div>
+
+      <div style="margin-top: 16px; padding: 12px; background: #fff7e6; border-radius: 4px; font-size: 13px; color: #d48806;">
+        <strong>📝 使用说明：</strong>
+        <ol style="margin: 8px 0 0 0; padding-left: 20px;">
+          <li>准备 UTF-8 编码的 CSV 文件（Excel另存为"CSV UTF-8"）</li>
+          <li>上传后系统会自动检测编码并预览前10行</li>
+          <li>确认中文显示正常后，点击"确认导入"</li>
+          <li>如果中文显示乱码，请重新保存CSV为UTF-8编码</li>
+        </ol>
+      </div>
+    </div>
+
     <!-- 导入脚本生成器 -->
     <div class="card">
       <h2>📥 导入脚本生成器</h2>
@@ -1672,6 +1711,177 @@
     // 搜索车队
     function searchTeams() {
       loadTeamsWithoutZh(0);
+    }
+    
+    // ===== CSV编码检测和预览 =====
+    function handleCsvUpload() {
+      const fileInput = document.getElementById('csvFileInput');
+      const file = fileInput.files[0];
+      if (!file) return;
+
+      const statusDiv = document.getElementById('encodingStatus');
+      statusDiv.style.display = 'block';
+      statusDiv.style.background = '#e6f7ff';
+      statusDiv.style.color = '#1890ff';
+      statusDiv.innerHTML = '⏳ 正在检测文件编码...';
+
+      // 读取文件
+      const reader = new FileReader();
+      
+      reader.onload = function(e) {
+        const arrayBuffer = e.target.result;
+        const bytes = new Uint8Array(arrayBuffer);
+
+        // 检测BOM
+        let encoding = 'UTF-8';
+        let hasBOM = false;
+        if (bytes.length >= 3 && bytes[0] === 0xEF && bytes[1] === 0xBB && bytes[2] === 0xBF) {
+          hasBOM = true;
+          encoding = 'UTF-8 with BOM';
+        }
+
+        // 尝试以UTF-8解码
+        const text = new TextDecoder('UTF-8', { fatal: true }).decode(arrayBuffer);
+        
+        // 检查是否有乱码字符（替换字符 U+FFFD）
+        const hasReplacementChar = text.includes('\uFFFD');
+        
+        // 显示检测结果
+        let statusHTML = `✅ 文件读取成功<br>`;
+        statusHTML += `📊 文件大小: ${(file.size / 1024).toFixed(2)} KB<br>`;
+        statusHTML += `🔤 检测编码: ${encoding}`;
+        
+        if (hasReplacementChar) {
+          statusDiv.style.background = '#fff1f0';
+          statusDiv.style.color = '#ff4d4f';
+          statusHTML += `<br>⚠️ <strong>警告：检测到编码问题！</strong><br>`;
+          statusHTML += `文件中包含无法识别的字符，可能不是UTF-8编码。<br>`;
+          statusHTML += `请重新保存文件为UTF-8编码后重试。`;
+          statusDiv.innerHTML = statusHTML;
+          return;
+        } else {
+          statusDiv.style.background = '#f6ffed';
+          statusDiv.style.color = '#52c41a';
+          statusHTML += `<br>✅ 编码检测通过（UTF-8）`;
+          statusDiv.innerHTML = statusHTML;
+        }
+
+        // 预览CSV数据
+        previewCsvData(text, file.name);
+      };
+
+      reader.onerror = function() {
+        statusDiv.style.background = '#fff1f0';
+        statusDiv.style.color = '#ff4d4f';
+        statusDiv.innerHTML = '❌ 文件读取失败';
+      };
+
+      reader.readAsArrayBuffer(file);
+    }
+
+    function previewCsvData(csvText, fileName) {
+      try {
+        const lines = csvText.split('\n').map(line => line.trim()).filter(line => line.length > 0);
+        
+        if (lines.length < 2) {
+          alert('⚠️ CSV文件至少需要包含标题行和一行数据');
+          return;
+        }
+
+        // 解析标题行
+        const headers = parseCsvLine(lines[0]);
+        
+        // 解析数据行（最多前10行）
+        const data = [];
+        const previewRows = Math.min(lines.length - 1, 10);
+        for (let i = 1; i <= previewRows; i++) {
+          const row = parseCsvLine(lines[i]);
+          data.push(row);
+        }
+
+        // 生成预览表格
+        let html = '<thead><tr>';
+        headers.forEach(header => {
+          html += `<th style="padding: 8px 12px; background: #fafafa; border: 1px solid #e8e8e8;">${escapeHtml(header)}</th>`;
+        });
+        html += '</tr></thead><tbody>';
+
+        data.forEach((row, idx) => {
+          html += '<tr>';
+          headers.forEach((header, colIdx) => {
+            const cellValue = row[colIdx] || '';
+            const hasGarbled = /�/.test(cellValue);
+            const cellStyle = hasGarbled ? 'background: #fff1f0; color: #ff4d4f;' : '';
+            html += `<td style="padding: 8px 12px; border: 1px solid #e8e8e8; ${cellStyle}">${escapeHtml(cellValue)}</td>`;
+          });
+          html += '</tr>';
+        });
+        html += '</tbody>';
+
+        document.getElementById('csvPreviewHeader').innerHTML = '';
+        document.getElementById('csvPreviewBody').innerHTML = html;
+        document.getElementById('csvPreviewSection').style.display = 'block';
+
+        // 检查是否有乱码
+        const hasGarbled = csvText.includes('�');
+        const warningDiv = document.getElementById('csvPreviewWarning');
+        if (hasGarbled) {
+          warningDiv.style.display = 'block';
+          warningDiv.style.background = '#fff1f0';
+          warningDiv.style.color = '#ff4d4f';
+          warningDiv.innerHTML = '⚠️ <strong>警告：检测到乱码字符！</strong><br>请重新保存CSV文件为UTF-8编码后重试。';
+          document.getElementById('confirmImportBtn').disabled = true;
+        } else {
+          warningDiv.style.display = 'none';
+          document.getElementById('confirmImportBtn').disabled = false;
+        }
+
+      } catch (error) {
+        alert('❌ CSV解析失败: ' + error.message);
+      }
+    }
+
+    function parseCsvLine(line) {
+      const result = [];
+      let current = '';
+      let inQuotes = false;
+      
+      for (let i = 0; i < line.length; i++) {
+        const char = line[i];
+        
+        if (char === '"') {
+          if (inQuotes && line[i + 1] === '"') {
+            current += '"';
+            i++;
+          } else {
+            inQuotes = !inQuotes;
+          }
+        } else if (char === ',' && !inQuotes) {
+          result.push(current.trim());
+          current = '';
+        } else {
+          current += char;
+        }
+      }
+      
+      result.push(current.trim());
+      return result;
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    function confirmCsvImport() {
+      alert('✅ CSV数据验证通过！\n\n注意：当前版本需要服务器端支持CSV导入。\n建议使用JSON格式导入（更稳定）。');
+    }
+
+    function cancelCsvImport() {
+      document.getElementById('csvPreviewSection').style.display = 'none';
+      document.getElementById('csvFileInput').value = '';
+      document.getElementById('encodingStatus').style.display = 'none';
     }
     
     // 页面加载时初始化
