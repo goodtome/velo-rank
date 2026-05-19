@@ -2,16 +2,16 @@
 <view class="encyclopedia-container">
   <!-- 搜索栏 -->
   <view class="search-bar">
-    <input class="search-input" placeholder="{{t('searchPlaceholder')}}" bindinput="onSearchInput" value="{{searchKey}}" />
-    <button class="search-btn" bindtap="onSearch">{{t('search')}}</button>
+    <input class="search-input" placeholder="搜索术语..." bindinput="onSearchInput" value="{{searchKey}}" />
+    <button class="search-btn" bindtap="onSearch">搜索</button>
   </view>
   
   <!-- 分类标签 -->
   <view class="category-tabs">
-    <view class="tab {{activeCategory === 'all' ? 'active' : ''}}" bindtap="switchCategory" data-category="all">{{t('all')}}</view>
-    <view class="tab {{activeCategory === 'ranking' ? 'active' : ''}}" bindtap="switchCategory" data-category="ranking">{{t('rankingTerm')}}</view>
-    <view class="tab {{activeCategory === 'tactic' ? 'active' : ''}}" bindtap="switchCategory" data-category="tactic">{{t('tacticTerm')}}</view>
-    <view class="tab {{activeCategory === 'rule' ? 'active' : ''}}" bindtap="switchCategory" data-category="rule">{{t('ruleTerm')}}</view>
+    <view class="tab {{activeCategory === 'all' ? 'active' : ''}}" bindtap="switchCategory" data-category="all">全部</view>
+    <view class="tab {{activeCategory === 'ranking' ? 'active' : ''}}" bindtap="switchCategory" data-category="ranking">排名术语</view>
+    <view class="tab {{activeCategory === 'tactic' ? 'active' : ''}}" bindtap="switchCategory" data-category="tactic">战术术语</view>
+    <view class="tab {{activeCategory === 'rule' ? 'active' : ''}}" bindtap="switchCategory" data-category="rule">赛事规则</view>
   </view>
   
   <!-- 术语列表 -->
@@ -37,22 +37,22 @@
       </view>
       <scroll-view scroll-y class="detail-content">
         <view class="detail-section">
-          <text class="section-title">{{t('termDefinition')}}</text>
+          <text class="section-title">定义</text>
           <text class="section-content">{{currentTerm.definition}}</text>
         </view>
         
         <view class="detail-section">
-          <text class="section-title">{{t('termDetail')}}</text>
+          <text class="section-title">详细说明</text>
           <text class="section-content">{{currentTerm.description}}</text>
         </view>
         
         <view class="detail-section" wx:if="{{currentTerm.example}}">
-          <text class="section-title">{{t('termExample')}}</text>
+          <text class="section-title">示例</text>
           <text class="section-content example">{{currentTerm.example}}</text>
         </view>
         
         <view class="detail-section" wx:if="{{currentTerm.relatedTerms.length > 0}}">
-          <text class="section-title">{{t('termRelated')}}</text>
+          <text class="section-title">相关术语</text>
           <view class="related-terms">
             <text class="related-term" wx:for="{{currentTerm.relatedTerms}}" wx:key="*this" bindtap="showRelatedTerm" data-term="{{item}}">{{item}}</text>
           </view>

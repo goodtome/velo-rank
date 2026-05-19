@@ -15,15 +15,15 @@
     <view class="stats-row">
       <view class="stats-item">
         <text class="stats-value text-primary">{{raceCount}}</text>
-        <text class="stats-label">{{t('races')}}</text>
+        <text class="stats-label">赛事</text>
       </view>
       <view class="stats-item">
         <text class="stats-value text-primary">{{riderCount}}</text>
-        <text class="stats-label">{{t('riders')}}</text>
+        <text class="stats-label">车手</text>
       </view>
       <view class="stats-item">
         <text class="stats-value text-primary">{{teamCount}}</text>
-        <text class="stats-label">{{t('teams')}}</text>
+        <text class="stats-label">车队</text>
       </view>
     </view>
   </view>
@@ -83,7 +83,7 @@
       <view class="about-content">
         <text class="about-name">领骑 Jersey</text>
         <text class="about-version">v1.0.0</text>
-        <text class="about-desc">{{t('appDesc')}}</text>
+        <text class="about-desc">专业自行车赛事成绩查询</text>
       </view>
     </view>
   </view>
@@ -91,6 +91,6 @@
   <!-- 底部信息 -->
   <view class="footer-section">
     <text class="footer-name">领骑 Jersey v1.0.0</text>
-    <text class="footer-desc">{{t('appDesc')}}</text>
+    <text class="footer-desc">专业自行车赛事成绩查询</text>
   </view>
 </view>

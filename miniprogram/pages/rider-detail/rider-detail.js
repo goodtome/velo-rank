@@ -52,8 +52,12 @@ Page({
       const res = await get(`/riders/${this.data.riderId}`);
       
       if (res && res.code === 200 && res.data) {
+        // 计算状态文本
+        const statusText = res.data.is_retired ? '已退役' : '现役';
+        
         this.setData({ 
           rider: res.data, 
+          statusText: statusText,
           loading: false 
         });
         // 加载车手成绩

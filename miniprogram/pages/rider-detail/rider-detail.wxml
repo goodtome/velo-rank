@@ -27,14 +27,14 @@
   <!-- 错误状态 -->
   <view wx:elif="{{loadError}}" class="error-state">
     <text class="error-state-icon">😵</text>
-    <text class="error-state-text">{{t('errorNetwork')}}</text>
-    <button class="retry-btn" bindtap="retryLoad">{{t('retry')}}</button>
+    <text class="error-state-text">网络错误，请检查网络连接</text>
+    <button class="retry-btn" bindtap="retryLoad">重试</button>
   </view>
 
   <!-- 数据为空 -->
   <view wx:elif="{{!rider}}" class="empty-state">
     <text class="empty-state-icon">🚴</text>
-    <text class="empty-state-text">{{t('riderNotFound')}}</text>
+    <text class="empty-state-text">未找到车手信息</text>
   </view>
 
   <!-- 正常内容 -->
@@ -59,42 +59,42 @@
 
     <!-- 基本信息 -->
     <view class="card-base info-card">
-      <view class="section-title">{{t('basicInfo')}}</view>
+      <view class="section-title">基本信息</view>
 
       <view class="info-item">
-        <text class="info-label">{{t('nationality')}}</text>
+        <text class="info-label">国籍</text>
         <text class="info-value">{{rider.nationality || '-'}}</text>
       </view>
 
       <view wx:if="{{rider.birth_date}}" class="info-item">
-        <text class="info-label">{{t('birthDate')}}</text>
+        <text class="info-label">出生日期</text>
         <text class="info-value">{{rider.birth_date}}</text>
       </view>
 
       <view wx:if="{{rider.height_cm}}" class="info-item">
-        <text class="info-label">{{t('height')}}</text>
+        <text class="info-label">身高</text>
         <text class="info-value">{{rider.height_cm}} cm</text>
       </view>
 
       <view wx:if="{{rider.weight_kg}}" class="info-item">
-        <text class="info-label">{{t('weight')}}</text>
+        <text class="info-label">体重</text>
         <text class="info-value">{{rider.weight_kg}} kg</text>
       </view>
 
       <view wx:if="{{rider.uci_id}}" class="info-item">
-        <text class="info-label">{{t('uciId')}}</text>
+        <text class="info-label">UCI ID</text>
         <text class="info-value">{{rider.uci_id}}</text>
       </view>
 
       <view class="info-item">
-        <text class="info-label">{{t('status')}}</text>
-        <text class="info-value">{{rider.is_retired ? t('retired') : t('active')}}</text>
+        <text class="info-label">状态</text>
+        <text class="info-value">{{statusText}}</text>
       </view>
     </view>
 
     <!-- 所属车队 -->
     <view wx:if="{{rider.team_id}}" class="card-base team-card" bindtap="goToTeam" data-id="{{rider.team_id}}" hover-class="team-card-hover">
-      <view class="section-title">{{t('belongTeam')}}</view>
+      <view class="section-title">所属车队</view>
       <view class="team-row">
         <view class="team-info">
           <text class="team-name-zh">{{rider.team_name_zh || rider.team_name}}</text>
@@ -109,7 +109,7 @@
 
     <!-- 历史成绩 -->
     <view class="card-base results-card">
-      <view class="section-title">{{t('raceResults')}}</view>
+      <view class="section-title">历史成绩</view>
       
       <!-- 加载中 -->
       <view wx:if="{{resultsLoading}}" class="results-loading">
@@ -122,7 +122,7 @@
 
       <!-- 无数据 -->
       <view wx:elif="{{results.length === 0}}" class="empty-results">
-        <text class="empty-text">{{t('noResults')}}</text>
+        <text class="empty-text">暂无成绩数据</text>
       </view>
 
       <!-- 成绩列表 -->
