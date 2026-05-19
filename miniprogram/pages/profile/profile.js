@@ -36,7 +36,7 @@ Page({
    */
   async loadCounts() {
     try {
-      const res = await get('/stats/counts');
+      const res = await get('/races/stats/overview');
       
       if (res && res.code === 200 && res.data) {
         const { races = '--', riders = '--', teams = '--' } = res.data;
@@ -59,6 +59,24 @@ Page({
   goToSearch() {
     wx.switchTab({ 
       url: '/pages/search/search' 
+    });
+  },
+
+  /**
+   * 跳转到赛事日历页
+   */
+  goToCalendar() {
+    wx.navigateTo({
+      url: '/pages/race-calendar/race-calendar'
+    });
+  },
+
+  /**
+   * 跳转到推送设置页
+   */
+  goToPushSettings() {
+    wx.navigateTo({
+      url: '/pages/push-settings/push-settings'
     });
   },
 
