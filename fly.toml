@@ -1,0 +1,39 @@
+# fly.toml app configuration file generated for velo-rank-api on 2026-05-22T23:51:29+08:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+
+app = 'velo-rank-api'
+primary_region = 'nrt'
+
+[build]
+  dockerfile = 'Dockerfile'
+
+[env]
+  NODE_ENV = 'production'
+  PORT = '3000'
+
+[http_service]
+  internal_port = 3000
+  force_https = true
+
+[[services]]
+  protocol = 'tcp'
+  internal_port = 3000
+
+  [[services.ports]]
+    port = 80
+    handlers = ['http']
+
+  [[services.ports]]
+    port = 443
+    handlers = ['tls', 'http']
+
+  [services.concurrency]
+    type = 'connections'
+    hard_limit = 25
+    soft_limit = 20
+
+[[vm]]
+  memory = '256mb'
+  cpus = 1
+  memory_mb = 256

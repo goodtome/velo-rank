@@ -1,0 +1,65 @@
+# ---- 依赖 ----
+node_modules/
+
+# ---- 敏感文件 ----
+.env
+.env.*
+server/.env
+server/.env.*
+server/config/.env
+
+# ---- Git & IDE ----
+.git/
+.gitignore
+.vscode/
+.idea/
+
+# ---- WorkBuddy ----
+.workbuddy/
+
+# ---- 日志 & 临时文件 ----
+*.log
+server/server.log
+server/logs/
+server/uploads/
+
+# ---- 调试 & 开发工具 ----
+server/*debug*
+server/debug-*.html
+server/debug-*.png
+server/test-*.png
+server/check-*.js
+server/analyze-*.js
+server/verify-*.js
+server/validate-*.js
+server/clean-*.js
+server/fix-*.js
+server/generate-*.js
+server/insert*.js
+
+# ---- 爬虫脚本（仅本地开发用） ----
+server/crawl-*.js
+server/scrape-*.js
+server/import-pcs-*.js
+server/init-giro-*.js
+server/sync-pcs*.js
+server/test-pcs-*.js
+
+# ---- 部署检查脚本 ----
+server/deploy-check.*
+
+# ---- 文档 & 报告 ----
+docs/
+*.md
+!server/admin/*.html
+
+# ---- OS ----
+.DS_Store
+Thumbs.db
+__pycache__/
+*.pyc
+
+# ---- 微信小程序前端（不需要在镜像里） ----
+miniprogram/
+project.config.json
+project.private.config.json
