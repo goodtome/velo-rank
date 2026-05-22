@@ -99,7 +99,7 @@ router.get('/stage', async (req, res) => {
       JOIN riders r ON sr.rider_id = r.id
       JOIN teams t ON r.team_id = t.id
       WHERE sr.race_id = ? AND sr.stage_id = ?
-      ORDER BY sr.rank ASC
+      ORDER BY sr.rank_pos ASC
       LIMIT 50
     `, [raceId, stageId]);
     

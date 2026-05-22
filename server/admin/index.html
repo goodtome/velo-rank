@@ -140,6 +140,10 @@
           </select>
         </div>
         <div class="form-row">
+          <label>类别中文：</label>
+          <input type="text" id="raceCategoryZh" placeholder="如: 大环赛" style="width: 200px;" />
+        </div>
+        <div class="form-row">
           <label>性别：</label>
           <select id="raceGender" style="width: 200px;">
             <option value="MEN">男子</option>
@@ -631,6 +635,7 @@
         race_name_en: document.getElementById('raceNameEn').value,
         race_code: document.getElementById('raceCode').value,
         category: document.getElementById('raceCategory').value,
+        category_zh: document.getElementById('raceCategoryZh').value || null,
         gender: document.getElementById('raceGender').value,
         season: parseInt(document.getElementById('raceSeason').value),
         country: document.getElementById('raceCountry').value,
@@ -728,6 +733,7 @@
           document.getElementById('raceNameEn').value = race.race_name_en || '';
           document.getElementById('raceCode').value = race.race_code || '';
           document.getElementById('raceCategory').value = race.category || 'Grand Tour';
+          document.getElementById('raceCategoryZh').value = race.category_zh || '';
           document.getElementById('raceGender').value = race.gender || 'MEN';
           document.getElementById('raceSeason').value = race.season || new Date().getFullYear();
           document.getElementById('raceCountry').value = race.country || '';

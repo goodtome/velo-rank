@@ -56,7 +56,7 @@
         </view>
         <view class="hero-meta">
           <text>{{item.start_date}} — {{item.end_date}}</text>
-          <text class="hero-stages">{{item.total_stages}}个赛段</text>
+          <text class="hero-stages">{{item.total_stages || 1}}个赛段</text>
         </view>
 
         <!-- 领骑衫展示 -->
@@ -99,7 +99,7 @@
           </view>
         </view>
         <view class="race-card-right">
-          <text class="race-card-stages">{{item.total_stages}}赛段</text>
+          <text class="race-card-stages">{{item.total_stages || 1}}赛段</text>
           <text class="race-card-arrow">></text>
         </view>
       </view>

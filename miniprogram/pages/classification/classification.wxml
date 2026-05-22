@@ -1,0 +1,106 @@
+<!--pages/classification/classification.wxml-->
+<view class="container">
+
+  <!-- 骨架屏加载状态 -->
+  <view wx:if="{{loading}}" class="skeleton-container">
+    <view class="skeleton-card">
+      <view class="skeleton-item skeleton-title"></view>
+      <view class="skeleton-item skeleton-text"></view>
+    </view>
+    <view class="skeleton-card">
+      <view wx:for="{{[1,2,3,4,5,6]}}" wx:key="*this" style="display:flex;align-items:center;padding:16rpx 0;border-bottom:1rpx solid #f0f0f0;">
+        <view class="skeleton-item" style="width:60rpx;height:28rpx;margin-right:16rpx;"></view>
+        <view style="flex:1;">
+          <view class="skeleton-item skeleton-text"></view>
+        </view>
+        <view class="skeleton-item" style="width:120rpx;height:28rpx;"></view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 错误状态 -->
+  <view wx:elif="{{loadError}}" class="error-state">
+    <text class="error-state-icon">😵</text>
+    <text class="error-state-text">加载失败，请检查网络</text>
+    <button class="retry-btn" bindtap="retryLoad">重新加载</button>
+  </view>
+
+  <view wx:else>
+    <!-- 赛段信息头 -->
+    <view class="stage-header card">
+      <view class="stage-title-row">
+        <view class="num-badge">{{stage.stage_number}}</view>
+        <view class="stage-title-text">第 {{stage.stage_number}} 赛段</view>
+        <text class="stage-type-tag tag-{{stage.stage_type}}" wx:if="{{stage.stage_type}}">{{stage.stage_type}}</text>
+      </view>
+      <view class="stage-route">{{stage.stage_name}}</view>
+      <view class="stage-meta-row">
+        <text class="meta-item">{{formatDate(stage.date)}}</text>
+        <text class="meta-dot">·</text>
+        <text class="meta-item" wx:if="{{stage.distance_km}}">{{stage.distance_km}}km</text>
+      </view>
+    </view>
+
+    <!-- 分类榜头部 -->
+    <view class="class-header card class-{{type}}">
+      <view class="class-header-left">
+        <view class="class-header-icon">{{typeIcon[type]}}</view>
+        <view class="class-header-text">
+          <view class="class-title">{{typeName[type]}}</view>
+          <view class="class-sub">{{typeSub[type]}}</view>
+        </view>
+      </view>
+      <view class="class-header-badge" wx:if="{{results.length > 0}}">{{results.length}}人</view>
+    </view>
+
+    <!-- 空数据提示 -->
+    <view wx:if="{{results.length === 0}}" class="empty-state card">
+      <text class="empty-state-icon">🏁</text>
+      <text class="empty-state-text">暂无分类数据</text>
+      <text class="empty-state-hint">该赛段可能尚未录入{{typeName[type]}}数据</text>
+    </view>
+
+    <!-- 排名列表 -->
+    <view wx:if="{{results.length > 0}}" class="results-section card">
+      <view class="section-label">{{typeName[type]}}排名</view>
+
+      <!-- 表头 -->
+      <view class="result-header">
+        <text class="rh-rank">排名</text>
+        <text class="rh-rider">车手</text>
+        <text class="rh-team">车队</text>
+        <text class="rh-value">{{type === 'youth' ? '时间差' : '积分'}}</text>
+      </view>
+
+      <!-- 列表行 -->
+      <view 
+        wx:for="{{results}}" 
+        wx:key="rank"
+        class="result-row {{index < 3 ? 'result-top3' : ''}} {{index === 0 ? 'result-gold' : index === 1 ? 'result-silver' : index === 2 ? 'result-bronze' : ''}}"
+        hover-class="result-row-hover"
+        bindtap="goToRider"
+        data-id="{{item.rider_id}}"
+      >
+        <view class="rr-rank {{index < 3 ? 'rr-rank-medal' : ''}}">
+          <text wx:if="{{index === 0}}">🥇</text>
+          <text wx:elif="{{index === 1}}">🥈</text>
+          <text wx:elif="{{index === 2}}">🥉</text>
+          <text wx:else>{{item.rank != null ? item.rank : index + 1}}</text>
+        </view>
+        <view class="rr-rider">
+          <text class="rider-name">{{item.rider_name_zh || item.rider_name}}</text>
+          <text class="rider-nat">{{item.nationality}}</text>
+        </view>
+        <text class="rr-team">{{item.team_name_zh || item.team_name}}</text>
+        <view class="rr-value">
+          <text class="value-main">{{type === 'youth' ? (item.time_gap || '—') : (item.points != null ? item.points + '分' : '—')}}</text>
+        </view>
+      </view>
+
+      <!-- 加载更多 -->
+      <view wx:if="{{hasMore}}" class="load-more" bindtap="loadMore">
+        <text>加载更多</text>
+      </view>
+    </view>
+  </view>
+</view>

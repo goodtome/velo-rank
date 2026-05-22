@@ -76,18 +76,30 @@ Page({
   
   // 加载初始数据
   loadInitialData() {
-    // 使用模拟数据（实际应该从API加载）
+    // 实际从API加载数据
     const now = new Date();
     const lastUpdate = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
     
+    // 获取URL参数中的raceId和stageId
+    const pages = getCurrentPages();
+    const currentPage = pages[pages.length - 1];
+    const options = currentPage.options || {};
+    const raceId = options.raceId || '';
+    const stageId = options.stageId || '';
+    
     this.setData({
-      gcRankings: mockGCRankings,
-      stageResults: mockStageResults,
+      raceId: raceId,
+      stageId: stageId,
       lastUpdate: lastUpdate
     });
     
-    // TODO: 实际应该从后端API加载数据
-    // this.fetchRankings('gc');
+    // 加载GC排名数据
+    this.fetchRankings('gc');
+    
+    // 如果提供了stageId，加载赛段成绩
+    if (stageId) {
+      this.fetchStageResults(stageId);
+    }
   },
   
   // 切换标签
@@ -103,47 +115,48 @@ Page({
   
   // 获取排名数据
   fetchRankings(tab) {
-    // TODO: 实际应该调用后端API
-    // 这里使用模拟数据
     wx.showLoading({ title: '加载中...' });
     
-    setTimeout(() => {
-      // 模拟API调用延迟
-      const now = new Date();
-      const lastUpdate = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
-      
-      if (tab === 'points') {
-        // 模拟冲刺积分数据
-        this.setData({
-          pointsRankings: [
-            { riderId: 4, rank: 1, riderName: 'Paul MAGNIER', teamName: 'Soudal Quick-Step', points: 105, isLeader: true },
-            { riderId: 7, rank: 2, riderName: 'Diego Pablo SEVILLA', teamName: 'Team Polti VisitMalta', points: 72, isLeader: false },
-            // 更多数据...
-          ],
-          lastUpdate: lastUpdate
-        });
-      } else if (tab === 'mountains') {
-        // 模拟爬坡积分数据
-        this.setData({
-          mountainsRankings: [
-            { riderId: 8, rank: 1, riderName: 'Climber NAME', teamName: 'Team Name', points: 65, isLeader: true },
-            // 更多数据...
-          ],
-          lastUpdate: lastUpdate
-        });
-      } else if (tab === 'youth') {
-        // 模拟青年排名数据
-        this.setData({
-          youthRankings: [
-            { riderId: 5, rank: 1, riderName: 'Jan CHRISTEN', teamName: 'UAE Team Emirates - XRG', age: 21, timeGap: '-', isLeader: true },
-            // 更多数据...
-          ],
-          lastUpdate: lastUpdate
-        });
-      }
-      
+    const { stageId, raceId } = this.data;
+    if (!stageId && !raceId) {
       wx.hideLoading();
-    }, 300);
+      wx.showToast({ title: '缺少赛事参数', icon: 'none' });
+      return;
+    }
+    
+    // 根据tab调用不同的API
+    let url = '';
+    if (tab === 'gc') {
+      url = `/api/v1/stages/${stageId}/general-classification`;
+    } else if (tab === 'points') {
+      url = `/api/v1/stages/${stageId}/points`;
+    } else if (tab === 'mountains') {
+      url = `/api/v1/stages/${stageId}/mountains`;
+    } else if (tab === 'youth') {
+      url = `/api/v1/stages/${stageId}/youth`;
+    }
+    
+    get(url).then(res => {
+      if (res.code === 200 && res.data) {
+        const now = new Date();
+        const lastUpdate = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+        
+        if (tab === 'gc') {
+          this.setData({ gcRankings: res.data, lastUpdate });
+        } else if (tab === 'points') {
+          this.setData({ pointsRankings: res.data, lastUpdate });
+        } else if (tab === 'mountains') {
+          this.setData({ mountainsRankings: res.data, lastUpdate });
+        } else if (tab === 'youth') {
+          this.setData({ youthRankings: res.data, lastUpdate });
+        }
+      }
+      wx.hideLoading();
+    }).catch(err => {
+      console.error('获取排名数据失败:', err);
+      wx.hideLoading();
+      wx.showToast({ title: '加载失败', icon: 'none' });
+    });
   },
   
   // 开始实时更新
@@ -194,9 +207,47 @@ Page({
   
   // 轮询数据
   pollData() {
-    // TODO: 实际应该调用后端API获取最新数据
-    // 这里模拟数据更新
-    const now = new Date();
+    const { activeTab, stageId } = this.data;
+    if (!stageId) return;
+    
+    // 根据当前tab获取最新数据
+    let url = '';
+    if (activeTab === 'gc') {
+      url = `/api/v1/stages/${stageId}/general-classification`;
+    } else if (activeTab === 'stage') {
+      url = `/api/v1/stages/${stageId}/results`;
+    } else if (activeTab === 'points') {
+      url = `/api/v1/stages/${stageId}/points`;
+    } else if (activeTab === 'mountains') {
+      url = `/api/v1/stages/${stageId}/mountains`;
+    } else if (activeTab === 'youth') {
+      url = `/api/v1/stages/${stageId}/youth`;
+    }
+    
+    if (!url) return;
+    
+    get(url).then(res => {
+      if (res.code === 200 && res.data) {
+        const now = new Date();
+        const lastUpdate = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+        
+        if (activeTab === 'gc') {
+          this.setData({ gcRankings: res.data, lastUpdate });
+        } else if (activeTab === 'stage') {
+          this.setData({ stageResults: res.data, lastUpdate });
+        } else if (activeTab === 'points') {
+          this.setData({ pointsRankings: res.data, lastUpdate });
+        } else if (activeTab === 'mountains') {
+          this.setData({ mountainsRankings: res.data, lastUpdate });
+        } else if (activeTab === 'youth') {
+          this.setData({ youthRankings: res.data, lastUpdate });
+        }
+      }
+    }).catch(err => {
+      console.error('轮询数据失败:', err);
+      // 保持连接状态，不显示错误（避免频繁弹窗）
+    });
+  },
     const lastUpdate = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
     
     // 模拟实时数据变化（随机更新排名变化）

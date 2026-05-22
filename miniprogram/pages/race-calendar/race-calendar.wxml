@@ -50,16 +50,28 @@
       <text class="legend-text">进行中</text>
     </view>
     <view class="legend-item">
-      <view class="legend-dot" style="background: #e74c3c"></view>
+      <view class="legend-dot" style="background: #f1c40f"></view>
       <text class="legend-text">大环赛</text>
     </view>
     <view class="legend-item">
-      <view class="legend-dot" style="background: #f39c12"></view>
-      <text class="legend-text">多日赛</text>
+      <view class="legend-dot" style="background: #e74c3c"></view>
+      <text class="legend-text">世巡赛</text>
     </view>
     <view class="legend-item">
-      <view class="legend-dot" style="background: #3498db"></view>
-      <text class="legend-text">单日赛</text>
+      <view class="legend-dot" style="background: #f39c12"></view>
+      <text class="legend-text">职业赛</text>
+    </view>
+    <view class="legend-item">
+      <view class="legend-dot" style="background: #9b59b6"></view>
+      <text class="legend-text">女子世巡</text>
+    </view>
+    <view class="legend-item">
+      <view class="legend-dot" style="background: #e67e22"></view>
+      <text class="legend-text">世锦赛</text>
+    </view>
+    <view class="legend-item">
+      <view class="legend-dot" style="background: #95a5a6"></view>
+      <text class="legend-text">洲际赛</text>
     </view>
   </view>
 
@@ -79,7 +91,7 @@
       <view class="race-info">
         <text class="race-name">{{item.race_name_zh || item.race_name}}</text>
         <view class="race-meta">
-          <text class="race-category">{{item.category === 'GRAND_TOUR' ? '大环赛' : item.category === 'STAGE_RACE' ? '多日赛' : item.category === 'ONE_DAY' ? '单日赛' : item.category || '赛事'}}</text>
+          <text class="race-category">{{item.category === 'Grand Tour' ? '大环赛' : item.category === 'WorldTour' ? '世巡赛' : item.category === 'ProSeries' ? '职业赛' : item.category === 'Continental' ? '洲际赛' : item.category === 'World Championships' ? '世锦赛' : item.category === 'Women-WorldTour' ? '女子世巡' : item.category === 'Women-ProSeries' ? '女子职业' : item.category || '赛事'}}</text>
           <text class="race-dates">{{item.start_date}} ~ {{item.end_date}}</text>
         </view>
       </view>
@@ -111,8 +123,8 @@
           <text class="race-name">{{item.race_name_zh || item.race_name}}</text>
           <text class="race-date">{{item.start_date}} ~ {{item.end_date}}</text>
         </view>
-        <view class="race-category-tag {{item.category === 'GRAND_TOUR' ? 'gt' : ''}}">
-          {{item.category === 'GRAND_TOUR' ? '大环赛' : item.category === 'STAGE_RACE' ? '多日赛' : item.category === 'ONE_DAY' ? '单日赛' : '赛事'}}
+        <view class="race-category-tag {{item.category === 'Grand Tour' ? 'gt' : ''}}">
+          {{item.category === 'Grand Tour' ? '大环赛' : item.category === 'WorldTour' ? '世巡赛' : item.category === 'ProSeries' ? '职业赛' : item.category === 'Continental' ? '洲际赛' : item.category === 'World Championships' ? '世锦赛' : item.category === 'Women-WorldTour' ? '女子世巡' : item.category === 'Women-ProSeries' ? '女子职业' : '赛事'}}
         </view>
       </view>
     </view>

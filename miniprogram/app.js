@@ -8,7 +8,7 @@ const { getEnv, getConfig } = require('./config/env');
 App({
   onLaunch() {
     // 小程序启动时的初始化逻辑
-    console.log('领骑小程序启动');
+    console.log('正一领骑 小程序启动');
 
     // 获取系统信息（使用新API替换废弃的wx.getSystemInfoSync）
     const windowInfo = wx.getWindowInfo();

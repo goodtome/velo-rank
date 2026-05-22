@@ -18,13 +18,15 @@ Page({
     upcomingRaces: [],
     allRaces: [], // 当前月的所有赛事
     loading: false,
-    // 赛事类型颜色映射
+    // 赛事类型颜色映射（key 对齐数据库 category 实际值）
     categoryColors: {
-      'GRAND_TOUR': '#e74c3c',
-      'STAGE_RACE': '#f39c12',
-      'ONE_DAY': '#3498db',
-      'CHAMPIONSHIP': '#9b59b6',
-      'CLASSIC': '#e67e22'
+      'Grand Tour':              '#f1c40f', // 大环赛 - 金色
+      'WorldTour':               '#e74c3c', // 世巡赛 - 红色
+      'ProSeries':               '#f39c12', // 职业系列赛 - 橙色
+      'Continental':             '#95a5a6', // 洲际赛 - 灰色
+      'World Championships':     '#e67e22', // 世锦赛 - 彩虹橙
+      'Women-WorldTour':         '#9b59b6', // 女子世巡赛 - 紫色
+      'Women-ProSeries':         '#1abc9c'  // 女子职业系列赛 - 青绿
     }
   },
 

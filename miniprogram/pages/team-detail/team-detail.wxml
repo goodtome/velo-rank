@@ -18,13 +18,6 @@
         <view class="skeleton-item" style="width:200rpx;height:24rpx;"></view>
       </view>
     </view>
-    <view class="skeleton-card">
-      <view class="skeleton-item skeleton-title"></view>
-      <view wx:for="{{[1,2,3]}}" wx:key="*this" style="display:flex;justify-content:space-between;padding:16rpx 0;border-bottom:1rpx solid #f0f0f0;">
-        <view class="skeleton-item" style="width:180rpx;height:24rpx;"></view>
-        <view class="skeleton-item" style="width:40rpx;height:24rpx;"></view>
-      </view>
-    </view>
   </view>
 
   <!-- 错误状态 -->
@@ -46,12 +39,10 @@
     <!-- 头部卡片 -->
     <view class="header-card">
       <view class="header-main">
-        <!-- Logo -->
         <view class="logo-wrap">
           <image wx:if="{{team.logo_url}}" class="logo" src="{{team.logo_url}}" mode="aspectFill"></image>
           <view wx:else class="logo logo-placeholder">🚲</view>
         </view>
-        <!-- 名称信息 -->
         <view class="header-info">
           <text class="team-name-zh">{{teamName.zh || teamName.en}}</text>
           <text wx:if="{{teamName.zh && teamName.en}}" class="team-name-en">{{teamName.en}}</text>
@@ -60,25 +51,62 @@
       </view>
     </view>
 
+    <!-- 统计卡片（新增） -->
+    <view wx:if="{{stats}}" class="card-base stats-card">
+      <view class="stats-grid">
+        <view class="stat-item">
+          <text class="stat-value stats-highlight">{{stats.total_riders || 0}}</text>
+          <text class="stat-label">车手</text>
+        </view>
+        <view class="stat-item">
+          <text class="stat-value stats-gold">{{stats.stage_wins || 0}}</text>
+          <text class="stat-label">🏆 赛段冠军</text>
+        </view>
+        <view class="stat-item">
+          <text class="stat-value stats-silver">{{stats.podiums || 0}}</text>
+          <text class="stat-label">🥈🥉 领奖台</text>
+        </view>
+        <view class="stat-item">
+          <text class="stat-value">{{stats.top10 || 0}}</text>
+          <text class="stat-label">前10名</text>
+        </view>
+      </view>
+      <!-- 次要统计 -->
+      <view wx:if="{{stats.total_entries || stats.jerseys_held}}" class="stats-secondary">
+        <view wx:if="{{stats.total_entries}}" class="info-item">
+          <text class="info-label">参赛次数</text>
+          <text class="info-value">{{stats.total_entries}}</text>
+        </view>
+        <view wx:if="{{stats.jerseys_held}}" class="info-item">
+          <text class="info-label">领骑衫</text>
+          <text class="info-value stats-gold">{{stats.jerseys_held}} 次</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 参赛赛事（新增） -->
+    <view wx:if="{{stats && stats.recent_races && stats.recent_races.length > 0}}" class="card-base races-card">
+      <view class="section-title">参赛赛事</view>
+      <view wx:for="{{stats.recent_races}}" wx:key="id" class="race-item">
+        <text class="race-name">{{item.race_name_zh || item.race_name}}</text>
+        <view class="race-meta">
+          <text class="tag tag-blue">{{item.season}}</text>
+          <text wx:if="{{item.category}}" class="tag tag-orange">{{item.category}}</text>
+        </view>
+      </view>
+    </view>
+
     <!-- 基本信息 -->
     <view class="card-base info-card">
       <view class="section-title">车队信息</view>
-
       <view wx:if="{{team.uci_code}}" class="info-item">
         <text class="info-label">UCI代码</text>
         <text class="info-value">{{team.uci_code}}</text>
       </view>
-
       <view wx:if="{{teamName.en}}" class="info-item">
         <text class="info-label">英文名</text>
         <text class="info-value">{{teamName.en}}</text>
       </view>
-
-      <view wx:if="{{team.team_name}}" class="info-item">
-        <text class="info-label">名称</text>
-        <text class="info-value">{{teamName.en}}</text>
-      </view>
-
       <view wx:if="{{team.bike_brand}}" class="info-item">
         <text class="info-label">自行车品牌</text>
         <text class="info-value">{{team.bike_brand}}</text>

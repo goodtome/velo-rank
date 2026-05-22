@@ -45,7 +45,7 @@ router.get('/:id/results', asyncHandler(async (req, res) => {
     JOIN riders r ON sr.rider_id = r.id
     JOIN teams t ON sr.team_id = t.id
     WHERE sr.stage_id = ?
-    ORDER BY sr.\`rank\`
+    ORDER BY sr.rank_pos
     LIMIT ?
   `;
     
@@ -71,7 +71,7 @@ router.get('/:id/jerseys', asyncHandler(async (req, res) => {
     
   // 查询领骑衫持有者，联表查询车手和车队信息
   const sql = `
-    SELECT j.*, 
+    SELECT j.jersey_type, j.rider_id, j.team_id,
            r.rider_name, r.rider_name_zh, r.nationality, r.photo_url,
            t.team_name, t.team_name_zh, t.uci_code
     FROM jerseys j
@@ -82,16 +82,52 @@ router.get('/:id/jerseys', asyncHandler(async (req, res) => {
     
   const [rows] = await pool.query(sql, [stageId]);
     
-  // 转换为数组格式（前端需要遍历），同时保留对象格式兼容
-  const jerseysList = rows.map(row => ({
-    jersey_type: row.jersey_type,
-    rider_name: row.rider_name,
-    rider_name_zh: row.rider_name_zh,
-    team_name: row.team_name,
-    team_name_zh: row.team_name_zh,
-    uci_code: row.uci_code,
-    time_gap: row.time_gap,
-    points: row.points
+  // 为每个领骑衫获取积分或时间差
+  const jerseysList = await Promise.all(rows.map(async (row) => {
+    let time_gap = null;
+    let points = null;
+    
+    // 根据领骑衫类型，从对应classification表获取积分或时间差
+    if (row.jersey_type === 'pink') {
+      // 粉衫：从general_classification获取time_gap
+      const [gc] = await pool.query(
+        'SELECT time_gap FROM general_classification WHERE stage_id = ? AND rider_id = ? ORDER BY `rank` LIMIT 1',
+        [stageId, row.rider_id]
+      );
+      if (gc.length > 0) time_gap = gc[0].time_gap;
+    } else if (row.jersey_type === 'purple') {
+      // 紫衫：从points_classification获取points
+      const [pc] = await pool.query(
+        'SELECT points FROM points_classification WHERE stage_id = ? AND rider_id = ? ORDER BY points DESC LIMIT 1',
+        [stageId, row.rider_id]
+      );
+      if (pc.length > 0) points = pc[0].points;
+    } else if (row.jersey_type === 'blue') {
+      // 蓝衫：从points_classification获取points（冲刺积分）
+      const [pc] = await pool.query(
+        'SELECT points FROM points_classification WHERE stage_id = ? AND rider_id = ? ORDER BY points DESC LIMIT 1',
+        [stageId, row.rider_id]
+      );
+      if (pc.length > 0) points = pc[0].points;
+    } else if (row.jersey_type === 'white') {
+      // 白衫：从youth_classification获取time_gap
+      const [yc] = await pool.query(
+        'SELECT time_gap FROM youth_classification WHERE stage_id = ? AND rider_id = ? ORDER BY `rank` LIMIT 1',
+        [stageId, row.rider_id]
+      );
+      if (yc.length > 0) time_gap = yc[0].time_gap;
+    }
+    
+    return {
+      jersey_type: row.jersey_type,
+      rider_name: row.rider_name,
+      rider_name_zh: row.rider_name_zh,
+      team_name: row.team_name,
+      team_name_zh: row.team_name_zh,
+      uci_code: row.uci_code,
+      time_gap,
+      points
+    };
   }));
     
   res.json({
@@ -293,4 +329,124 @@ router.delete('/:id', asyncHandler(async (req, res) => {
   });
 }));
 
+// GET /api/v1/stages/:id/general-classification - 获取GC总成绩排名
+router.get('/:id/general-classification', asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const stageId = id; // UUID是字符串
+  
+  if (!id || id.trim() === '') {
+    throw new AppError('无效的赛段ID', ERROR_CODE.BAD_REQUEST);
+  }
+  
+  // 查询GC总成绩排名，关联车手和车队信息
+  const sql = `
+    SELECT gc.*, 
+           r.rider_name, r.rider_name_zh, r.nationality, r.photo_url,
+           t.team_name, t.team_name_zh, t.uci_code
+    FROM general_classification gc
+    JOIN riders r ON gc.rider_id = r.id
+    LEFT JOIN stage_results sr ON gc.stage_id = sr.stage_id AND gc.rider_id = sr.rider_id
+    LEFT JOIN teams t ON sr.team_id = t.id
+    WHERE gc.stage_id = ?
+    ORDER BY gc.\`rank\`
+  `;
+  
+  const [rows] = await pool.query(sql, [stageId]);
+  
+  res.json({
+    code: 200,
+    data: rows,
+    message: 'success'
+  });
+}));
+
+// GET /api/v1/stages/:id/points - 获取冲刺积分排名
+router.get('/:id/points', asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const stageId = id;
+  
+  if (!id || id.trim() === '') {
+    throw new AppError('无效的赛段ID', ERROR_CODE.BAD_REQUEST);
+  }
+  
+  const sql = `
+    SELECT p.*, 
+           r.rider_name, r.rider_name_zh, r.nationality, r.photo_url,
+           t.team_name, t.team_name_zh, t.uci_code
+    FROM points_classification p
+    JOIN riders r ON p.rider_id = r.id
+    LEFT JOIN stage_results sr ON p.stage_id = sr.stage_id AND p.rider_id = sr.rider_id
+    LEFT JOIN teams t ON sr.team_id = t.id
+    WHERE p.stage_id = ?
+    ORDER BY p.points DESC
+  `;
+  
+  const [rows] = await pool.query(sql, [stageId]);
+  
+  res.json({
+    code: 200,
+    data: rows,
+    message: 'success'
+  });
+}));
+
+// GET /api/v1/stages/:id/mountains - 获取爬坡积分排名
+router.get('/:id/mountains', asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const stageId = id;
+  
+  if (!id || id.trim() === '') {
+    throw new AppError('无效的赛段ID', ERROR_CODE.BAD_REQUEST);
+  }
+  
+  const sql = `
+    SELECT m.*, 
+           r.rider_name, r.rider_name_zh, r.nationality, r.photo_url,
+           t.team_name, t.team_name_zh, t.uci_code
+    FROM mountains_classification m
+    JOIN riders r ON m.rider_id = r.id
+    LEFT JOIN stage_results sr ON m.stage_id = sr.stage_id AND m.rider_id = sr.rider_id
+    LEFT JOIN teams t ON sr.team_id = t.id
+    WHERE m.stage_id = ?
+    ORDER BY m.points DESC
+  `;
+  
+  const [rows] = await pool.query(sql, [stageId]);
+  
+  res.json({
+    code: 200,
+    data: rows,
+    message: 'success'
+  });
+}));
+
+// GET /api/v1/stages/:id/youth - 获取青年排名
+router.get('/:id/youth', asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const stageId = id;
+  
+  if (!id || id.trim() === '') {
+    throw new AppError('无效的赛段ID', ERROR_CODE.BAD_REQUEST);
+  }
+  
+  const sql = `
+    SELECT y.*, 
+           r.rider_name, r.rider_name_zh, r.nationality, r.photo_url,
+           t.team_name, t.team_name_zh, t.uci_code
+    FROM youth_classification y
+    JOIN riders r ON y.rider_id = r.id
+    LEFT JOIN stage_results sr ON y.stage_id = sr.stage_id AND y.rider_id = sr.rider_id
+    LEFT JOIN teams t ON sr.team_id = t.id
+    WHERE y.stage_id = ?
+    ORDER BY y.\`rank\`
+  `;
+  
+  const [rows] = await pool.query(sql, [stageId]);
+  
+  res.json({
+    code: 200,
+    data: rows,
+    message: 'success'
+  });
+}));
 module.exports = router;

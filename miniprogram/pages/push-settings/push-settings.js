@@ -254,7 +254,7 @@ Page({
     try {
       const res = await post('/push/test', {
         openid,
-        title: '领骑通知测试',
+        title: '正一领骑 通知测试',
         content: '如果您看到这条消息，说明推送功能正常工作！'
       });
 
@@ -286,7 +286,7 @@ Page({
    */
   onShareAppMessage() {
     return {
-      title: '推送设置 - 领骑',
+      title: '推送设置 - 正一领骑',
       path: '/pages/push-settings/push-settings'
     };
   }

@@ -154,6 +154,27 @@ Page({
   },
 
   /**
+   * 点击分类榜入口（积分/爬坡/青年）
+   */
+  onClassTap(e) {
+    const { type } = e.currentTarget.dataset;
+    const { raceId, stages } = this.data;
+
+    if (!stages || stages.length === 0) {
+      showError('暂无赛段数据');
+      return;
+    }
+
+    // 使用最后一个赛段的ID（最新赛段）
+    const latestStage = stages[stages.length - 1];
+    const stageId = latestStage.id;
+
+    wx.navigateTo({
+      url: `/pages/classification/classification?stageId=${stageId}&raceId=${raceId}&type=${type}`
+    });
+  },
+
+  /**
    * 下拉刷新
    */
   onPullDownRefresh() {

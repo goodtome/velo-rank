@@ -7,7 +7,7 @@
       </view>
     </view>
     <text class="nickname">骑行爱好者</text>
-    <text class="welcome-text">欢迎使用领骑</text>
+    <text class="welcome-text">欢迎使用正一领骑</text>
   </view>
 
   <!-- 应用统计 -->
@@ -81,7 +81,7 @@
     <view class="about-expand" wx:if="{{showAbout}}">
       <view class="about-divider"></view>
       <view class="about-content">
-        <text class="about-name">领骑 Jersey</text>
+        <text class="about-name">正一领骑 / velo-rank</text>
         <text class="about-version">v1.0.0</text>
         <text class="about-desc">专业自行车赛事成绩查询</text>
       </view>
@@ -90,7 +90,7 @@
 
   <!-- 底部信息 -->
   <view class="footer-section">
-    <text class="footer-name">领骑 Jersey v1.0.0</text>
+    <text class="footer-name">正一领骑 / velo-rank v1.0.0</text>
     <text class="footer-desc">专业自行车赛事成绩查询</text>
   </view>
 </view>

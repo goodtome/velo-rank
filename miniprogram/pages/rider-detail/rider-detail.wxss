@@ -268,3 +268,149 @@
   border-radius: 6rpx;
   font-size: 20rpx;
 }
+
+.tag-purple {
+  background: #f3e5f5;
+  color: #6a1b9a;
+  padding: 4rpx 12rpx;
+  border-radius: 6rpx;
+  font-size: 20rpx;
+}
+
+.tag-blue {
+  background: #e3f2fd;
+  color: #1565c0;
+  padding: 4rpx 12rpx;
+  border-radius: 6rpx;
+  font-size: 20rpx;
+}
+
+/* 统计卡片 */
+.stats-card {
+  margin-bottom: 24rpx;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16rpx;
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 24rpx 16rpx;
+  background: #f8f9fa;
+  border-radius: 16rpx;
+}
+
+.stat-value {
+  font-size: 40rpx;
+  font-weight: 700;
+  color: #333;
+  line-height: 1.2;
+}
+
+.stat-label {
+  font-size: 22rpx;
+  color: #999;
+  margin-top: 8rpx;
+}
+
+.stats-highlight {
+  color: #1565c0;
+}
+
+.stats-gold {
+  color: #f57f17;
+}
+
+.stats-silver {
+  color: #6d4c41;
+}
+
+/* 领骑衫历史 */
+.jersey-history {
+  margin-top: 24rpx;
+  padding-top: 24rpx;
+  border-top: 1rpx solid #f0f0f0;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12rpx;
+}
+
+.jersey-label {
+  font-size: 24rpx;
+  color: #666;
+}
+
+.jersey-tag {
+  padding: 4rpx 16rpx;
+  border-radius: 8rpx;
+  font-size: 20rpx;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+.jersey-tag-pink {
+  background: #fce4ec;
+  color: #c62828;
+}
+
+.jersey-tag-purple {
+  background: #f3e5f5;
+  color: #6a1b9a;
+}
+
+.jersey-tag-blue {
+  background: #e3f2fd;
+  color: #1565c0;
+}
+
+.jersey-tag-white {
+  background: #f5f5f5;
+  color: #616161;
+  border: 1rpx solid #e0e0e0;
+}
+
+/* 成绩排名高亮 */
+.result-rank-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 64rpx;
+}
+
+.result-medal {
+  font-size: 28rpx;
+  line-height: 1;
+}
+
+.rank-gold {
+  color: #f57f17 !important;
+  font-size: 32rpx !important;
+}
+
+.rank-silver {
+  color: #78909c !important;
+}
+
+.rank-bronze {
+  color: #8d6e63 !important;
+}
+
+.result-podium {
+  background: linear-gradient(90deg, rgba(255, 215, 0, 0.05), transparent);
+  border-radius: 8rpx;
+  padding-left: 8rpx !important;
+  padding-right: 8rpx !important;
+}
+
+/* 成绩中的车队名 */
+.result-team {
+  font-size: 20rpx;
+  color: #999;
+  margin-top: 2rpx;
+}

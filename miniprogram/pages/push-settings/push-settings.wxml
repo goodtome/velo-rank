@@ -127,6 +127,6 @@
   <!-- 提示信息 -->
   <view class="tip-section">
     <view class="tip-icon">💡</view>
-    <text class="tip-text">推送通知需要您在手机系统设置中允许"领骑"应用发送通知。如果收不到推送，请检查系统通知权限。</text>
+    <text class="tip-text">推送通知需要您在手机系统设置中允许"正一领骑"应用发送通知。如果收不到推送，请检查系统通知权限。</text>
   </view>
 </view>

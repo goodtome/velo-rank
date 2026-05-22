@@ -119,5 +119,41 @@
       <view class="arrow-white">></view>
     </view>
 
+    <!-- 分类榜入口 -->
+    <view class="section-label" style="margin-top:24rpx;">分类排名</view>
+
+    <view class="clf-card clf-points" hover-class="clf-card-hover" bindtap="onClassTap" data-type="points">
+      <view class="clf-left">
+        <view class="clf-icon">🟣</view>
+        <view class="clf-text">
+          <view class="clf-title">冲刺积分榜</view>
+          <view class="clf-sub">Points Classification</view>
+        </view>
+      </view>
+      <view class="arrow">></view>
+    </view>
+
+    <view class="clf-card clf-mountains" hover-class="clf-card-hover" bindtap="onClassTap" data-type="mountains">
+      <view class="clf-left">
+        <view class="clf-icon">🔵</view>
+        <view class="clf-text">
+          <view class="clf-title">爬坡积分榜</view>
+          <view class="clf-sub">Mountains Classification</view>
+        </view>
+      </view>
+      <view class="arrow">></view>
+    </view>
+
+    <view class="clf-card clf-youth" hover-class="clf-card-hover" bindtap="onClassTap" data-type="youth">
+      <view class="clf-left">
+        <view class="clf-icon">⚪</view>
+        <view class="clf-text">
+          <view class="clf-title">青年车手榜</view>
+          <view class="clf-sub">Youth Classification</view>
+        </view>
+      </view>
+      <view class="arrow">></view>
+    </view>
+
   </view>
 </view>

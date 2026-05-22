@@ -84,10 +84,12 @@ router.get('/', asyncHandler(async (req, res) => {
     
   let sql = `
     SELECT /*+ INDEX(races idx_start_date) */
-      id, race_name, race_name_en, race_code, category, gender, 
-      season, country, start_date, end_date, total_stages, total_distance, logo_url
-    FROM races USE INDEX(idx_start_date)
-    WHERE is_active = 1
+      r.id, r.race_name, r.race_name_en, r.race_code, r.category, r.gender, 
+      r.season, r.country, r.start_date, r.end_date, 
+      GREATEST(COALESCE(r.total_stages, (SELECT COUNT(*) FROM stages s WHERE s.race_id = r.id)), 1) AS total_stages,
+      r.total_distance, r.logo_url
+    FROM races r USE INDEX(idx_start_date)
+    WHERE r.is_active = 1
   `;
   const params = [];
     
@@ -207,11 +209,15 @@ router.get('/active', asyncHandler(async (req, res) => {
   
   // 查询进行中的赛事
   const [activeRaces] = await pool.query(`
-    SELECT * FROM races 
-    WHERE is_active = 1 
-      AND start_date <= ? 
-      AND end_date >= ?
-    ORDER BY start_date ASC
+    SELECT r.*, 
+      GREATEST(COALESCE(r.total_stages, (
+        SELECT COUNT(*) FROM stages s WHERE s.race_id = r.id
+      )), 1) AS total_stages
+    FROM races r
+    WHERE r.is_active = 1 
+      AND r.start_date <= ? 
+      AND r.end_date >= ?
+    ORDER BY r.start_date ASC
   `, [today, today]);
 
   // 为每个赛事附加最新领骑衫信息
@@ -227,16 +233,61 @@ router.get('/active', asyncHandler(async (req, res) => {
 
     let jerseys = [];
     if (latestWithJerseys.length > 0) {
+      const stageId = latestWithJerseys[0].id;
       const [jerseyRows] = await pool.query(`
-        SELECT j.jersey_type, j.time_gap, j.points,
-               r.rider_name, r.rider_name_zh, r.nationality,
+        SELECT j.jersey_type, j.rider_id, j.team_id,
+               r.rider_name, r.rider_name_zh, r.nationality, r.photo_url,
                t.team_name, t.team_name_zh, t.uci_code
         FROM jerseys j
         JOIN riders r ON j.rider_id = r.id
         JOIN teams t ON j.team_id = t.id
         WHERE j.stage_id = ?
-      `, [latestWithJerseys[0].id]);
-      jerseys = jerseyRows;
+      `, [stageId]);
+      
+      // 为每个领骑衫获取积分或时间差
+      jerseys = await Promise.all(jerseyRows.map(async (row) => {
+        let time_gap = null;
+        let points = null;
+        
+        if (row.jersey_type === 'pink') {
+          const [gc] = await pool.query(
+            'SELECT time_gap FROM general_classification WHERE stage_id = ? AND rider_id = ? ORDER BY `rank` LIMIT 1',
+            [stageId, row.rider_id]
+          );
+          if (gc.length > 0) time_gap = gc[0].time_gap;
+        } else if (row.jersey_type === 'purple') {
+          const [pc] = await pool.query(
+            'SELECT points FROM points_classification WHERE stage_id = ? AND rider_id = ? ORDER BY points DESC LIMIT 1',
+            [stageId, row.rider_id]
+          );
+          if (pc.length > 0) points = pc[0].points;
+        } else if (row.jersey_type === 'blue') {
+          const [pc] = await pool.query(
+            'SELECT points FROM points_classification WHERE stage_id = ? AND rider_id = ? ORDER BY points DESC LIMIT 1',
+            [stageId, row.rider_id]
+          );
+          if (pc.length > 0) points = pc[0].points;
+        } else if (row.jersey_type === 'white') {
+          const [yc] = await pool.query(
+            'SELECT time_gap FROM youth_classification WHERE stage_id = ? AND rider_id = ? ORDER BY `rank` LIMIT 1',
+            [stageId, row.rider_id]
+          );
+          if (yc.length > 0) time_gap = yc[0].time_gap;
+        }
+        
+        return {
+          jersey_type: row.jersey_type,
+          rider_name: row.rider_name,
+          rider_name_zh: row.rider_name_zh,
+          nationality: row.nationality,
+          photo_url: row.photo_url,
+          team_name: row.team_name,
+          team_name_zh: row.team_name_zh,
+          uci_code: row.uci_code,
+          time_gap,
+          points
+        };
+      }));
     }
 
     return { ...race, jerseys };
@@ -251,10 +302,14 @@ router.get('/recent', asyncHandler(async (req, res) => {
   const limit = Math.min(20, Math.max(1, parseInt(req.query.limit) || 10));
   
   const [rows] = await pool.query(`
-    SELECT * FROM races 
-    WHERE is_active = 1 
-      AND end_date < ?
-    ORDER BY end_date DESC
+    SELECT r.*, 
+      GREATEST(COALESCE(r.total_stages, (
+        SELECT COUNT(*) FROM stages s WHERE s.race_id = r.id
+      )), 1) AS total_stages
+    FROM races r
+    WHERE r.is_active = 1 
+      AND r.end_date < ?
+    ORDER BY r.end_date DESC
     LIMIT ?
   `, [today, limit]);
 
@@ -298,17 +353,153 @@ router.get('/:id/latest-jerseys', asyncHandler(async (req, res) => {
     return res.json({ code: 200, data: [] });
   }
 
-  const [jerseys] = await pool.query(`
-    SELECT j.jersey_type, j.time_gap, j.points,
+  const stageId = latestWithJerseys[0].id;
+  const [jerseyRows] = await pool.query(`
+    SELECT j.jersey_type, j.rider_id, j.team_id,
            r.rider_name, r.rider_name_zh, r.nationality, r.photo_url,
            t.team_name, t.team_name_zh, t.uci_code
     FROM jerseys j
     JOIN riders r ON j.rider_id = r.id
     JOIN teams t ON j.team_id = t.id
     WHERE j.stage_id = ?
-  `, [latestWithJerseys[0].id]);
+  `, [stageId]);
+  
+  // 为每个领骑衫获取积分或时间差
+  const jerseys = await Promise.all(jerseyRows.map(async (row) => {
+    let time_gap = null;
+    let points = null;
+    
+    if (row.jersey_type === 'pink') {
+      const [gc] = await pool.query(
+        'SELECT time_gap FROM general_classification WHERE stage_id = ? AND rider_id = ? ORDER BY `rank` LIMIT 1',
+        [stageId, row.rider_id]
+      );
+      if (gc.length > 0) time_gap = gc[0].time_gap;
+    } else if (row.jersey_type === 'purple') {
+      const [pc] = await pool.query(
+        'SELECT points FROM points_classification WHERE stage_id = ? AND rider_id = ? ORDER BY points DESC LIMIT 1',
+        [stageId, row.rider_id]
+      );
+      if (pc.length > 0) points = pc[0].points;
+    } else if (row.jersey_type === 'blue') {
+      const [pc] = await pool.query(
+        'SELECT points FROM points_classification WHERE stage_id = ? AND rider_id = ? ORDER BY points DESC LIMIT 1',
+        [stageId, row.rider_id]
+      );
+      if (pc.length > 0) points = pc[0].points;
+    } else if (row.jersey_type === 'white') {
+      const [yc] = await pool.query(
+        'SELECT time_gap FROM youth_classification WHERE stage_id = ? AND rider_id = ? ORDER BY `rank` LIMIT 1',
+        [stageId, row.rider_id]
+      );
+      if (yc.length > 0) time_gap = yc[0].time_gap;
+    }
+    
+    return {
+      jersey_type: row.jersey_type,
+      rider_name: row.rider_name,
+      rider_name_zh: row.rider_name_zh,
+      nationality: row.nationality,
+      photo_url: row.photo_url,
+      team_name: row.team_name,
+      team_name_zh: row.team_name_zh,
+      uci_code: row.uci_code,
+      time_gap,
+      points
+    };
+  }));
 
   res.json({ code: 200, data: jerseys });
+}));
+
+// GET /api/v1/races/:id/jerseys - 获取赛事所有赛段的领骑衫
+router.get('/:id/jerseys', asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  
+  if (!id || id.trim() === '') {
+    throw new AppError('无效的赛事ID', ERROR_CODE.BAD_REQUEST);
+  }
+
+  // 查询该赛事所有有领骑衫数据的赛段
+  const [stagesWithJerseys] = await pool.query(`
+    SELECT DISTINCT s.id, s.stage_number, s.stage_name
+    FROM stages s
+    JOIN jerseys j ON j.stage_id = s.id
+    WHERE s.race_id = ?
+    ORDER BY s.stage_number
+  `, [id]);
+
+  if (stagesWithJerseys.length === 0) {
+    return res.json({ code: 200, data: [] });
+  }
+
+  // 为每个赛段查询领骑衫
+  const jerseysByStage = await Promise.all(stagesWithJerseys.map(async (stage) => {
+    const stageId = stage.id;
+    const [jerseyRows] = await pool.query(`
+      SELECT j.jersey_type, j.rider_id, j.team_id,
+             r.rider_name, r.rider_name_zh, r.nationality, r.photo_url,
+             t.team_name, t.team_name_zh, t.uci_code
+      FROM jerseys j
+      JOIN riders r ON j.rider_id = r.id
+      JOIN teams t ON j.team_id = t.id
+      WHERE j.stage_id = ?
+    `, [stageId]);
+
+    // 为每个领骑衫获取积分或时间差
+    const jerseys = await Promise.all(jerseyRows.map(async (row) => {
+      let time_gap = null;
+      let points = null;
+      
+      if (row.jersey_type === 'pink') {
+        const [gc] = await pool.query(
+          'SELECT time_gap FROM general_classification WHERE stage_id = ? AND rider_id = ? ORDER BY `rank` LIMIT 1',
+          [stageId, row.rider_id]
+        );
+        if (gc.length > 0) time_gap = gc[0].time_gap;
+      } else if (row.jersey_type === 'purple') {
+        const [pc] = await pool.query(
+          'SELECT points FROM points_classification WHERE stage_id = ? AND rider_id = ? ORDER BY points DESC LIMIT 1',
+          [stageId, row.rider_id]
+        );
+        if (pc.length > 0) points = pc[0].points;
+      } else if (row.jersey_type === 'blue') {
+        const [pc] = await pool.query(
+          'SELECT points FROM points_classification WHERE stage_id = ? AND rider_id = ? ORDER BY points DESC LIMIT 1',
+          [stageId, row.rider_id]
+        );
+        if (pc.length > 0) points = pc[0].points;
+      } else if (row.jersey_type === 'white') {
+        const [yc] = await pool.query(
+          'SELECT time_gap FROM youth_classification WHERE stage_id = ? AND rider_id = ? ORDER BY `rank` LIMIT 1',
+          [stageId, row.rider_id]
+        );
+        if (yc.length > 0) time_gap = yc[0].time_gap;
+      }
+      
+      return {
+        jersey_type: row.jersey_type,
+        rider_name: row.rider_name,
+        rider_name_zh: row.rider_name_zh,
+        nationality: row.nationality,
+        photo_url: row.photo_url,
+        team_name: row.team_name,
+        team_name_zh: row.team_name_zh,
+        uci_code: row.uci_code,
+        time_gap,
+        points
+      };
+    }));
+
+    return {
+      stage_id: stage.id,
+      stage_number: stage.stage_number,
+      stage_name: stage.stage_name,
+      jerseys: jerseys
+    };
+  }));
+
+  res.json({ code: 200, data: jerseysByStage });
 }));
 
 // POST /api/v1/races - 创建赛事
@@ -319,6 +510,7 @@ router.post('/', asyncHandler(async (req, res) => {
     race_name_zh,
     race_code,
     category,
+    category_zh,
     gender,
     season,
     country,
@@ -347,10 +539,10 @@ router.post('/', asyncHandler(async (req, res) => {
 
   const id = require('crypto').randomUUID();
   
-  const sql = `INSERT INTO races (id, race_name, race_name_en, race_name_zh, race_code, category, gender, season, country, start_date, end_date, total_stages, total_distance) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+  const sql = `INSERT INTO races (id, race_name, race_name_en, race_name_zh, race_code, category, category_zh, gender, season, country, start_date, end_date, total_stages, total_distance) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
   
   await pool.query(sql, [
-    id, race_name, race_name_en || null, race_name_zh || null, race_code, category || null, gender || null,
+    id, race_name, race_name_en || null, race_name_zh || null, race_code, category || null, category_zh || null, gender || null,
     season, country || null, start_date || null, end_date || null, total_stages || null, total_distance || null
   ]);
 
@@ -390,6 +582,7 @@ router.put('/:id', asyncHandler(async (req, res) => {
     race_name_zh,
     race_code,
     category,
+    category_zh,
     gender,
     season,
     country,
@@ -437,6 +630,10 @@ router.put('/:id', asyncHandler(async (req, res) => {
   if (category !== undefined) {
     updates.push('category = ?');
     params.push(category);
+  }
+  if (category_zh !== undefined) {
+    updates.push('category_zh = ?');
+    params.push(category_zh || null);
   }
   if (gender !== undefined) {
     updates.push('gender = ?');

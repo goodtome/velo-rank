@@ -1,6 +1,6 @@
 /**
- * 搜索页面 - 优化版本（修复竞态条件和加载状态）
- * 使用 ES6+ 语法、防抖优化、统一请求封装
+ * 搜索页面 - Week 6 优化版本
+ * 新增：结果计数显示
  */
 
 const { get } = require('../../utils/request');
@@ -15,52 +15,36 @@ Page({
     keyword: '',
     searchType: 'riders',
     results: [],
+    totalCount: 0,       // 搜索结果总数
     loading: false,
     searched: false,
     loadError: false,
     searchHistory: []
   },
 
-  // 防抖后的搜索函数
   debouncedSearch: null,
-
-  // 防止重复请求的标志
   _isLoading: false,
-
-  // 保存搜索历史的定时器
   _saveHistoryTimer: null,
 
   onLoad() {
     this.initI18n();
     this.loadSearchHistory();
-    // 创建防抖函数
     this.debouncedSearch = debounce(() => {
       this.doSearch();
     }, DEBOUNCE.SEARCH_INPUT_DELAY);
   },
 
-  /**
-   * 初始化i18n
-   */
   initI18n() {
     const locale = getLocale();
     this.t = (key) => t(key, locale);
-    this.setData({
-      t: this.t
-    });
+    this.setData({ t: this.t });
   },
 
-  /**
-   * 加载搜索历史
-   */
   loadSearchHistory() {
     const history = wx.getStorageSync('searchHistory') || [];
     this.setData({ searchHistory: history });
   },
 
-  /**
-   * 输入框变化事件
-   */
   onInput(e) {
     const keyword = e.detail.value;
     this.setData({ keyword });
@@ -68,6 +52,7 @@ Page({
     if (!keyword.trim()) {
       this.setData({
         results: [],
+        totalCount: 0,
         searched: false,
         loadError: false,
         loading: false
@@ -75,26 +60,17 @@ Page({
       return;
     }
 
-    // 使用防抖搜索
     this.debouncedSearch();
   },
 
-  /**
-   * 清除输入
-   */
   clearInput() {
     this.setData({
-      keyword: '',
-      results: [],
-      searched: false,
-      loadError: false,
-      loading: false
+      keyword: ''
     });
+    // 清空输入→重新加载当前Tab的全部列表
+    this.doSearch();
   },
 
-  /**
-   * 切换搜索类型（车手/车队）
-   */
   switchTab(e) {
     const { type } = e.currentTarget.dataset;
     if (type === this.data.searchType) return;
@@ -102,27 +78,18 @@ Page({
     this.setData({
       searchType: type,
       results: [],
+      totalCount: 0,
       searched: false,
       loadError: false
     });
 
-    if (this.data.keyword.trim()) {
-      this.doSearch();
-    }
+    this.doSearch();
   },
 
-  /**
-   * 执行搜索（带防止重复请求保护）
-   */
   async doSearch() {
-    // 防止重复请求
-    if (this._isLoading) {
-      console.log('请求进行中，跳过重复请求');
-      return;
-    }
+    if (this._isLoading) return;
 
     const keyword = this.data.keyword.trim();
-    if (!keyword) return;
 
     this._isLoading = true;
     this.setData({ loading: true, loadError: false, searched: false });
@@ -132,11 +99,18 @@ Page({
       : '/search/teams';
 
     try {
-      const res = await get(path, { q: keyword, limit: PAGINATION.DEFAULT_LIMIT });
+      const params = { limit: keyword ? PAGINATION.DEFAULT_LIMIT : 50 };
+      if (keyword) {
+        params.q = keyword;
+      }
+
+      const res = await get(path, params);
 
       let results = [];
+      let totalCount = 0;
+
       if (res && res.code === 200) {
-        if (this.data.searchType === 'riders' && Array.isArray(res.data.riders)) {
+        if (this.data.searchType === 'riders' && res.data.riders) {
           results = res.data.riders.map(rider => {
             const name = formatRiderName(rider);
             return {
@@ -146,7 +120,8 @@ Page({
               displaySub: name.zh ? name.en : ''
             };
           });
-        } else if (this.data.searchType === 'teams' && Array.isArray(res.data.teams)) {
+          totalCount = res.data.total || results.length;
+        } else if (this.data.searchType === 'teams' && res.data.teams) {
           results = res.data.teams.map(team => {
             const name = formatTeamName(team);
             return {
@@ -155,11 +130,13 @@ Page({
               displaySub: name.zh ? name.en : ''
             };
           });
+          totalCount = res.data.total || results.length;
         }
       }
 
       this.setData({
         results,
+        totalCount,
         loading: false,
         searched: true
       });
@@ -177,49 +154,30 @@ Page({
     }
   },
 
-  /**
-   * 保存搜索历史（使用防抖避免频繁写入）
-   */
   saveHistory(keyword) {
     if (!keyword || !keyword.trim()) return;
 
-    // 清除之前的定时器
     if (this._saveHistoryTimer) {
       clearTimeout(this._saveHistoryTimer);
     }
 
-    // 使用防抖延迟写入
     this._saveHistoryTimer = setTimeout(() => {
       try {
         let history = wx.getStorageSync('searchHistory') || [];
-
-        // 移除重复项
         const index = history.indexOf(keyword);
-        if (index > -1) {
-          history.splice(index, 1);
-        }
-
-        // 添加到开头
+        if (index > -1) history.splice(index, 1);
         history.unshift(keyword);
-
-        // 限制最大条数
         if (history.length > STORAGE.MAX_SEARCH_HISTORY) {
           history = history.slice(0, STORAGE.MAX_SEARCH_HISTORY);
         }
-
         wx.setStorageSync('searchHistory', history);
         this.setData({ searchHistory: history });
-
-        console.log('搜索历史已保存:', keyword);
       } catch (err) {
         console.error('保存搜索历史失败:', err);
       }
     }, 300);
   },
 
-  /**
-   * 清除搜索历史
-   */
   clearHistory() {
     wx.showModal({
       title: this.t('tips'),
@@ -234,18 +192,12 @@ Page({
     });
   },
 
-  /**
-   * 点击历史记录
-   */
   tapHistory(e) {
     const { keyword } = e.currentTarget.dataset;
     this.setData({ keyword });
     this.doSearch();
   },
 
-  /**
-   * 跳转到详情页
-   */
   goToDetail(e) {
     const { id } = e.currentTarget.dataset;
     if (!id) return;
@@ -257,9 +209,6 @@ Page({
     wx.navigateTo({ url });
   },
 
-  /**
-   * 重试搜索
-   */
   retrySearch() {
     this.doSearch();
   }

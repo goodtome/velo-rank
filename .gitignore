@@ -47,3 +47,5 @@ server/uploads/
 *.sqlite
 *.sqlite3
 server/scripts/__pycache__/
+.env.production
+.env.example

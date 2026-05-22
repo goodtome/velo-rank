@@ -1,6 +1,6 @@
 /**
- * 车队详情页 - 优化版本
- * 使用 ES6+ 语法、统一请求封装、Async/Await
+ * 车队详情页 - Week 6 优化版本
+ * 新增：统计数据卡片、赛事历史
  */
 
 const { get } = require('../../utils/request');
@@ -12,6 +12,7 @@ Page({
     teamId: '',
     team: null,
     riders: [],
+    stats: null,          // 统计数据
     loading: true,
     loadError: false
   },
@@ -39,9 +40,7 @@ Page({
       const res = await get(`/teams/${this.data.teamId}`);
       
       if (res && res.code === 200 && res.data) {
-        // 格式化车队名字
         const teamName = formatTeamName(res.data);
-        // 格式化车手名字
         const riders = (res.data.riders || []).map(rider => ({
           ...rider,
           displayName: rider.rider_name_zh || rider.rider_name,
@@ -50,16 +49,14 @@ Page({
 
         this.setData({
           team: res.data,
-          teamName: teamName,
-          riders: riders,
+          teamName,
+          riders,
           loading: false
         });
+        // 加载统计数据
+        this.loadTeamStats();
       } else {
-        this.setData({ 
-          team: null, 
-          riders: [],
-          loading: false 
-        });
+        this.setData({ team: null, riders: [], loading: false });
         showError('车队不存在');
       }
     } catch (err) {
@@ -70,28 +67,31 @@ Page({
   },
 
   /**
-   * 重试加载
+   * 加载车队统计数据
    */
+  async loadTeamStats() {
+    try {
+      const res = await get(`/teams/${this.data.teamId}/stats`);
+      
+      if (res && res.code === 200 && res.data) {
+        this.setData({ stats: res.data });
+      }
+    } catch (err) {
+      console.error('加载车队统计失败:', err);
+    }
+  },
+
   retryLoad() {
     this.setData({ loadError: false, loading: true });
     this.loadTeamDetail();
   },
 
-  /**
-   * 跳转到车手详情
-   */
   goToRider(e) {
     const { id } = e.currentTarget.dataset;
     if (!id) return;
-
-    wx.navigateTo({ 
-      url: `/pages/rider-detail/rider-detail?id=${id}` 
-    });
+    wx.navigateTo({ url: `/pages/rider-detail/rider-detail?id=${id}` });
   },
 
-  /**
-   * 下拉刷新
-   */
   onPullDownRefresh() {
     this.loadTeamDetail().then(() => {
       wx.stopPullDownRefresh();

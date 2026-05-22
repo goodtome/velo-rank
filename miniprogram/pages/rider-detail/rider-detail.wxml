@@ -18,10 +18,6 @@
         <view class="skeleton-item" style="width:200rpx;height:24rpx;"></view>
       </view>
     </view>
-    <view class="skeleton-card">
-      <view class="skeleton-item skeleton-title"></view>
-      <view class="skeleton-item skeleton-text"></view>
-    </view>
   </view>
 
   <!-- 错误状态 -->
@@ -43,12 +39,10 @@
     <!-- 头部卡片 -->
     <view class="header-card">
       <view class="header-main">
-        <!-- 头像 -->
         <view class="avatar-wrap">
           <image wx:if="{{rider.photo_url}}" class="avatar" src="{{rider.photo_url}}" mode="aspectFill"></image>
           <view wx:else class="avatar avatar-placeholder">🚴</view>
         </view>
-        <!-- 名称信息 -->
         <view class="header-info">
           <text class="rider-name-zh">{{riderName.zh || riderName.en}}</text>
           <text wx:if="{{riderName.zh && riderName.en}}" class="rider-name-en">{{riderName.en}}</text>
@@ -57,45 +51,64 @@
       </view>
     </view>
 
+    <!-- 统计卡片（新增） -->
+    <view wx:if="{{stats}}" class="card-base stats-card">
+      <view class="stats-grid">
+        <view class="stat-item">
+          <text class="stat-value stats-highlight">{{stats.total_races || 0}}</text>
+          <text class="stat-label">参赛</text>
+        </view>
+        <view class="stat-item">
+          <text class="stat-value stats-gold">{{stats.wins || 0}}</text>
+          <text class="stat-label">🏆 冠军</text>
+        </view>
+        <view class="stat-item">
+          <text class="stat-value stats-silver">{{stats.podiums || 0}}</text>
+          <text class="stat-label">🥈🥉 领奖台</text>
+        </view>
+        <view class="stat-item">
+          <text class="stat-value">{{stats.top10 || 0}}</text>
+          <text class="stat-label">前10名</text>
+        </view>
+      </view>
+      <!-- 领骑衫历史 -->
+      <view wx:if="{{stats.jerseys && stats.jerseys.length > 0}}" class="jersey-history">
+        <text class="jersey-label">🛡️ 曾穿领骑衫：</text>
+        <text wx:for="{{stats.jerseys}}" wx:for-item="j" wx:key="jersey_type" class="jersey-tag jersey-tag-{{j.jersey_type}}">{{j.jersey_type}}</text>
+      </view>
+    </view>
+
     <!-- 基本信息 -->
     <view class="card-base info-card">
       <view class="section-title">基本信息</view>
-
       <view wx:if="{{riderName.zh}}" class="info-item">
         <text class="info-label">中文名</text>
         <text class="info-value">{{riderName.zh}}</text>
       </view>
-
       <view wx:if="{{riderName.en}}" class="info-item">
         <text class="info-label">英文名</text>
         <text class="info-value">{{riderName.en}}</text>
       </view>
-
       <view class="info-item">
         <text class="info-label">国籍</text>
         <text class="info-value">{{nationalityZh || '-'}}</text>
       </view>
-
       <view wx:if="{{rider.birth_date}}" class="info-item">
         <text class="info-label">出生日期</text>
         <text class="info-value">{{rider.birth_date}}</text>
       </view>
-
       <view wx:if="{{rider.height_cm}}" class="info-item">
         <text class="info-label">身高</text>
         <text class="info-value">{{rider.height_cm}} cm</text>
       </view>
-
       <view wx:if="{{rider.weight_kg}}" class="info-item">
         <text class="info-label">体重</text>
         <text class="info-value">{{rider.weight_kg}} kg</text>
       </view>
-
       <view wx:if="{{rider.uci_id}}" class="info-item">
         <text class="info-label">UCI ID</text>
         <text class="info-value">{{rider.uci_id}}</text>
       </view>
-
       <view class="info-item">
         <text class="info-label">状态</text>
         <text class="info-value">{{statusText}}</text>
@@ -121,7 +134,6 @@
     <view class="card-base results-card">
       <view class="section-title">历史成绩</view>
       
-      <!-- 加载中 -->
       <view wx:if="{{resultsLoading}}" class="results-loading">
         <view wx:for="{{[1,2,3]}}" wx:key="*this" class="result-skeleton">
           <view class="skeleton-item" style="width:60rpx;height:24rpx;"></view>
@@ -130,24 +142,24 @@
         </view>
       </view>
 
-      <!-- 无数据 -->
       <view wx:elif="{{results.length === 0}}" class="empty-results">
         <text class="empty-text">暂无成绩数据</text>
       </view>
 
-      <!-- 成绩列表 -->
       <view wx:else>
-        <view wx:for="{{results}}" wx:key="rank" class="result-item">
-          <view class="result-left">
-            <text class="result-rank">{{item.rank}}</text>
-            <view class="result-info">
-              <text class="result-race">{{item.race_name_zh || item.race_name}}</text>
-              <text class="result-stage">Stage {{item.stage_number}}: {{item.stage_name}}</text>
-            </view>
+        <view wx:for="{{results}}" wx:key="stage_rank" class="result-item {{item.isPodium ? 'result-podium' : ''}}">
+          <view class="result-rank-wrap">
+            <text wx:if="{{item.medal}}" class="result-medal">{{item.medal}}</text>
+            <text class="result-rank {{item.stage_rank === 1 ? 'rank-gold' : item.stage_rank === 2 ? 'rank-silver' : item.stage_rank === 3 ? 'rank-bronze' : ''}}">{{item.stage_rank}}</text>
+          </view>
+          <view class="result-info">
+            <text class="result-race">{{item.race_name_zh || item.race_name}}</text>
+            <text class="result-stage">S{{item.stage_number}}: {{item.stage_name}}</text>
+            <text wx:if="{{item.team_name}}" class="result-team">{{item.team_name_zh || item.team_name}}</text>
           </view>
           <view class="result-right">
-            <text class="result-gap">{{item.time_gap}}</text>
-            <text wx:if="{{item.stage_type}}" class="tag tag-{{item.stage_type === 'Flat' ? 'green' : item.stage_type === 'Hills' ? 'orange' : 'red'}}">{{item.stage_type}}</text>
+            <text class="result-gap">{{item.timeStr}}</text>
+            <text wx:if="{{item.stage_type}}" class="tag tag-{{item.typeColor}}">{{item.stage_type}}</text>
           </view>
         </view>
       </view>

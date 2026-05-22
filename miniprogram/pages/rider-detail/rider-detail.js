@@ -1,6 +1,6 @@
 /**
- * 车手详情页 - 优化版本
- * 使用 ES6+ 语法、统一请求封装、Async/Await
+ * 车手详情页 - Week 6 优化版本
+ * 新增：统计卡片、奖牌高亮、车队信息
  */
 
 const { get } = require('../../utils/request');
@@ -9,11 +9,24 @@ const { t, getLocale } = require('../../utils/i18n');
 const { getCountryName } = require('../../utils/country-map');
 const { formatRiderName, toTitleCase } = require('../../utils/string-format');
 
+// 奖牌映射
+const MEDAL_MAP = { 1: '🥇', 2: '🥈', 3: '🥉' };
+
+// 赛段类型颜色映射
+const STAGE_COLOR = {
+  'Flat': 'green',
+  'Hills': 'orange',
+  'Mountain': 'red',
+  'ITT': 'purple',
+  'TTT': 'blue'
+};
+
 Page({
   data: {
     riderId: '',
     rider: null,
     results: [],
+    stats: null,          // 统计数据
     loading: true,
     loadError: false,
     resultsLoading: false
@@ -33,20 +46,12 @@ Page({
     this.loadRiderDetail();
   },
 
-  /**
-   * 初始化i18n
-   */
   initI18n() {
     const locale = getLocale();
     this.t = (key) => t(key, locale);
-    this.setData({
-      t: this.t
-    });
+    this.setData({ t: this.t });
   },
 
-  /**
-   * 加载车手详情
-   */
   async loadRiderDetail() {
     this.setData({ loading: true, loadError: false });
     
@@ -54,7 +59,6 @@ Page({
       const res = await get(`/riders/${this.data.riderId}`);
       
       if (res && res.code === 200 && res.data) {
-        // 计算状态文本、国籍中文名、格式化名字
         const statusText = res.data.is_retired ? '已退役' : '现役';
         const nationalityZh = getCountryName(res.data.nationality);
         const riderName = formatRiderName(res.data);
@@ -62,19 +66,17 @@ Page({
         
         this.setData({ 
           rider: res.data, 
-          statusText: statusText,
-          nationalityZh: nationalityZh,
-          riderName: riderName,
-          teamName: teamName,
+          statusText,
+          nationalityZh,
+          riderName,
+          teamName,
           loading: false 
         });
-        // 加载车手成绩
+        // 并行加载成绩和统计
         this.loadRiderResults();
+        this.loadRiderStats();
       } else {
-        this.setData({ 
-          rider: null, 
-          loading: false 
-        });
+        this.setData({ rider: null, loading: false });
         showError(this.t('riderNotFound'));
       }
     } catch (err) {
@@ -85,7 +87,22 @@ Page({
   },
 
   /**
-   * 加载车手历史成绩
+   * 加载车手统计数据
+   */
+  async loadRiderStats() {
+    try {
+      const res = await get(`/riders/${this.data.riderId}/stats`);
+      
+      if (res && res.code === 200 && res.data) {
+        this.setData({ stats: res.data });
+      }
+    } catch (err) {
+      console.error('加载车手统计失败:', err);
+    }
+  },
+
+  /**
+   * 加载车手历史成绩（含奖牌高亮）
    */
   async loadRiderResults() {
     this.setData({ resultsLoading: true });
@@ -94,8 +111,19 @@ Page({
       const res = await get(`/riders/${this.data.riderId}/results?limit=20`);
       
       if (res && res.code === 200) {
+        const results = (res.data || []).map(item => ({
+          ...item,
+          isPodium: item.stage_rank <= 3,
+          medal: MEDAL_MAP[item.stage_rank] || '',
+          typeColor: STAGE_COLOR[item.stage_type] || 'green',
+          // 格式化时间差
+          timeStr: item.time_gap 
+            ? (item.stage_rank === 1 ? item.time_gap : `+${item.time_gap}`)
+            : (item.stage_rank === 1 ? 'Winner' : 's.t.')
+        }));
+        
         this.setData({ 
-          results: res.data || [],
+          results,
           resultsLoading: false 
         });
       } else {
@@ -107,29 +135,17 @@ Page({
     }
   },
 
-  /**
-   * 重试加载
-   */
   retryLoad() {
     this.setData({ loadError: false, loading: true });
     this.loadRiderDetail();
   },
 
-  /**
-   * 跳转到车队详情
-   */
   goToTeam(e) {
     const { id } = e.currentTarget.dataset;
     if (!id) return;
-
-    wx.navigateTo({ 
-      url: `/pages/team-detail/team-detail?id=${id}` 
-    });
+    wx.navigateTo({ url: `/pages/team-detail/team-detail?id=${id}` });
   },
 
-  /**
-   * 下拉刷新
-   */
   onPullDownRefresh() {
     this.loadRiderDetail().then(() => {
       wx.stopPullDownRefresh();

@@ -270,3 +270,59 @@
   color: rgba(255,255,255,0.8);
   flex-shrink: 0;
 }
+
+/* ====== 分类榜入口卡片 ====== */
+.clf-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-radius: 20rpx;
+  padding: 28rpx 32rpx;
+  margin-bottom: 16rpx;
+  transition: all 0.15s;
+}
+.clf-card-hover {
+  opacity: 0.85;
+  transform: scale(0.985);
+}
+
+.clf-left {
+  display: flex;
+  align-items: center;
+  gap: 18rpx;
+}
+
+.clf-icon {
+  font-size: 40rpx;
+  line-height: 1;
+}
+
+.clf-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.clf-title {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #fff;
+}
+
+.clf-sub {
+  font-size: 20rpx;
+  color: rgba(255,255,255,0.75);
+  margin-top: 2rpx;
+}
+
+.clf-points {
+  background: linear-gradient(135deg, #9b59b6, #8e44ad);
+  box-shadow: 0 4rpx 16rpx rgba(142, 68, 173, 0.2);
+}
+.clf-mountains {
+  background: linear-gradient(135deg, #3498db, #2980b9);
+  box-shadow: 0 4rpx 16rpx rgba(41, 128, 185, 0.2);
+}
+.clf-youth {
+  background: linear-gradient(135deg, #7f8c8d, #636e72);
+  box-shadow: 0 4rpx 16rpx rgba(99, 110, 114, 0.2);
+}

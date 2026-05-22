@@ -182,3 +182,14 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+/* 结果计数栏 */
+.result-count-bar {
+  padding: 20rpx 0 12rpx 0;
+  margin-top: 8rpx;
+}
+
+.result-count-text {
+  font-size: 24rpx;
+  color: #999;
+}

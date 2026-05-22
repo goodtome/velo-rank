@@ -9,6 +9,7 @@
     "pages/team-detail/team-detail",
     "pages/race-calendar/race-calendar",
     "pages/encyclopedia/encyclopedia",
+    "pages/classification/classification",
     "pages/realtime-results/realtime-results",
     "pages/push-settings/push-settings"
   ],
