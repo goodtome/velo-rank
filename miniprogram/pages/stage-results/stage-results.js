@@ -122,29 +122,19 @@ Page({
    * 加载领骑衫信息
    */
   async loadJerseys() {
-    const { stageId, raceId } = this.data;
+    const { stageId } = this.data;
 
     try {
-      // 优先用赛事最新领骑衫（数据更全）
-      let jerseysRes;
-      if (raceId) {
-        jerseysRes = await get(`/races/${raceId}/latest-jerseys`);
-      }
-      
-      // 如果赛事领骑衫为空，尝试赛段领骑衫
+      // 赛段成绩页显示该赛段当时的领骑衫状态
+      const stageJerseysRes = await get(`/stages/${stageId}/jerseys`);
       let jerseys = [];
-      if (jerseysRes && jerseysRes.code === 200 && Array.isArray(jerseysRes.data) && jerseysRes.data.length > 0) {
-        jerseys = jerseysRes.data;
-      } else {
-        const stageJerseysRes = await get(`/stages/${stageId}/jerseys`);
-        if (stageJerseysRes && stageJerseysRes.code === 200 && Array.isArray(stageJerseysRes.data)) {
-          jerseys = stageJerseysRes.data;
-        }
+      if (stageJerseysRes && stageJerseysRes.code === 200 && Array.isArray(stageJerseysRes.data)) {
+        jerseys = stageJerseysRes.data;
       }
 
-      this.setData({ 
+      this.setData({
         jerseys,
-        loading: false 
+        loading: false
       });
     } catch (err) {
       console.error('加载领骑衫失败:', err);
