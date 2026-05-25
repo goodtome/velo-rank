@@ -33,7 +33,7 @@
       <view class="race-name-en" wx:if="{{race.race_name_en && race.race_name_zh}}">{{race.race_name_en}}</view>
       <view class="race-meta-row">
         <text class="tag tag-blue" wx:if="{{race.category}}">{{categoryName(race.category)}}</text>
-        <text class="tag tag-green" wx:if="{{race.gender}}">{{race.gender === 'MEN' ? '男子' : '女子'}}</text>
+        <text class="tag tag-green" wx:if="{{genderLabel}}">{{genderLabel}}</text>
         <text class="race-date">{{formatDate(race.start_date)}} — {{formatDate(race.end_date)}}</text>
       </view>
       <view class="race-stats">

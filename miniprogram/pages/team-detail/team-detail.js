@@ -98,5 +98,23 @@ Page({
     }).catch(() => {
       wx.stopPullDownRefresh();
     });
+  },
+
+  onShareAppMessage() {
+    const team = this.data.team || {};
+    const name = team.team_name_zh || team.team_name || '车队详情';
+    return {
+      title: `${name} - 正一领骑`,
+      path: `/pages/team-detail/team-detail?id=${this.data.teamId}`
+    };
+  },
+
+  onShareTimeline() {
+    const team = this.data.team || {};
+    const name = team.team_name_zh || team.team_name || '车队详情';
+    return {
+      title: `${name} - 正一领骑`,
+      query: `id=${this.data.teamId}`
+    };
   }
 });

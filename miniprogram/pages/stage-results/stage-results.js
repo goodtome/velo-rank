@@ -214,5 +214,23 @@ Page({
     }).catch(() => {
       wx.stopPullDownRefresh();
     });
+  },
+
+  onShareAppMessage() {
+    const stage = this.data.stage || {};
+    const stageName = stage.stage_name || `第${this.data.stageNumber}赛段`;
+    return {
+      title: `${stageName} - 正一领骑`,
+      path: `/pages/stage-results/stage-results?stageId=${this.data.stageId}&raceId=${this.data.raceId}&stageNumber=${this.data.stageNumber}`
+    };
+  },
+
+  onShareTimeline() {
+    const stage = this.data.stage || {};
+    const stageName = stage.stage_name || `第${this.data.stageNumber}赛段`;
+    return {
+      title: `${stageName} - 正一领骑`,
+      query: `stageId=${this.data.stageId}&raceId=${this.data.raceId}&stageNumber=${this.data.stageNumber}`
+    };
   }
 });

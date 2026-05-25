@@ -153,5 +153,23 @@ Page({
     }).catch(() => {
       wx.stopPullDownRefresh();
     });
+  },
+
+  onShareAppMessage() {
+    const typeNames = this.data.typeName || {};
+    const typeName = typeNames[this.data.type] || '积分榜';
+    return {
+      title: `${typeName} - 正一领骑`,
+      path: `/pages/classification/classification?stageId=${this.data.stageId}&raceId=${this.data.raceId}&type=${this.data.type}`
+    };
+  },
+
+  onShareTimeline() {
+    const typeNames = this.data.typeName || {};
+    const typeName = typeNames[this.data.type] || '积分榜';
+    return {
+      title: `${typeName} - 正一领骑`,
+      query: `stageId=${this.data.stageId}&raceId=${this.data.raceId}&type=${this.data.type}`
+    };
   }
 });

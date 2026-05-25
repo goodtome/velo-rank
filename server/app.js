@@ -41,6 +41,7 @@ app.get('/user', (req, res) => {
 });
 
 // API路由
+app.use('/api/v1/auth', require('./routes/auth'));
 app.use('/api/v1/races', require('./routes/races'));
 app.use('/api/v1/stats', require('./routes/stats'));
 app.use('/api/v1/stages', require('./routes/stages'));

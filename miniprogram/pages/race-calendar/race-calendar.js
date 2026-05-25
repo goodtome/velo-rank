@@ -298,5 +298,18 @@ Page({
       finished: '已结束'
     };
     return statusMap[status] || '';
+  },
+
+  onShareAppMessage() {
+    return {
+      title: '赛事日历 - 正一领骑',
+      path: '/pages/race-calendar/race-calendar'
+    };
+  },
+
+  onShareTimeline() {
+    return {
+      title: '赛事日历 - 正一领骑'
+    };
   }
 });

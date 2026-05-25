@@ -137,53 +137,63 @@
 }
 
 .term-detail-dialog {
-  width: 85%;
+  width: 92%;
   max-height: 80vh;
   background: #fff;
   border-radius: 30rpx;
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  box-sizing: border-box;
 }
 
 .detail-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  padding: 40rpx;
+  align-items: flex-start;
+  padding: 32rpx 36rpx;
   border-bottom: 1rpx solid #f0f0f0;
+  flex-shrink: 0;
 }
 
 .detail-title {
-  font-size: 36rpx;
+  font-size: 34rpx;
   font-weight: bold;
   color: #333;
   flex: 1;
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 .detail-close {
   font-size: 48rpx;
   color: #999;
-  padding: 0 20rpx;
+  padding: 0 10rpx;
+  flex-shrink: 0;
 }
 
 .detail-content {
-  padding: 40rpx;
+  padding: 32rpx 36rpx;
   max-height: 60vh;
+  overflow-x: hidden;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  box-sizing: border-box;
 }
 
 .detail-section {
-  margin-bottom: 40rpx;
+  margin-bottom: 36rpx;
 }
 
 .section-title {
   display: block;
-  font-size: 32rpx;
+  font-size: 30rpx;
   font-weight: bold;
   color: #1aad19;
-  margin-bottom: 20rpx;
-  padding-left: 20rpx;
+  margin-bottom: 16rpx;
+  padding-left: 16rpx;
   border-left: 8rpx solid #1aad19;
+  word-break: break-word;
 }
 
 .section-content {
@@ -191,6 +201,9 @@
   color: #666;
   line-height: 1.8;
   display: block;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  white-space: pre-wrap;
 }
 
 .section-content.example {

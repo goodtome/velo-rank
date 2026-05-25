@@ -61,9 +61,15 @@ def parse_rider_cell(td):
     else:
         name = a_tag.get_text(strip=True)
     
-    # Nationality from flag
-    flag = td.find('span', class_=lambda x: x and x.startswith('flag'))
-    nationality = flag.get('class', [''])[0].replace('flag', '') if flag else ""
+    # Nationality from flag: <span class="flag dk"> → class list ['flag','dk'] → take second
+    flag = td.find('span', class_=lambda x: x and 'flag' in (x if isinstance(x, list) else [x]))
+    if flag:
+        classes = flag.get('class', [])
+        # Find the non-'flag' class (the actual country code, e.g., 'dk', 'it', 'nl')
+        country_code = next((c for c in classes if c != 'flag'), '')
+        nationality = country_code.upper()  # 'dk' → 'DK'
+    else:
+        nationality = ""
     
     # Rider ID from href
     href = a_tag.get('href', '')

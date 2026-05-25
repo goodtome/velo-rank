@@ -174,6 +174,19 @@ async function initDatabase() {
     `);
     console.log('✅ general_classification 表创建成功');
     
+    // 用户登录 token
+    await dbConn.query(`
+      CREATE TABLE IF NOT EXISTS user_tokens (
+        token VARCHAR(36) PRIMARY KEY,
+        openid VARCHAR(64) NOT NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        expires_at DATETIME NOT NULL,
+        INDEX idx_openid (openid),
+        INDEX idx_expires (expires_at)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    `);
+    console.log('✅ user_tokens 表创建成功');
+    
     await dbConn.end();
     console.log('\n🎉 所有数据表创建完成！');
     console.log('接下来请运行 npm install 安装依赖，然后配置 .env 文件');

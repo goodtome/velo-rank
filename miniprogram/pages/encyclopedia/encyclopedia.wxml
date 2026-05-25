@@ -9,9 +9,10 @@
   <!-- 分类标签 -->
   <view class="category-tabs">
     <view class="tab {{activeCategory === 'all' ? 'active' : ''}}" bindtap="switchCategory" data-category="all">全部</view>
-    <view class="tab {{activeCategory === 'ranking' ? 'active' : ''}}" bindtap="switchCategory" data-category="ranking">排名术语</view>
-    <view class="tab {{activeCategory === 'tactic' ? 'active' : ''}}" bindtap="switchCategory" data-category="tactic">战术术语</view>
-    <view class="tab {{activeCategory === 'rule' ? 'active' : ''}}" bindtap="switchCategory" data-category="rule">赛事规则</view>
+    <view class="tab {{activeCategory === 'rankings' ? 'active' : ''}}" bindtap="switchCategory" data-category="rankings">排名积分</view>
+    <view class="tab {{activeCategory === 'jerseys' ? 'active' : ''}}" bindtap="switchCategory" data-category="jerseys">领骑荣誉</view>
+    <view class="tab {{activeCategory === 'tactics' ? 'active' : ''}}" bindtap="switchCategory" data-category="tactics">战术技术</view>
+    <view class="tab {{activeCategory === 'events' ? 'active' : ''}}" bindtap="switchCategory" data-category="events">赛事组织</view>
   </view>
   
   <!-- 术语列表 -->

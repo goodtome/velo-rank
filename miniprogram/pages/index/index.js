@@ -117,5 +117,18 @@ Page({
     }).catch(() => {
       wx.stopPullDownRefresh();
     });
+  },
+
+  onShareAppMessage() {
+    return {
+      title: '正一领骑 - 自行车赛事数据',
+      path: '/pages/index/index'
+    };
+  },
+
+  onShareTimeline() {
+    return {
+      title: '正一领骑 - 自行车赛事数据'
+    };
   }
 });

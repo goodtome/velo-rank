@@ -63,7 +63,8 @@ Page({
         race,
         stages,
         jerseys,
-        loading: false
+        loading: false,
+        genderLabel: race.gender === 'MEN' ? '男子' : race.gender === 'WOMEN' ? '女子' : ''
       });
     } catch (err) {
       console.error('加载赛事失败:', err);
@@ -117,6 +118,15 @@ Page({
       'Women-ProSeries': '女子职业系列赛'
     };
     return map[cat] || cat;
+  },
+
+  /**
+   * 性别显示名称
+   */
+  genderName(gender) {
+    if (!gender) return '';
+    const g = String(gender).toUpperCase();
+    return g === 'MEN' ? '男子' : g === 'WOMEN' ? '女子' : gender;
   },
 
   /**
@@ -183,5 +193,23 @@ Page({
     }).catch(() => {
       wx.stopPullDownRefresh();
     });
+  },
+
+  onShareAppMessage() {
+    const race = this.data.race || {};
+    const title = race.race_name_zh || race.race_name || '赛事详情';
+    return {
+      title: `${title} - 正一领骑`,
+      path: `/pages/race-detail/race-detail?id=${this.data.raceId}`
+    };
+  },
+
+  onShareTimeline() {
+    const race = this.data.race || {};
+    const title = race.race_name_zh || race.race_name || '赛事详情';
+    return {
+      title: `${title} - 正一领骑`,
+      query: `id=${this.data.raceId}`
+    };
   }
 });

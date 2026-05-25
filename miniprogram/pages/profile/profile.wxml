@@ -62,6 +62,14 @@
       <text class="arrow">›</text>
     </view>
     <view class="menu-divider"></view>
+    <view class="menu-item" bindtap="goToEncyclopedia">
+      <view class="menu-left">
+        <text class="menu-icon">📖</text>
+        <text class="menu-text">赛事百科</text>
+      </view>
+      <text class="arrow">›</text>
+    </view>
+    <view class="menu-divider"></view>
     <view class="menu-item" bindtap="clearCache">
       <view class="menu-left">
         <text class="menu-icon">🗑️</text>

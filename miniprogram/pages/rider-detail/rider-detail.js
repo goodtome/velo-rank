@@ -152,5 +152,23 @@ Page({
     }).catch(() => {
       wx.stopPullDownRefresh();
     });
+  },
+
+  onShareAppMessage() {
+    const rider = this.data.rider || {};
+    const name = rider.rider_name_zh || rider.rider_name || '车手详情';
+    return {
+      title: `${name} - 正一领骑`,
+      path: `/pages/rider-detail/rider-detail?id=${this.data.riderId}`
+    };
+  },
+
+  onShareTimeline() {
+    const rider = this.data.rider || {};
+    const name = rider.rider_name_zh || rider.rider_name || '车手详情';
+    return {
+      title: `${name} - 正一领骑`,
+      query: `id=${this.data.riderId}`
+    };
   }
 });

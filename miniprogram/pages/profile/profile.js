@@ -90,6 +90,15 @@ Page({
   },
 
   /**
+   * 跳转到赛事百科
+   */
+  goToEncyclopedia() {
+    wx.switchTab({
+      url: '/pages/encyclopedia/encyclopedia'
+    });
+  },
+
+  /**
    * 清除缓存
    */
   clearCache() {
@@ -124,5 +133,18 @@ Page({
     }).catch(() => {
       wx.stopPullDownRefresh();
     });
+  },
+
+  onShareAppMessage() {
+    return {
+      title: '个人中心 - 正一领骑',
+      path: '/pages/profile/profile'
+    };
+  },
+
+  onShareTimeline() {
+    return {
+      title: '个人中心 - 正一领骑'
+    };
   }
 });

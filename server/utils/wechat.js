@@ -169,8 +169,48 @@ async function batchSendSubscribeMessage(messages) {
   return results;
 }
 
+/**
+ * 微信登录：用 code 换取 openid 和 session_key
+ * @param {string} code - wx.login() 返回的临时凭证
+ * @returns {Promise<{openid: string, session_key: string, unionid?: string}>}
+ */
+async function code2Session(code) {
+  const appId = process.env.WECHAT_APPID;
+  const appSecret = process.env.WECHAT_SECRET;
+
+  if (!appId || !appSecret) {
+    throw new Error('缺少微信配置: WECHAT_APPID 或 WECHAT_SECRET');
+  }
+
+  return new Promise((resolve, reject) => {
+    const url = `https://api.weixin.qq.com/sns/jscode2session?appid=${appId}&secret=${appSecret}&js_code=${code}&grant_type=authorization_code`;
+
+    https.get(url, (res) => {
+      let data = '';
+      res.on('data', chunk => data += chunk);
+      res.on('end', () => {
+        try {
+          const result = JSON.parse(data);
+          if (result.errcode) {
+            reject(new Error(`code2Session 失败: ${result.errmsg} (errcode=${result.errcode})`));
+            return;
+          }
+          resolve({
+            openid: result.openid,
+            session_key: result.session_key,
+            unionid: result.unionid || null
+          });
+        } catch (error) {
+          reject(error);
+        }
+      });
+    }).on('error', reject);
+  });
+}
+
 module.exports = {
   getAccessToken,
   sendSubscribeMessage,
-  batchSendSubscribeMessage
+  batchSendSubscribeMessage,
+  code2Session
 };

@@ -1,7 +1,7 @@
 /**
  * 推送通知API路由
- * v1.0 简化版：本地存储优先，服务端同步为辅
- * 不依赖JWT用户系统，用openid做简单标识
+ * v2.0：通过 auth 中间件验证登录态，从 req.openid 获取用户标识
+ * POST /send 使用 adminKey 验证，不依赖登录态（放在中间件之前豁免）
  */
 
 const express = require('express');
@@ -9,17 +9,120 @@ const router = express.Router();
 const pool = require('../config/db-pool');
 const { AppError, asyncHandler } = require('../middleware/errorHandler');
 const { ERROR_CODE } = require('../constants');
+const { authMiddleware } = require('../middleware/auth');
+
+// ============================================================
+// POST /send 放在 authMiddleware 之前，用 adminKey 验证
+// ============================================================
+
+/**
+ * POST /api/v1/push/send
+ * 发送推送通知（内部API，供管理后台/定时任务调用）
+ * 需要管理员权限（通过 adminKey 验证，不走登录态）
+ */
+router.post('/send', asyncHandler(async (req, res) => {
+  const { adminKey, type, raceId, stageId, title, content } = req.body;
+  
+  if (adminKey !== process.env.ADMIN_KEY && adminKey !== 'velo-rank-admin-2026') {
+    throw new AppError('管理员验证失败', ERROR_CODE.FORBIDDEN);
+  }
+  
+  const [users] = await pool.query(`
+    SELECT ups.openid, ups.push_enabled, ups.notify_race_start, 
+           ups.notify_stage_end, ups.notify_rider_change, ups.notify_key_events,
+           ups.dnd_enabled, ups.dnd_start, ups.dnd_end
+    FROM user_push_settings ups
+    WHERE ups.push_enabled = 1
+  `);
+  
+  if (users.length === 0) {
+    return res.json({
+      code: 200,
+      data: { totalUsers: 0, sentCount: 0, skippedCount: 0 }
+    });
+  }
+  
+  const now = new Date();
+  const currentTime = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+  
+  const validUsers = users.filter(user => {
+    if (user.dnd_enabled) {
+      if (isTimeInRange(currentTime, user.dnd_start, user.dnd_end)) {
+        return false;
+      }
+    }
+    switch (type) {
+      case 'race_start': return user.notify_race_start === 1;
+      case 'stage_end': return user.notify_stage_end === 1;
+      case 'rider_change': return user.notify_rider_change === 1;
+      case 'key_event': return user.notify_key_events === 1;
+      default: return true;
+    }
+  });
+  
+  let sentCount = 0;
+  let failedCount = 0;
+  
+  const { sendSubscribeMessage } = require('../utils/wechat');
+  const templateId = getTemplateIdByType(type);
+  
+  if (templateId) {
+    for (const user of validUsers) {
+      try {
+        await sendSubscribeMessage({
+          touser: user.openid,
+          templateId,
+          data: {
+            thing1: { value: title || '赛事通知' },
+            time2: { value: now.toLocaleString('zh-CN') },
+            thing3: { value: content || '' }
+          },
+          page: raceId ? `/pages/race-detail/race-detail?id=${raceId}` : 'pages/index/index'
+        });
+        sentCount++;
+      } catch (err) {
+        console.error(`推送失败: ${user.openid}`, err.message);
+        failedCount++;
+      }
+    }
+  } else {
+    sentCount = validUsers.length;
+  }
+  
+  for (const user of validUsers) {
+    await pool.query(`
+      INSERT INTO push_history 
+        (openid, title, content, type, race_id, stage_id, send_time, status)
+      VALUES (?, ?, ?, ?, ?, ?, NOW(), ?)
+    `, [
+      user.openid, title || '赛事通知', content || '',
+      type || 'general', raceId || null, stageId || null,
+      sentCount > 0 ? 'sent' : 'failed'
+    ]);
+  }
+  
+  res.json({
+    code: 200,
+    data: {
+      totalUsers: users.length,
+      sentCount,
+      failedCount,
+      skippedCount: users.length - validUsers.length
+    }
+  });
+}));
+
+// ============================================================
+// 以下所有路由都需要登录态（authMiddleware 注入 req.openid）
+// ============================================================
+router.use(authMiddleware);
 
 /**
  * POST /api/v1/push/settings
- * 保存/更新推送设置（以openid标识用户）
+ * 保存/更新推送设置
  */
 router.post('/settings', asyncHandler(async (req, res) => {
-  const { openid } = req.body;
-  
-  if (!openid || openid.trim() === '') {
-    throw new AppError('缺少openid参数', ERROR_CODE.BAD_REQUEST);
-  }
+  const openid = req.openid;
   
   const {
     pushEnabled = true,
@@ -55,40 +158,27 @@ router.post('/settings', asyncHandler(async (req, res) => {
     dndStart, dndEnd, pushFrequency
   ]);
   
-  res.json({
-    code: 200,
-    message: '推送设置已保存'
-  });
+  res.json({ code: 200, message: '推送设置已保存' });
 }));
 
 /**
  * GET /api/v1/push/settings
- * 获取推送设置（以openid标识用户）
+ * 获取推送设置
  */
 router.get('/settings', asyncHandler(async (req, res) => {
-  const { openid } = req.query;
+  const openid = req.openid;
   
-  if (!openid || openid.trim() === '') {
-    throw new AppError('缺少openid参数', ERROR_CODE.BAD_REQUEST);
-  }
-  
-  const [rows] = await pool.query(`
-    SELECT * FROM user_push_settings WHERE openid = ?
-  `, [openid]);
+  const [rows] = await pool.query(
+    'SELECT * FROM user_push_settings WHERE openid = ?', [openid]
+  );
   
   if (rows.length === 0) {
-    // 返回默认设置
     return res.json({
       code: 200,
       data: {
-        pushEnabled: true,
-        notifyRaceStart: true,
-        notifyStageEnd: true,
-        notifyRiderChange: true,
-        notifyKeyEvents: false,
-        dndEnabled: false,
-        dndStart: '22:00',
-        dndEnd: '07:00',
+        pushEnabled: true, notifyRaceStart: true, notifyStageEnd: true,
+        notifyRiderChange: true, notifyKeyEvents: false,
+        dndEnabled: false, dndStart: '22:00', dndEnd: '07:00',
         pushFrequency: 'realtime'
       }
     });
@@ -113,33 +203,24 @@ router.get('/settings', asyncHandler(async (req, res) => {
 
 /**
  * POST /api/v1/push/subscribe
- * 订阅推送（保存微信订阅消息授权）
+ * 订阅推送
  */
 router.post('/subscribe', asyncHandler(async (req, res) => {
-  const { openid, templateIds } = req.body;
+  const openid = req.openid;
+  const { templateIds } = req.body;
   
-  if (!openid || openid.trim() === '') {
-    throw new AppError('缺少openid参数', ERROR_CODE.BAD_REQUEST);
-  }
-  
-  // 保存订阅记录
   if (templateIds && Array.isArray(templateIds)) {
     for (const templateId of templateIds) {
       await pool.query(`
         INSERT INTO user_push_subscriptions 
           (openid, template_id, subscribe_time, is_valid)
         VALUES (?, ?, NOW(), 1)
-        ON DUPLICATE KEY UPDATE
-          subscribe_time = NOW(),
-          is_valid = 1
+        ON DUPLICATE KEY UPDATE subscribe_time = NOW(), is_valid = 1
       `, [openid, templateId]);
     }
   }
   
-  res.json({
-    code: 200,
-    message: '订阅成功'
-  });
+  res.json({ code: 200, message: '订阅成功' });
 }));
 
 /**
@@ -147,33 +228,21 @@ router.post('/subscribe', asyncHandler(async (req, res) => {
  * 取消订阅推送
  */
 router.post('/unsubscribe', asyncHandler(async (req, res) => {
-  const { openid, templateIds } = req.body;
-  
-  if (!openid || openid.trim() === '') {
-    throw new AppError('缺少openid参数', ERROR_CODE.BAD_REQUEST);
-  }
+  const openid = req.openid;
+  const { templateIds } = req.body;
   
   if (templateIds && Array.isArray(templateIds)) {
     for (const templateId of templateIds) {
-      await pool.query(`
-        UPDATE user_push_subscriptions 
-        SET is_valid = 0 
-        WHERE openid = ? AND template_id = ?
-      `, [openid, templateId]);
+      await pool.query(
+        'UPDATE user_push_subscriptions SET is_valid = 0 WHERE openid = ? AND template_id = ?',
+        [openid, templateId]
+      );
     }
   } else {
-    // 取消所有订阅
-    await pool.query(`
-      UPDATE user_push_subscriptions 
-      SET is_valid = 0 
-      WHERE openid = ?
-    `, [openid]);
+    await pool.query('UPDATE user_push_subscriptions SET is_valid = 0 WHERE openid = ?', [openid]);
   }
   
-  res.json({
-    code: 200,
-    message: '取消订阅成功'
-  });
+  res.json({ code: 200, message: '取消订阅成功' });
 }));
 
 /**
@@ -181,23 +250,15 @@ router.post('/unsubscribe', asyncHandler(async (req, res) => {
  * 获取用户订阅状态
  */
 router.get('/subscriptions', asyncHandler(async (req, res) => {
-  const { openid } = req.query;
-  
-  if (!openid || openid.trim() === '') {
-    throw new AppError('缺少openid参数', ERROR_CODE.BAD_REQUEST);
-  }
+  const openid = req.openid;
   
   const [rows] = await pool.query(`
     SELECT template_id, subscribe_time, is_valid 
-    FROM user_push_subscriptions 
-    WHERE openid = ?
+    FROM user_push_subscriptions WHERE openid = ?
     ORDER BY subscribe_time DESC
   `, [openid]);
   
-  res.json({
-    code: 200,
-    data: rows
-  });
+  res.json({ code: 200, data: rows });
 }));
 
 /**
@@ -205,170 +266,45 @@ router.get('/subscriptions', asyncHandler(async (req, res) => {
  * 获取推送历史
  */
 router.get('/history', asyncHandler(async (req, res) => {
-  const { openid, limit = 20, offset = 0 } = req.query;
-  
-  if (!openid || openid.trim() === '') {
-    throw new AppError('缺少openid参数', ERROR_CODE.BAD_REQUEST);
-  }
+  const openid = req.openid;
+  let { limit = 20, offset = 0 } = req.query;
   
   const limitNum = Math.min(50, Math.max(1, parseInt(limit) || 20));
   const offsetNum = Math.max(0, parseInt(offset) || 0);
   
   const [rows] = await pool.query(`
     SELECT id, title, content, type, race_id, stage_id, send_time, status
-    FROM push_history 
-    WHERE openid = ?
-    ORDER BY send_time DESC
-    LIMIT ? OFFSET ?
+    FROM push_history WHERE openid = ?
+    ORDER BY send_time DESC LIMIT ? OFFSET ?
   `, [openid, limitNum, offsetNum]);
   
-  const [countResult] = await pool.query(`
-    SELECT COUNT(*) as total FROM push_history WHERE openid = ?
-  `, [openid]);
+  const [countResult] = await pool.query(
+    'SELECT COUNT(*) as total FROM push_history WHERE openid = ?', [openid]
+  );
   
   res.json({
     code: 200,
     data: rows,
-    pagination: {
-      total: countResult[0].total,
-      limit: limitNum,
-      offset: offsetNum
-    }
-  });
-}));
-
-/**
- * POST /api/v1/push/send
- * 发送推送通知（内部API，供管理后台/定时任务调用）
- * 需要管理员权限（简化版：通过admin密钥验证）
- */
-router.post('/send', asyncHandler(async (req, res) => {
-  const { adminKey, type, raceId, stageId, title, content } = req.body;
-  
-  // 简单管理员验证
-  if (adminKey !== process.env.ADMIN_KEY && adminKey !== 'velo-rank-admin-2026') {
-    throw new AppError('管理员验证失败', ERROR_CODE.FORBIDDEN);
-  }
-  
-  // 获取所有开启推送的用户设置
-  const [users] = await pool.query(`
-    SELECT ups.openid, ups.push_enabled, ups.notify_race_start, 
-           ups.notify_stage_end, ups.notify_rider_change, ups.notify_key_events,
-           ups.dnd_enabled, ups.dnd_start, ups.dnd_end
-    FROM user_push_settings ups
-    WHERE ups.push_enabled = 1
-  `);
-  
-  if (users.length === 0) {
-    return res.json({
-      code: 200,
-      data: { totalUsers: 0, sentCount: 0, skippedCount: 0 }
-    });
-  }
-  
-  const now = new Date();
-  const currentTime = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
-  
-  // 根据推送类型过滤用户
-  const validUsers = users.filter(user => {
-    // 检查免打扰时段
-    if (user.dnd_enabled) {
-      if (isTimeInRange(currentTime, user.dnd_start, user.dnd_end)) {
-        return false;
-      }
-    }
-    
-    // 根据推送类型检查开关
-    switch (type) {
-      case 'race_start': return user.notify_race_start === 1;
-      case 'stage_end': return user.notify_stage_end === 1;
-      case 'rider_change': return user.notify_rider_change === 1;
-      case 'key_event': return user.notify_key_events === 1;
-      default: return true;
-    }
-  });
-  
-  // 尝试发送微信订阅消息
-  let sentCount = 0;
-  let failedCount = 0;
-  
-  const { sendSubscribeMessage } = require('../utils/wechat');
-  const templateId = getTemplateIdByType(type);
-  
-  if (templateId) {
-    for (const user of validUsers) {
-      try {
-        await sendSubscribeMessage({
-          touser: user.openid,
-          templateId,
-          data: {
-            thing1: { value: title || '赛事通知' },
-            time2: { value: now.toLocaleString('zh-CN') },
-            thing3: { value: content || '' }
-          },
-          page: raceId ? `/pages/race-detail/race-detail?id=${raceId}` : 'pages/index/index'
-        });
-        sentCount++;
-      } catch (err) {
-        console.error(`推送失败: ${user.openid}`, err.message);
-        failedCount++;
-      }
-    }
-  } else {
-    // 没有配置模板ID，仅记录推送历史
-    sentCount = validUsers.length;
-  }
-  
-  // 记录推送历史
-  for (const user of validUsers) {
-    await pool.query(`
-      INSERT INTO push_history 
-        (openid, title, content, type, race_id, stage_id, send_time, status)
-      VALUES (?, ?, ?, ?, ?, ?, NOW(), ?)
-    `, [
-      user.openid,
-      title || '赛事通知',
-      content || '',
-      type || 'general',
-      raceId || null,
-      stageId || null,
-      sentCount > 0 ? 'sent' : 'failed'
-    ]);
-  }
-  
-  res.json({
-    code: 200,
-    data: {
-      totalUsers: users.length,
-      sentCount,
-      failedCount,
-      skippedCount: users.length - validUsers.length
-    }
+    pagination: { total: countResult[0].total, limit: limitNum, offset: offsetNum }
   });
 }));
 
 /**
  * POST /api/v1/push/test
- * 发送测试推送（管理员功能）
+ * 发送测试推送
  */
 router.post('/test', asyncHandler(async (req, res) => {
-  const { openid, title, content } = req.body;
-  
-  if (!openid || openid.trim() === '') {
-    throw new AppError('缺少openid参数', ERROR_CODE.BAD_REQUEST);
-  }
+  const openid = req.openid;
+  const { title, content } = req.body;
   
   const testTitle = title || '领骑通知测试';
   const testContent = content || '如果您看到这条消息，说明推送功能正常工作！';
   
-  // 记录推送历史
   await pool.query(`
-    INSERT INTO push_history 
-      (openid, title, content, type, send_time, status)
+    INSERT INTO push_history (openid, title, content, type, send_time, status)
     VALUES (?, ?, ?, 'test', NOW(), 'pending')
   `, [openid, testTitle, testContent]);
   
-  // 尝试发送微信订阅消息
   try {
     const { sendSubscribeMessage } = require('../utils/wechat');
     const templateId = process.env.WECHAT_TEMPLATE_RACE_START;
@@ -385,25 +321,17 @@ router.post('/test', asyncHandler(async (req, res) => {
         page: 'pages/index/index'
       });
       
-      // 更新推送状态为已发送
-      await pool.query(`
-        UPDATE push_history SET status = 'sent' 
-        WHERE openid = ? AND type = 'test' 
-        ORDER BY send_time DESC LIMIT 1
-      `, [openid]);
+      await pool.query(
+        "UPDATE push_history SET status = 'sent' WHERE openid = ? AND type = 'test' ORDER BY send_time DESC LIMIT 1",
+        [openid]
+      );
       
-      res.json({
-        code: 200,
-        message: '测试推送已发送',
-        data: { sent: true }
-      });
+      res.json({ code: 200, message: '测试推送已发送', data: { sent: true } });
     } else {
-      // 没有配置模板ID，模拟发送
-      await pool.query(`
-        UPDATE push_history SET status = 'sent' 
-        WHERE openid = ? AND type = 'test' 
-        ORDER BY send_time DESC LIMIT 1
-      `, [openid]);
+      await pool.query(
+        "UPDATE push_history SET status = 'sent' WHERE openid = ? AND type = 'test' ORDER BY send_time DESC LIMIT 1",
+        [openid]
+      );
       
       res.json({
         code: 200,
@@ -413,13 +341,10 @@ router.post('/test', asyncHandler(async (req, res) => {
     }
   } catch (sendError) {
     console.error('发送测试推送失败:', sendError.message);
-    
-    await pool.query(`
-      UPDATE push_history SET status = 'failed', error_msg = ? 
-      WHERE openid = ? AND type = 'test' 
-      ORDER BY send_time DESC LIMIT 1
-    `, [sendError.message, openid]);
-    
+    await pool.query(
+      "UPDATE push_history SET status = 'failed', error_msg = ? WHERE openid = ? AND type = 'test' ORDER BY send_time DESC LIMIT 1",
+      [sendError.message, openid]
+    );
     res.json({
       code: 200,
       message: '测试推送发送失败: ' + sendError.message,
@@ -428,9 +353,10 @@ router.post('/test', asyncHandler(async (req, res) => {
   }
 }));
 
-/**
- * 根据推送类型获取模板ID
- */
+// ============================================================
+// 辅助函数
+// ============================================================
+
 function getTemplateIdByType(type) {
   const templateMap = {
     race_start: process.env.WECHAT_TEMPLATE_RACE_START,
@@ -441,9 +367,6 @@ function getTemplateIdByType(type) {
   return templateMap[type] || process.env.WECHAT_TEMPLATE_RACE_START;
 }
 
-/**
- * 判断时间是否在范围内（处理跨天情况）
- */
 function isTimeInRange(time, start, end) {
   const timeMinutes = convertToMinutes(time);
   const startMinutes = convertToMinutes(start);
@@ -452,21 +375,15 @@ function isTimeInRange(time, start, end) {
   if (startMinutes <= endMinutes) {
     return timeMinutes >= startMinutes && timeMinutes <= endMinutes;
   } else {
-    // 跨天：例如 22:00 - 07:00
     return timeMinutes >= startMinutes || timeMinutes <= endMinutes;
   }
 }
 
-/**
- * 将时间字符串转换为分钟数
- */
 function convertToMinutes(time) {
   if (!time) return 0;
   const timeStr = typeof time === 'string' ? time : String(time);
   const parts = timeStr.split(':');
-  const hours = parseInt(parts[0]) || 0;
-  const minutes = parseInt(parts[1]) || 0;
-  return hours * 60 + minutes;
+  return (parseInt(parts[0]) || 0) * 60 + (parseInt(parts[1]) || 0);
 }
 
 module.exports = router;

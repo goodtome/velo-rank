@@ -211,5 +211,18 @@ Page({
 
   retrySearch() {
     this.doSearch();
+  },
+
+  onShareAppMessage() {
+    return {
+      title: '搜索 - 正一领骑',
+      path: '/pages/search/search'
+    };
+  },
+
+  onShareTimeline() {
+    return {
+      title: '搜索 - 正一领骑'
+    };
   }
 });

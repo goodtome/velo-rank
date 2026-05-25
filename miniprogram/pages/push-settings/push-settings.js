@@ -289,5 +289,11 @@ Page({
       title: '推送设置 - 正一领骑',
       path: '/pages/push-settings/push-settings'
     };
+  },
+
+  onShareTimeline() {
+    return {
+      title: '推送设置 - 正一领骑'
+    };
   }
 });

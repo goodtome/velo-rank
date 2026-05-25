@@ -1,6 +1,7 @@
 /**
  * 统一网络请求封装（优化版）
  * 支持 Promise API、自动错误处理、超时控制、重试机制
+ * 自动注入登录 token
  * 
  * @module request
  * @author 高级开发工程师
@@ -9,6 +10,17 @@
 
 const app = getApp();
 const { REQUEST } = require('./constants');
+
+/**
+ * 从 Storage 读取 auth token（避免循环依赖 auth.js）
+ */
+function getAuthToken() {
+  try {
+    return wx.getStorageSync('auth_token') || '';
+  } catch (e) {
+    return '';
+  }
+}
 
 /**
  * 基础请求方法（内部使用，支持重试）
@@ -33,14 +45,21 @@ function requestWithRetry(options, retries = REQUEST.MAX_RETRIES, delay = REQUES
 
     const timeout = options.timeout || app.globalData.timeout || REQUEST.TIMEOUT;
 
+    // 自动注入 auth token
+    const token = getAuthToken();
+    const headers = {
+      'Content-Type': 'application/json',
+      ...options.header
+    };
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
     wx.request({
       url: url,
       method: options.method || 'GET',
       data: options.data || {},
-      header: {
-        'Content-Type': 'application/json',
-        ...options.header
-      },
+      header: headers,
       timeout: timeout,
       success: (res) => {
         if (res.statusCode >= 200 && res.statusCode < 300) {

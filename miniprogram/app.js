@@ -1,9 +1,10 @@
 /**
  * 小程序入口文件（优化版）
- * 使用统一的配置管理
+ * 使用统一的配置管理 + 微信静默登录
  */
 
 const { getEnv, getConfig } = require('./config/env');
+const { login } = require('./utils/auth');
 
 App({
   onLaunch() {
@@ -25,6 +26,17 @@ App({
       console.log('当前环境:', getEnv());
       console.log('API地址:', this.globalData.baseUrl);
     }
+
+    // 微信静默登录（非阻塞，失败不影响正常使用）
+    login()
+      .then(({ token, openid }) => {
+        this.globalData.token = token;
+        this.globalData.openid = openid;
+        console.log('微信登录成功, openid:', openid);
+      })
+      .catch(err => {
+        console.log('微信登录失败（非阻塞）:', err.message);
+      });
   },
 
   globalData: {
@@ -34,6 +46,10 @@ App({
     statusBarHeight: 0,
 
     // 当前赛季
-    currentSeason: 2026
+    currentSeason: 2026,
+
+    // 登录态
+    token: '',
+    openid: ''
   }
 });

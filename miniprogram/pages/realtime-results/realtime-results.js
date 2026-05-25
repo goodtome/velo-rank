@@ -4,6 +4,8 @@
  * 使用WebSocket或轮询实现实时更新（<2s延迟）
  */
 
+const { get } = require('../../utils/request');
+
 // 模拟数据 - GC排名
 const mockGCRankings = [
   { riderId: 1, rank: 1, riderName: 'Giulio CICCONE', teamName: 'Lidl - Trek', timeGap: '-', rankChange: 0, isLeader: true, isUserFavorite: true },
@@ -248,26 +250,6 @@ Page({
       // 保持连接状态，不显示错误（避免频繁弹窗）
     });
   },
-    const lastUpdate = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
-    
-    // 模拟实时数据变化（随机更新排名变化）
-    const updatedGCRankings = this.data.gcRankings.map(item => {
-      if (Math.random() > 0.7) { // 30%概率发生变化
-        const change = Math.random() > 0.5 ? 1 : -1;
-        return {
-          ...item,
-          rankChange: change,
-          timeGap: change > 0 ? item.timeGap : item.timeGap // 简化处理
-        };
-      }
-      return item;
-    });
-    
-    this.setData({
-      gcRankings: updatedGCRankings,
-      lastUpdate: lastUpdate
-    });
-  },
   
   // 停止实时更新
   stopRealTimeUpdate() {
@@ -334,6 +316,13 @@ Page({
     return {
       title: `${this.data.raceName} - 实时成绩追踪`,
       path: `/pages/realtime-results/realtime-results?raceId=${this.options.raceId}&stageId=${this.options.stageId}`
+    };
+  },
+
+  onShareTimeline() {
+    return {
+      title: `${this.data.raceName} - 实时成绩追踪`,
+      query: `raceId=${this.options.raceId}&stageId=${this.options.stageId}`
     };
   }
 });
