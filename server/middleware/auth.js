@@ -7,6 +7,36 @@
 const pool = require('../config/db-pool');
 
 /**
+ * 输入验证辅助函数
+ * 使用Joi进行参数验证，防止SQL注入和非法输入
+ * @param {*} input - 要验证的输入
+ * @param {*} schema - Joi验证schema
+ * @returns {Object} 验证结果 { error, value }
+ */
+function validateInput(input, schema) {
+  const Joi = require('joi');
+  return schema.validate(input, { abortEarly: false });
+}
+
+/**
+ * 检查并提示输入字段名
+ * 用于验证请求参数中的必填字段
+ * @param {Object} data - 请求数据
+ * @param {Object} schema - Joi schemas
+ * @returns {number|null} - 返回第一个错误参数名，无错误返回null
+ */
+function checkRequiredFields(data, schemaName) {
+  if (!schemaName || !schemaName[schemaName]) return null;
+
+  const result = validateInput(data, schemaName[schemaName]);
+  if (result.error && result.error.details.length > 0) {
+    // 返回第一个错误字段的名称
+    return result.error.details[0].context.key;
+  }
+  return null;
+}
+
+/**
  * 需要登录的接口中间件
  * 用法：router.use(authMiddleware) 或 router.post('/xxx', authMiddleware, handler)
  */
@@ -55,4 +85,10 @@ function optionalAuth(req, res, next) {
   }).catch(next);
 }
 
-module.exports = { authMiddleware, optionalAuth };
+module.exports = {
+  authMiddleware,
+  optionalAuth,
+  validateInput,
+  checkRequiredFields
+};
+

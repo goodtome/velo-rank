@@ -1,5 +1,46 @@
 /* pages/stage-results/stage-results.wxss */
 
+/* ====== 顶部导航切换 ====== */
+.tabs-nav {
+  display: flex;
+  white-space: nowrap;
+  background: #fff;
+  padding: 10rpx 20rpx;
+  margin-bottom: 20rpx;
+  border-radius: 16rpx;
+  box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04);
+}
+
+.tab-item {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 16rpx 30rpx;
+  position: relative;
+  transition: all 0.3s;
+}
+
+.tab-item text {
+  font-size: 28rpx;
+  color: #666;
+  font-weight: 500;
+}
+
+.tab-active text {
+  color: #2196F3;
+  font-weight: 700;
+  font-size: 30rpx;
+}
+
+.tab-line {
+  position: absolute;
+  bottom: 0;
+  width: 40rpx;
+  height: 6rpx;
+  background: #2196F3;
+  border-radius: 4rpx;
+}
+
 /* ====== 赛段信息头 ====== */
 .stage-header {
   background: #fff;
@@ -34,10 +75,21 @@
 .tag-TTT { background: #e3f2fd; color: #1565C0; }
 .tag-ITT { background: #e3f2fd; color: #1565C0; }
 
-.stage-route {
-  font-size: 28rpx;
+.stage-date-row {
+  margin-bottom: 8rpx;
+}
+
+.stage-date {
+  font-size: 24rpx;
+  color: #888;
+}
+
+/* 中英文合并路线 */
+.stage-route-combined {
+  font-size: 26rpx;
   color: #555;
-  margin-bottom: 12rpx;
+  margin-bottom: 4rpx;
+  line-height: 1.4;
 }
 
 .stage-meta-row {
@@ -46,6 +98,7 @@
   gap: 12rpx;
   font-size: 24rpx;
   color: #999;
+  margin-bottom: 8rpx;
 }
 
 /* ====== GC头部 ====== */
@@ -100,11 +153,11 @@
 .jersey-card {
   display: flex;
   align-items: center;
-  flex: 1;
-  min-width: 45%;
+  flex: 0 0 calc(50% - 6rpx);
   background: #f8f9fa;
   border-radius: 14rpx;
   padding: 14rpx;
+  box-sizing: border-box;
 }
 
 .jersey-circle-md {
@@ -115,10 +168,14 @@
   margin-right: 12rpx;
 }
 
-.jersey-pink { background: linear-gradient(135deg, #ff69b4, #ff1493); }
-.jersey-purple { background: linear-gradient(135deg, #9b59b6, #8e44ad); }
-.jersey-blue { background: linear-gradient(135deg, #3498db, #2980b9); }
-.jersey-white { background: linear-gradient(135deg, #ecf0f1, #bdc3c7); }
+.jersey-pink,
+.jersey-PINK { background: linear-gradient(135deg, #ff69b4, #ff1493); }
+.jersey-purple,
+.jersey-PURPLE { background: linear-gradient(135deg, #9b59b6, #8e44ad); }
+.jersey-blue,
+.jersey-BLUE { background: linear-gradient(135deg, #3498db, #2980b9); }
+.jersey-white,
+.jersey-WHITE { background: linear-gradient(135deg, #ecf0f1, #bdc3c7); }
 .jersey-BLUE_SPRINT { background: linear-gradient(135deg, #3498db, #2980b9); }
 .jersey-WHITE_YOUTH { background: linear-gradient(135deg, #ecf0f1, #bdc3c7); }
 

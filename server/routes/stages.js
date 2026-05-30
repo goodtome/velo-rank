@@ -145,7 +145,11 @@ router.post('/', asyncHandler(async (req, res) => {
     stage_code,
     date,
     distance_km,
-    stage_type
+    stage_type,
+    start_city,
+    finish_city,
+    start_city_zh,
+    finish_city_zh
   } = req.body;
 
   // 数据校验
@@ -182,18 +186,21 @@ router.post('/', asyncHandler(async (req, res) => {
 
   const id = require('crypto').randomUUID();
   
-  // 修正：8个字段，8个?占位符，SQL在一行
-  const sql = 'INSERT INTO stages (id, race_id, stage_number, stage_name, stage_code, date, distance_km, stage_type) VALUES (?, ?, ?, ?, ?, ?, ?, ?)';
-    
+  const sql = 'INSERT INTO stages (id, race_id, stage_number, stage_name, stage_code, date, distance_km, stage_type, start_city, finish_city, start_city_zh, finish_city_zh) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
+
   await pool.query(sql, [
-    id, 
-    race_id, 
-    stage_number, 
+    id,
+    race_id,
+    stage_number,
     stage_name,
     stage_code || null,
     date || null,
     distance_km || null,
-    stage_type || 'Flat'
+    stage_type || 'Flat',
+    start_city || null,
+    finish_city || null,
+    start_city_zh || null,
+    finish_city_zh || null
   ]);
 
   res.status(201).json({
@@ -218,7 +225,11 @@ router.put('/:id', asyncHandler(async (req, res) => {
     stage_code,
     date,
     distance_km,
-    stage_type
+    stage_type,
+    start_city,
+    finish_city,
+    start_city_zh,
+    finish_city_zh
   } = req.body;
 
   // 检查赛段是否存在
@@ -278,6 +289,22 @@ router.put('/:id', asyncHandler(async (req, res) => {
   if (stage_type !== undefined) {
     updates.push('stage_type = ?');
     params.push(stage_type);
+  }
+  if (start_city !== undefined) {
+    updates.push('start_city = ?');
+    params.push(start_city || null);
+  }
+  if (finish_city !== undefined) {
+    updates.push('finish_city = ?');
+    params.push(finish_city || null);
+  }
+  if (start_city_zh !== undefined) {
+    updates.push('start_city_zh = ?');
+    params.push(start_city_zh || null);
+  }
+  if (finish_city_zh !== undefined) {
+    updates.push('finish_city_zh = ?');
+    params.push(finish_city_zh || null);
   }
 
   if (updates.length === 0) {
@@ -449,4 +476,32 @@ router.get('/:id/youth', asyncHandler(async (req, res) => {
     message: 'success'
   });
 }));
+
+// GET /api/v1/stages/:id/team-classification - 获取车队成绩排名
+router.get('/:id/team-classification', asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const stageId = id;
+  
+  if (!id || id.trim() === '') {
+    throw new AppError('无效的赛段ID', ERROR_CODE.BAD_REQUEST);
+  }
+  
+  const sql = `
+    SELECT tc.*, 
+           t.team_name, t.team_name_zh, t.uci_code, t.logo_url
+    FROM team_classification tc
+    JOIN teams t ON tc.team_id = t.id
+    WHERE tc.stage_id = ?
+    ORDER BY tc.\`rank\`
+  `;
+  
+  const [rows] = await pool.query(sql, [stageId]);
+  
+  res.json({
+    code: 200,
+    data: rows,
+    message: 'success'
+  });
+}));
+
 module.exports = router;

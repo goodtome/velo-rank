@@ -188,21 +188,79 @@ def extract_classification(soup, table_index, name):
     
     for row in rows:  # 不跳过任何行
         tds = row.find_all('td')
-        if len(tds) < 8:
+        if len(tds) < 5:  # 最少5列（9列的表）
             continue
         
         rank = clean(tds[0].get_text())
         if not rank or not rank.isdigit():
             continue
         
-        # Parse rider from td[7] (same as stage results)
-        rider_name, nationality, rider_id = parse_rider_cell(tds[7])
+        # 根据表格列数动态确定车手名列索引
+        # 13列或11列的表：车手名在 td[7]
+        # 9列的表：车手名在 td[5]
+        if len(tds) >= 13:
+            rider_idx = 7
+            team_idx = 8
+            # GC/Youth表：td[12]=时间差, td[11]=总时间
+            time_gap_idx = 12   # "+4:03" 格式
+            total_time_idx = 11  # "62:10:26" 格式
+        elif len(tds) >= 11:
+            rider_idx = 7
+            team_idx = 8
+            # Points表：td[9]=积分
+            points_idx = 9
+        elif len(tds) >= 9:
+            rider_idx = 5
+            team_idx = 6
+            # KOM/Youth简版：td[7]=积分
+            points_idx = 7
+        else:
+            continue
         
-        # Team from td[8]
-        team = parse_team_cell(tds[8]) if len(tds) > 8 else ""
+        # 解析车手名
+        rider_name, nationality, rider_id = parse_rider_cell(tds[rider_idx])
         
-        # Time from td[12]
-        stage_time = parse_time_cell(tds[12]) if len(tds) > 12 else ""
+        # 解析车队
+        team = parse_team_cell(tds[team_idx]) if len(tds) > team_idx else ""
+        
+        # 解析时间差或积分
+        time_gap = ""
+        total_time = ""
+        points = ""
+        
+        if 'gc' in name.lower() or 'youth' in name.lower():
+            # GC/Youth表 - 时间型分类
+            if len(tds) >= 13:
+                # 13列表格：td[11]=时间, td[12]=排名变化符号
+                # 排名1: td[11] = 总时间 (HH:MM:SS)
+                # 排名2+: td[11] = 时间差 (M:SS)
+                time_val = parse_time_cell(tds[11]) if 11 < len(tds) else ""
+                if rank == '1':
+                    total_time = time_val
+                    time_gap = "0:00"
+                else:
+                    total_time = ""
+                    time_gap = "+" + time_val if time_val and not time_val.startswith('+') else time_val
+            elif len(tds) >= 11:
+                # 11列Youth表：td[9]=时间, td[10]=排名变化符号
+                # 排名1: td[9] = 总时间 (HH:MM:SS)
+                # 排名2+: td[9] = 时间差 (M:SS)
+                time_val = parse_time_cell(tds[9]) if 9 < len(tds) else ""
+                if rank == '1':
+                    total_time = time_val
+                    time_gap = "0:00"
+                else:
+                    total_time = ""
+                    time_gap = "+" + time_val if time_val and not time_val.startswith('+') else time_val
+            else:
+                # 9列表格（简版），td[7]=积分
+                points = clean(tds[7].get_text()) if len(tds) > 7 else ""
+        else:
+            # Points/KOM表 - 积分型分类
+            if len(tds) >= 11:
+                points = clean(tds[points_idx].get_text()) if points_idx < len(tds) else ""
+            elif len(tds) >= 9:
+                points = clean(tds[points_idx].get_text()) if points_idx < len(tds) else ""
         
         if rider_name:
             classification.append({
@@ -211,7 +269,9 @@ def extract_classification(soup, table_index, name):
                 'rider_id': rider_id,
                 'nationality': nationality,
                 'team': team,
-                'time': stage_time,
+                'time_gap': time_gap,
+                'total_time': total_time,
+                'points': points,
             })
     
     return classification
@@ -317,18 +377,47 @@ def main():
     
     soup = BeautifulSoup(resp.text, 'html.parser')
     
+    # 调试：打印所有表格信息
+    tables = soup.find_all('table')
+    print("=== 表格结构调试 ===", file=sys.stderr)
+    for i, table in enumerate(tables):
+        rows = table.find_all('tr')
+        if not rows:
+            continue
+        first_row = rows[0]
+        tds = first_row.find_all(['td', 'th'])
+        has_rider = len(first_row.find_all('a')) > 0
+        sample = first_row.get_text(strip=True)[:60]
+        print(f"Table {i}: {len(rows)} 行, {len(tds)} 列, 有车手: {has_rider}", file=sys.stderr)
+        if has_rider:
+            # 显示前2个车手名
+            riders = []
+            for row in rows[1:3]:
+                a_tags = row.find_all('a')
+                if a_tags:
+                    riders.append(a_tags[0].get_text(strip=True)[:20])
+            if riders:
+                print(f"  示例车手: {riders}", file=sys.stderr)
+        print(f"  内容: {sample}", file=sys.stderr)
+    print("=== 结束调试 ===\n", file=sys.stderr)
+    
     data = {
         'url': URL,
         'stage_info': extract_stage_info(soup),
         'results': extract_stage_results(soup),
         'jersey_holders': extract_jersey_holders(soup),
-        'gc': extract_classification(soup, 9, 'GC'),
-        'youth': extract_classification(soup, 8, 'Youth'),
-        'points': extract_classification(soup, 2, 'Points'),
-        'kom': extract_classification(soup, 4, 'KOM'),
+        'gc': extract_classification(soup, 1, 'GC'),            # Table 1: GC总成绩 (13列, 156行)
+        'youth': extract_classification(soup, 9, 'Youth'),      # Table 9: Youth总成绩 (11列, 44行)
+        'points': extract_classification(soup, 2, 'Points'),    # Table 2: 冲刺积分榜 (11列, 100行)
+        'kom': extract_classification(soup, 6, 'KOM'),        # Table 6: KOM积分榜 (11列, 66行) - 完整版
     }
     
-    print(json.dumps(data, ensure_ascii=False, indent=2))
+    # 保存到文件，避免Windows控制台编码问题
+    output_file = 'stage_data.json'
+    with open(output_file, 'w', encoding='utf-8') as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+    print(f"数据已保存到: {output_file}", file=sys.stderr)
+    print(output_file)  # 输出文件名供后续使用
 
 if __name__ == '__main__':
     main()

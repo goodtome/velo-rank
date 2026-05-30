@@ -216,6 +216,22 @@ CREATE TABLE general_classification (
 );
 ```
 
+#### team_classification（车队成绩榜）
+
+```sql
+CREATE TABLE team_classification (
+    id              CHAR(36) PRIMARY KEY,
+    stage_id        CHAR(36) NOT NULL,
+    `rank`          INT NOT NULL,
+    team_id         CHAR(36) NOT NULL,
+    total_time      VARCHAR(50),
+    time_gap        VARCHAR(50),
+    created_at      DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY uk_team_stage_rank (stage_id, `rank`),
+    INDEX idx_team_stage (stage_id, `rank`)
+);
+```
+
 ### 2.2 数据类型映射
 
 | 字段 | MySQL类型 | 理由 |
@@ -256,6 +272,11 @@ CREATE TABLE general_classification (
 | GET | `/stages/:id` | 赛段详情 |
 | GET | `/stages/:id/results` | 赛段成绩（前N名） |
 | GET | `/stages/:id/jerseys` | 领骑衫持有者 |
+| GET | `/stages/:id/team-classification` | 车队成绩排名 |
+| GET | `/stages/:id/general-classification` | 总成绩排名 |
+| GET | `/stages/:id/points` | 冲刺积分排名 |
+| GET | `/stages/:id/mountains` | 爬坡积分排名 |
+| GET | `/stages/:id/youth` | 青年车手排名 |
 
 #### 搜索
 

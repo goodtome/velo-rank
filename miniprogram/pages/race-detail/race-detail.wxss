@@ -80,17 +80,22 @@
 .jerseys-grid {
   display: flex;
   flex-wrap: wrap;
-  gap: 16rpx;
 }
 
 .jersey-card {
   display: flex;
   align-items: center;
-  flex: 1;
-  min-width: 45%;
+  width: 48%;
+  margin-right: 4%;
+  margin-bottom: 16rpx;
   background: #f8f9fa;
   border-radius: 16rpx;
   padding: 16rpx;
+  box-sizing: border-box;
+}
+
+.jersey-card:nth-child(2n) {
+  margin-right: 0;
 }
 
 .jersey-circle-lg {
@@ -101,10 +106,14 @@
   margin-right: 14rpx;
 }
 
-.jersey-pink { background: linear-gradient(135deg, #ff69b4, #ff1493); }
-.jersey-purple { background: linear-gradient(135deg, #9b59b6, #8e44ad); }
-.jersey-blue { background: linear-gradient(135deg, #3498db, #2980b9); }
-.jersey-white { background: linear-gradient(135deg, #ecf0f1, #bdc3c7); }
+.jersey-pink,
+.jersey-PINK { background: linear-gradient(135deg, #ff69b4, #ff1493); }
+.jersey-purple,
+.jersey-PURPLE { background: linear-gradient(135deg, #9b59b6, #8e44ad); }
+.jersey-blue,
+.jersey-BLUE { background: linear-gradient(135deg, #3498db, #2980b9); }
+.jersey-white,
+.jersey-WHITE { background: linear-gradient(135deg, #ecf0f1, #bdc3c7); }
 .jersey-BLUE_SPRINT { background: linear-gradient(135deg, #3498db, #2980b9); }
 .jersey-WHITE_YOUTH { background: linear-gradient(135deg, #ecf0f1, #bdc3c7); }
 

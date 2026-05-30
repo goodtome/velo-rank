@@ -4,7 +4,7 @@
  * 使用WebSocket或轮询实现实时更新（<2s延迟）
  */
 
-const { get } = require('../../utils/request');
+  const { get, post } = require('../../utils/request');
 
 // 模拟数据 - GC排名
 const mockGCRankings = [
@@ -163,36 +163,136 @@ Page({
   
   // 开始实时更新
   startRealTimeUpdate() {
-    // 方案1：使用WebSocket（推荐，延迟<2s）
-    // this.connectWebSocket();
-    
-    // 方案2：使用轮询（降级方案，延迟<5s）
-    this.startPolling();
+    // 优先使用WebSocket
+    this.connectWebSocket();
   },
   
-  // WebSocket连接（实际实现）
+  // WebSocket连接（实现）
   connectWebSocket() {
-    // TODO: 实现WebSocket连接
-    // const socketTask = wx.connectSocket({
-    //   url: 'wss://your-domain.com/ws/race-results',
-    //   success: () => {
-    //     this.setData({ connectionStatus: 'connected' });
-    //   },
-    //   fail: () => {
-    //     this.setData({ connectionStatus: 'disconnected' });
-    //     this.startPolling(); // 降级到轮询
-    //   }
-    // });
-    // 
-    // socketTask.onMessage((res) => {
-    //   const data = JSON.parse(res.data);
-    //   this.updateRankings(data);
-    // });
-    // 
-    // socketTask.onClose(() => {
-    //   this.setData({ connectionStatus: 'disconnected' });
-    //   setTimeout(() => this.connectWebSocket(), 3000); // 3秒后重连
-    // });
+    const baseUrl = getApp().globalData.baseUrl;
+
+    const socketTask = wx.connectSocket({
+      url: `ws://${baseUrl}/ws/realtime`,
+      success: () => {
+        console.log('WebSocket连接请求已发送');
+        this.setData({ connectionStatus: 'connected' });
+      },
+      fail: (err) => {
+        console.error('WebSocket连接失败:', err);
+        this.setData({ connectionStatus: 'disconnected' });
+        wx.showToast({
+          title: '连接失败，切换至轮询模式',
+          icon: 'none',
+          duration: 2000
+        });
+        setTimeout(() => this.startPolling(), 2000); // 2秒后降级到轮询
+      }
+    });
+
+    // 监听打开事件
+    socketTask.onOpen(() => {
+      console.log('WebSocket已连接');
+      // 连接成功后立即订阅
+      const { raceId, stageId } = this.data;
+      if (raceId && stageId) {
+        this.subscribeToData(raceId, stageId);
+      }
+    });
+
+    // 监听消息事件
+    socketTask.onMessage((res) => {
+      try {
+        const data = JSON.parse(res.data);
+        this.handleWebSocketMessage(data);
+      } catch (error) {
+        console.error('解析WebSocket消息失败:', error, res.data);
+      }
+    });
+
+    // 关闭连接
+    socketTask.onClose(() => {
+      console.log('WebSocket连接已关闭');
+      this.setData({ connectionStatus: 'disconnected' });
+
+      // 3秒后自动重连
+      wx.showToast({
+        title: '连接断开，即将重连',
+        icon: 'none',
+        duration: 1500
+      });
+
+      setTimeout(() => {
+        this.connectWebSocket();
+      }, 3000);
+    });
+
+    // 错误处理
+    socketTask.onError((err) => {
+      console.error('WebSocket错误:', err);
+      this.setData({ connectionStatus: 'disconnected' });
+    });
+
+    // 保存socketTask供后续使用
+    this.setData({ socketTask });
+  },
+
+  // 订阅实时数据
+  subscribeToData(raceId, stageId) {
+    if (!this.data.socketTask || this.data.socketTask.readyState !== 1) {
+      console.log('WebSocket未连接，跳过订阅');
+      return;
+    }
+
+    const message = JSON.stringify({
+      type: 'subscribe',
+      raceId: raceId,
+      stageId: stageId
+    });
+
+    this.data.socketTask.send({
+      data: message,
+      success: () => {
+        console.log('订阅消息已发送');
+      },
+      fail: (err) => {
+        console.error('订阅消息发送失败:', err);
+      }
+    });
+  },
+
+  // 处理WebSocket消息
+  handleWebSocketMessage(data) {
+    console.log('接收到WebSocket消息:', data.type);
+
+    switch (data.type) {
+      case 'welcome':
+        console.log('服务器欢迎消息:', data.message);
+        break;
+
+      case 'subscribed':
+        console.log('订阅成功:', data.room);
+        break;
+
+      case 'unsubscribed':
+        console.log('取消订阅成功:', data.room);
+        break;
+
+      case 'update':
+        // 收到数据更新
+        this.updateRankings(data);
+        break;
+
+      case 'error':
+        console.error('服务器错误:', data.message);
+        wx.showToast({
+          title: data.message || '数据更新错误',
+          icon: 'none'
+        });
+        break;
+
+      default:
+        console.warn('未知消息类型:', data.type);
+    }
   },
   
   // 轮询（降级方案）
@@ -281,34 +381,172 @@ Page({
   
   // 切换关注状态
   toggleFavorite(e) {
-    const riderId = e.currentTarget.dataset.riderId;
-    // TODO: 实现关注/取消关注功能
-    wx.showToast({
-      title: '关注功能开发中',
-      icon: 'none'
-    });
+    const { riderId, rank, riderName } = e.currentTarget.dataset;
+
+    if (!riderId) {
+      wx.showToast({ title: '无法获取车手ID', icon: 'none' });
+      return;
+    }
+
+    // 检查是否已关注
+    const isFavorite = this.data.favoriteRiders.find(r => r.riderId === riderId);
+
+    try {
+      const postData = {
+        rider_id: riderId
+      };
+
+      if (isFavorite) {
+        // 取消关注
+        const newFavorites = this.data.favoriteRiders.filter(r => r.riderId !== riderId);
+        this.setData({ favoriteRiders: newFavorites });
+
+        // 调用API取消关注
+        this.get().post('/favorites/remove', postData)
+          .then(() => {
+            wx.showToast({
+              title: '已取消关注',
+              icon: 'success',
+              duration: 1500
+            });
+          })
+          .catch(err => {
+            console.error('取消关注失败:', err);
+            wx.showToast({
+              title: '操作失败，请重试',
+              icon: 'none'
+            });
+          });
+      } else {
+        // 添加关注
+        const newFavorites = [...this.data.favoriteRiders, { riderId, rank, riderName }];
+        this.setData({ favoriteRiders: newFavorites });
+
+        // 调用API添加关注
+        this.get().post('/favorites/add', postData)
+          .then(() => {
+            wx.showToast({
+              title: '关注成功',
+              icon: 'success',
+              duration: 1500
+            });
+          })
+          .catch(err => {
+            console.error('关注失败:', err);
+            wx.showToast({
+              title: '操作失败，请重试',
+              icon: 'none'
+            });
+          });
+      }
+    } catch (error) {
+      console.error('切换关注失败:', error);
+      wx.showToast({
+        title: '操作失败，请重试',
+        icon: 'none'
+      });
+    }
   },
   
   // 滚动到关注车手位置
   scrollToRider(e) {
-    const riderId = e.currentTarget.dataset.riderId;
-    // TODO: 实现滚动到指定车手位置
-    wx.showToast({
-      title: '滚动功能开发中',
-      icon: 'none'
+    const { riderId } = e.currentTarget.dataset;
+
+    // 获取列表容器
+    const query = wx.createSelectorQuery();
+    query.select('.race-list-container').boundingClientRect();
+
+    query.exec((res) => {
+      if (res && res[0]) {
+        // 获取目标车手元素
+        const riderQuery = wx.createSelectorQuery();
+        riderQuery.select(`#rider-${riderId}`).boundingClientRect();
+
+        riderQuery.exec((riderRes) => {
+          if (riderRes && riderRes[0]) {
+            const riderRect = riderRes[0];
+            const containerRect = res[0];
+
+            // 计算滚动位置（将目标元素显示在中间，并留出100px空间）
+            const scrollTop = riderRect.top - containerRect.top - 100;
+
+            if (scrollTop > 0) {
+              wx.pageScrollTo({
+                scrollTop: scrollTop,
+                duration: 300  // 300ms渐显动画
+              });
+
+              // 600ms后高亮显示（可选，需要配合wxml）
+              setTimeout(() => {
+                const highlightQuery = wx.createSelectorQuery();
+                highlightQuery.select(`#rider-card-${riderId}`).addClass('highlight');
+                highlightQuery.exec();
+              }, 600);
+            }
+          } else {
+            wx.showToast({
+              title: '车手位置不可见',
+              icon: 'none',
+              duration: 1500
+            });
+          }
+        });
+      } else {
+        wx.showToast({
+          title: '列表容器不可见',
+          icon: 'none',
+          duration: 1500
+        });
+      }
     });
   },
   
   // 更新排名数据（WebSocket推送或轮询返回）
   updateRankings(data) {
-    // TODO: 根据实际数据格式更新
-    if (data.gc) {
-      this.setData({
-        gcRankings: data.gc,
-        lastUpdate: data.lastUpdate
-      });
+    try {
+      if (data.type === 'update') {
+        // WebSocket更新数据
+        const { dataType, data: updateData } = data;
+
+        const now = new Date();
+        const lastUpdate = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`;
+
+        switch (dataType) {
+          case 'gc':
+            this.setData({
+              gcRankings: updateData,
+              lastUpdate
+            });
+            break;
+          case 'stage':
+            this.setData({
+              stageResults: updateData,
+              lastUpdate
+            });
+            break;
+          case 'points':
+            this.setData({
+              pointsRankings: updateData,
+              lastUpdate
+            });
+            break;
+          case 'mountains':
+            this.setData({
+              mountainsRankings: updateData,
+              lastUpdate
+            });
+            break;
+          case 'youth':
+            this.setData({
+              youthRankings: updateData,
+              lastUpdate
+            });
+            break;
+        }
+      }
+    } catch (error) {
+      console.error('更新排名数据失败:', error);
     }
-    // 同理处理其他排名...
   },
   
   // 分享

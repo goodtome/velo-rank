@@ -68,6 +68,8 @@ async function initDatabase() {
         elevation_m INT,
         start_city VARCHAR(100),
         finish_city VARCHAR(100),
+        start_city_zh VARCHAR(100),
+        finish_city_zh VARCHAR(100),
         weather_summary VARCHAR(200),
         stage_code VARCHAR(100) UNIQUE NOT NULL,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -173,6 +175,77 @@ async function initDatabase() {
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     `);
     console.log('✅ general_classification 表创建成功');
+    
+    // 冲刺积分榜
+    await dbConn.query(`
+      CREATE TABLE IF NOT EXISTS points_classification (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        stage_id VARCHAR(36) NOT NULL,
+        rider_id VARCHAR(36) NOT NULL,
+        \`rank\` INT NOT NULL,
+        points INT NOT NULL DEFAULT 0,
+        jersey_type VARCHAR(20) DEFAULT 'PURPLE',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        UNIQUE KEY uk_stage_rider (stage_id, rider_id, jersey_type),
+        INDEX idx_stage (stage_id),
+        INDEX idx_rider (rider_id)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    `);
+    console.log('✅ points_classification 表创建成功');
+
+    // 爬坡积分榜
+    await dbConn.query(`
+      CREATE TABLE IF NOT EXISTS mountains_classification (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        stage_id VARCHAR(36) NOT NULL,
+        rider_id VARCHAR(36) NOT NULL,
+        \`rank\` INT NOT NULL,
+        points INT NOT NULL DEFAULT 0,
+        jersey_type VARCHAR(20) DEFAULT 'BLUE',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        UNIQUE KEY uk_stage_rider (stage_id, rider_id, jersey_type),
+        INDEX idx_stage (stage_id),
+        INDEX idx_rider (rider_id)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    `);
+    console.log('✅ mountains_classification 表创建成功');
+
+    // 青年成绩榜
+    await dbConn.query(`
+      CREATE TABLE IF NOT EXISTS youth_classification (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        stage_id VARCHAR(36) NOT NULL,
+        rider_id VARCHAR(36) NOT NULL,
+        \`rank\` INT NOT NULL,
+        time VARCHAR(20),
+        time_gap VARCHAR(20),
+        jersey_type VARCHAR(20) DEFAULT 'WHITE',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        UNIQUE KEY uk_stage_rider (stage_id, rider_id),
+        INDEX idx_stage (stage_id),
+        INDEX idx_rider (rider_id)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    `);
+    console.log('✅ youth_classification 表创建成功');
+
+    // 车队成绩榜
+    await dbConn.query(`
+      CREATE TABLE IF NOT EXISTS team_classification (
+        id CHAR(36) PRIMARY KEY,
+        stage_id CHAR(36) NOT NULL,
+        \`rank\` INT NOT NULL,
+        team_id CHAR(36) NOT NULL,
+        total_time VARCHAR(50),
+        time_gap VARCHAR(50),
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE KEY uk_team_stage_rank (stage_id, \`rank\`),
+        INDEX idx_team_stage (stage_id, \`rank\`)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    `);
+    console.log('✅ team_classification 表创建成功');
     
     // 用户登录 token
     await dbConn.query(`

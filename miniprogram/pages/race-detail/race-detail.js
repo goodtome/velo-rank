@@ -154,33 +154,40 @@ Page({
   },
 
   /**
+   * 获取最新赛段ID
+   */
+  getLatestStageId() {
+    const { stages } = this.data;
+    if (!stages || stages.length === 0) {
+      showError('暂无赛段数据');
+      return null;
+    }
+    return stages[stages.length - 1].id;
+  },
+
+  /**
    * 点击总成绩榜(GC)
    */
   onGCTap() {
     const { raceId } = this.data;
+    const stageId = this.getLatestStageId();
+    if (!stageId) return;
+
     wx.navigateTo({
-      url: `/pages/stage-results/stage-results?type=gc&raceId=${raceId}`
+      url: `/pages/stage-results/stage-results?stageId=${stageId}&raceId=${raceId}&type=gc`
     });
   },
 
   /**
    * 点击分类榜入口（积分/爬坡/青年）
+   * 显示赛事累计排名，不传 stageId
    */
   onClassTap(e) {
     const { type } = e.currentTarget.dataset;
-    const { raceId, stages } = this.data;
-
-    if (!stages || stages.length === 0) {
-      showError('暂无赛段数据');
-      return;
-    }
-
-    // 使用最后一个赛段的ID（最新赛段）
-    const latestStage = stages[stages.length - 1];
-    const stageId = latestStage.id;
+    const { raceId } = this.data;
 
     wx.navigateTo({
-      url: `/pages/classification/classification?stageId=${stageId}&raceId=${raceId}&type=${type}`
+      url: `/pages/stage-results/stage-results?raceId=${raceId}&type=${type}`
     });
   },
 

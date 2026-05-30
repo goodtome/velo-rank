@@ -26,19 +26,35 @@
   </view>
 
   <view wx:else>
+    <!-- 顶部导航切换 -->
+    <scroll-view scroll-x class="tabs-nav card" enable-flex>
+      <view 
+        wx:for="{{tabs}}" 
+        wx:key="id" 
+        class="tab-item {{type === item.id ? 'tab-active' : ''}}" 
+        bindtap="switchTab" 
+        data-id="{{item.id}}"
+      >
+        <text>{{item.name}}</text>
+        <view class="tab-line" wx:if="{{type === item.id}}"></view>
+      </view>
+    </scroll-view>
+
     <!-- 赛段信息头 -->
-    <view wx:if="{{type !== 'gc'}}" class="stage-header card">
+    <view wx:if="{{type === 'stage'}}" class="stage-header card">
       <view class="stage-title-row">
         <view class="num-badge">{{stage.stage_number}}</view>
         <view class="stage-title-text">第 {{stage.stage_number}} 赛段</view>
-        <text class="stage-type-tag tag-{{stage.stage_type}}" wx:if="{{stage.stage_type}}">{{stage.stage_type}}</text>
+        <text class="stage-type-tag tag-{{stage.stage_type}}" wx:if="{{stage._stage_type_zh}}">{{stage._stage_type_zh}}</text>
       </view>
-      <view class="stage-route">{{stage.stage_name}}</view>
-      <view class="stage-meta-row">
-        <text class="meta-item">{{formatDate(stage.date)}}</text>
-        <text class="meta-dot">·</text>
-        <text class="meta-item" wx:if="{{stage.distance_km}}">{{stage.distance_km}}km</text>
+      <!-- 日期 + 距离 同一行 -->
+      <view class="stage-meta-row" wx:if="{{stage._date_formatted || stage._distance_formatted}}">
+        <text class="meta-item" wx:if="{{stage._date_formatted}}">{{stage._date_formatted}}</text>
+        <text class="meta-dot" wx:if="{{stage._date_formatted && stage._distance_formatted}}"> 丨 </text>
+        <text class="meta-item" wx:if="{{stage._distance_formatted}}">{{stage._distance_formatted}}</text>
       </view>
+      <!-- 路线：中英文合并一行 -->
+      <view class="stage-route-combined" wx:if="{{stage._route_combined}}">{{stage._route_combined}}</view>
     </view>
 
     <!-- 总成绩榜标题 -->
@@ -51,13 +67,13 @@
     </view>
 
     <!-- 领骑衫 -->
-    <view wx:if="{{type !== 'gc' && jerseys.length > 0}}" class="jerseys-section card">
+    <view wx:if="{{type === 'gc' && jerseys.length > 0}}" class="jerseys-section card">
       <view class="section-label">领骑衫</view>
       <view class="jerseys-grid">
         <view wx:for="{{jerseys}}" wx:key="jersey_type" class="jersey-card">
           <view class="jersey-circle-md jersey-{{item.jersey_type}}"></view>
           <view class="jersey-detail">
-            <text class="jersey-type-name">{{jerseyTypeName(item.jersey_type)}}</text>
+            <text class="jersey-type-name">{{item._jersey_type_zh}}</text>
             <text class="jersey-rider">{{item.rider_name_zh || item.rider_name}}</text>
             <text class="jersey-team">{{item.team_name_zh || item.team_name}}</text>
           </view>
@@ -67,14 +83,21 @@
 
     <!-- 成绩列表 -->
     <view class="results-section card">
-      <view class="section-label">{{type === 'gc' ? 'GC 排名' : '赛段成绩'}}</view>
+      <view class="section-label">
+        <text wx:if="{{type === 'stage'}}">赛段排名</text>
+        <text wx:elif="{{type === 'gc'}}">总成绩排名 (GC)</text>
+        <text wx:elif="{{type === 'team'}}">车队成绩排名</text>
+        <text wx:elif="{{type === 'points'}}">冲刺积分排名</text>
+        <text wx:elif="{{type === 'mountains'}}">爬坡积分排名</text>
+        <text wx:elif="{{type === 'youth'}}">青年车手排名</text>
+      </view>
 
       <!-- 表头 -->
       <view class="result-header">
         <text class="rh-rank">排名</text>
-        <text class="rh-rider">车手</text>
-        <text class="rh-team">车队</text>
-        <text class="rh-time">{{type === 'gc' ? '总时间' : '差距'}}</text>
+        <text class="rh-rider">{{type === 'team' ? '车队' : '车手'}}</text>
+        <text class="rh-team">{{type === 'team' ? '代号' : '车队'}}</text>
+        <text class="rh-time">{{(type === 'points' || type === 'mountains') ? '积分' : (type === 'team' || type === 'gc' || type === 'youth') ? '总时间' : '差距'}}</text>
       </view>
 
       <!-- 空成绩提示 -->
@@ -89,7 +112,7 @@
         wx:key="rank"
         class="result-row {{index < 3 ? 'result-top3' : ''}} {{index === 0 ? 'result-gold' : index === 1 ? 'result-silver' : index === 2 ? 'result-bronze' : ''}}"
         hover-class="result-row-hover"
-        bindtap="goToRider"
+        bindtap="{{type === 'team' ? '' : 'goToRider'}}"
         data-id="{{item.rider_id}}"
       >
         <view class="rr-rank {{index < 3 ? 'rr-rank-medal' : ''}}">
@@ -98,15 +121,31 @@
           <text wx:elif="{{index === 2}}">🥉</text>
           <text wx:else>{{item.rank}}</text>
         </view>
-        <view class="rr-rider">
-          <text class="rider-name">{{item.rider_name_zh || item.rider_name}}</text>
-          <text class="rider-nat">{{item.nationality}}</text>
-        </view>
-        <text class="rr-team">{{item.team_name_zh || item.team_name}}</text>
+
+        <!-- 车手/车队显示逻辑 -->
+        <block wx:if="{{type === 'team'}}">
+          <view class="rr-rider">
+            <text class="rider-name">{{item.team_name_zh || item.team_name}}</text>
+          </view>
+          <text class="rr-team">{{item.uci_code}}</text>
+        </block>
+        <block wx:else>
+          <view class="rr-rider">
+            <text class="rider-name">{{item.rider_name_zh || item.rider_name}}</text>
+            <text class="rider-nat">{{item.nationality}}</text>
+          </view>
+          <text class="rr-team">{{item.team_name_zh || item.team_name}}</text>
+        </block>
+
         <view class="rr-time">
-          <text wx:if="{{type === 'gc'}}" class="time-main">{{item.total_time}}</text>
+          <!-- 积分显示 -->
+          <text wx:if="{{type === 'points' || type === 'mountains'}}" class="time-main">{{item.points}} Pts</text>
+          <!-- 时间显示 -->
+          <text wx:elif="{{type === 'team' || type === 'gc' || type === 'youth'}}" class="time-main">{{item.total_time || item.time}}</text>
+          <!-- 赛段差距显示 -->
           <text wx:else class="time-main">{{item.time_gap || '—'}}</text>
-          <text wx:if="{{type === 'gc' && item.time_gap}}" class="time-gap">({{item.time_gap}})</text>
+          
+          <text wx:if="{{(type === 'gc' || type === 'youth' || type === 'team') && item.time_gap}}" class="time-gap">({{item.time_gap}})</text>
         </view>
       </view>
 

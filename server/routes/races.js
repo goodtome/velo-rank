@@ -728,11 +728,11 @@ router.get('/:id/stages', asyncHandler(async (req, res) => {
 // GET /api/v1/races/:id/gc - 赛事总成绩榜
 router.get('/:id/gc', asyncHandler(async (req, res) => {
   const { id } = req.params;
-    
+
   if (!id || id.trim() === '') {
     throw new AppError('无效的赛事ID', ERROR_CODE.BAD_REQUEST);
   }
-    
+
   const sql = `
     SELECT gc.*, r.rider_name, r.rider_name_zh, r.nationality, r.photo_url,
            t.team_name, t.team_name_zh, t.uci_code
@@ -744,7 +744,73 @@ router.get('/:id/gc', asyncHandler(async (req, res) => {
     )
     ORDER BY gc.\`rank\`
   `;
-    
+
+  const [rows] = await pool.query(sql, [id]);
+  res.json({ code: 200, data: rows });
+}));
+
+// GET /api/v1/races/:id/points - 赛事冲刺积分榜
+router.get('/:id/points', asyncHandler(async (req, res) => {
+  const { id } = req.params;
+
+  if (!id || id.trim() === '') {
+    throw new AppError('无效的赛事ID', ERROR_CODE.BAD_REQUEST);
+  }
+
+  const sql = `
+    SELECT pc.*, r.rider_name, r.rider_name_zh, r.nationality, r.photo_url
+    FROM points_classification pc
+    JOIN riders r ON pc.rider_id = r.id
+    WHERE pc.stage_id = (
+      SELECT id FROM stages WHERE race_id = ? ORDER BY stage_number DESC LIMIT 1
+    )
+    ORDER BY pc.\`rank\`
+  `;
+
+  const [rows] = await pool.query(sql, [id]);
+  res.json({ code: 200, data: rows });
+}));
+
+// GET /api/v1/races/:id/kom - 赛事爬坡积分榜
+router.get('/:id/kom', asyncHandler(async (req, res) => {
+  const { id } = req.params;
+
+  if (!id || id.trim() === '') {
+    throw new AppError('无效的赛事ID', ERROR_CODE.BAD_REQUEST);
+  }
+
+  const sql = `
+    SELECT mc.*, r.rider_name, r.rider_name_zh, r.nationality, r.photo_url
+    FROM mountains_classification mc
+    JOIN riders r ON mc.rider_id = r.id
+    WHERE mc.stage_id = (
+      SELECT id FROM stages WHERE race_id = ? ORDER BY stage_number DESC LIMIT 1
+    )
+    ORDER BY mc.\`rank\`
+  `;
+
+  const [rows] = await pool.query(sql, [id]);
+  res.json({ code: 200, data: rows });
+}));
+
+// GET /api/v1/races/:id/youth - 赛事青年车手榜
+router.get('/:id/youth', asyncHandler(async (req, res) => {
+  const { id } = req.params;
+
+  if (!id || id.trim() === '') {
+    throw new AppError('无效的赛事ID', ERROR_CODE.BAD_REQUEST);
+  }
+
+  const sql = `
+    SELECT yc.*, r.rider_name, r.rider_name_zh, r.nationality, r.photo_url
+    FROM youth_classification yc
+    JOIN riders r ON yc.rider_id = r.id
+    WHERE yc.stage_id = (
+      SELECT id FROM stages WHERE race_id = ? ORDER BY stage_number DESC LIMIT 1
+    )
+    ORDER BY yc.\`rank\`
+  `;
+
   const [rows] = await pool.query(sql, [id]);
   res.json({ code: 200, data: rows });
 }));

@@ -9,7 +9,9 @@
     "init-db": "node server/scripts/init-db.js",
     "seed": "node server/scripts/seed-test-data.js",
     "sync-pcs": "node server/scripts/sync-pcs.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "install-all": "npm install",
+    "monitor": "node server/scripts/schedule-backup.js"
   },
   "keywords": [
     "cycling",
@@ -26,7 +28,10 @@
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",
     "express": "^4.18.2",
+    "express-rate-limit": "^7.5.1",
+    "joi": "^17.13.3",
     "jsdom": "^29.1.1",
+    "lark-cli": "^0.1.0",
     "mysql2": "^3.6.0",
     "playwright": "^1.60.0",
     "playwright-extra": "^4.3.6",
