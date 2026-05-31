@@ -4,6 +4,68 @@ const pool = require('../config/db-pool');
 const { PAGINATION, VALIDATION, ERROR_CODE } = require('../constants');
 const { AppError, asyncHandler } = require('../middleware/errorHandler');
 
+// GET /api/v1/stages - 获取赛段列表
+router.get('/', asyncHandler(async (req, res) => {
+  const { race_id, stage_type, page = 1, limit = 20 } = req.query;
+
+  // 验证分页参数
+  const pageNum = Math.max(1, parseInt(page) || 1);
+  const limitNum = Math.min(PAGINATION.MAX_LIMIT, Math.max(PAGINATION.MIN_LIMIT, parseInt(limit) || PAGINATION.DEFAULT_LIMIT));
+  const offset = (pageNum - 1) * limitNum;
+
+  if (isNaN(pageNum) || pageNum > PAGINATION.MAX_PAGE) {
+    throw new AppError('无效的分页参数', ERROR_CODE.BAD_REQUEST);
+  }
+
+  // 构建WHERE条件
+  const where = [];
+  const params = [];
+
+  if (race_id) {
+    where.push('s.race_id = ?');
+    params.push(race_id);
+  }
+
+  if (stage_type && ['Flat', 'Hills', 'Mountain', 'TTT', 'ITT'].includes(stage_type)) {
+    where.push('s.stage_type = ?');
+    params.push(stage_type);
+  }
+
+  const whereSQL = where.length > 0 ? `WHERE ${where.join(' AND ')}` : '';
+
+  // 查询总数
+  const countSql = `
+    SELECT COUNT(*) as total
+    FROM stages s
+    ${whereSQL}
+  `;
+  const [countResult] = await pool.query(countSql, params);
+  const total = countResult[0].total;
+
+  // 查询列表（联表获取赛事名称）
+  const listParams = [...params, limitNum, offset];
+  const listSql = `
+    SELECT s.*, r.race_name, r.race_name_zh
+    FROM stages s
+    LEFT JOIN races r ON s.race_id = r.id
+    ${whereSQL}
+    ORDER BY s.race_id, s.stage_number
+    LIMIT ? OFFSET ?
+  `;
+  const [rows] = await pool.query(listSql, listParams);
+
+  res.json({
+    code: 200,
+    data: rows,
+    pagination: {
+      page: pageNum,
+      limit: limitNum,
+      total,
+      pages: Math.ceil(total / limitNum)
+    }
+  });
+}));
+
 // GET /api/v1/stages/:id - 获取赛段详情
 router.get('/:id', asyncHandler(async (req, res) => {
   const { id } = req.params;

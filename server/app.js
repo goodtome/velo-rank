@@ -13,6 +13,11 @@ const server = http.createServer(app);
 // 安全中间件
 const { apiLimiter, adminLimiter, syncLimiter, corsOptions } = require('./config/security');
 
+// 预先创建限流中间件实例（避免每次请求都创建新实例）
+const apiLimiterMiddleware = rateLimit(apiLimiter);
+const adminLimiterMiddleware = rateLimit(adminLimiter);
+const syncLimiterMiddleware = rateLimit(syncLimiter);
+
 // 应用CORS配置
 app.use(cors(corsOptions));
 
@@ -25,7 +30,7 @@ app.use('/api/v1/health', (req, res, next) => next()); // 心跳检查不限制
 app.use((req, res, next) => {
   // 对于公开的、查询类的API使用普通限流
   if (['GET'].includes(req.method) && req.path.startsWith('/api/v1/search')) {
-    return require('express-rate-limit')(apiLimiter)(req, res, next);
+    return apiLimiterMiddleware(req, res, next);
   }
   next();
 });
@@ -38,16 +43,16 @@ app.use('/api/v1', (req, res, next) => {
 
   // 管理后台使用宽松限流
   if (req.path.startsWith('/admin')) {
-    return require('express-rate-limit')(adminLimiter)(req, res, next);
+    return adminLimiterMiddleware(req, res, next);
   }
 
   // 数据同步使用严格限流
   if (req.path.startsWith('/sync')) {
-    return require('express-rate-limit')(syncLimiter)(req, res, next);
+    return syncLimiterMiddleware(req, res, next);
   }
 
   // 其他API使用默认限流
-  return require('express-rate-limit')(apiLimiter)(req, res, next);
+  return apiLimiterMiddleware(req, res, next);
 });
 
 // XSS防护中间件
@@ -116,16 +121,16 @@ app.options('*', cors(corsOptions));
 
 // API路由
 app.use('/api/v1/auth', require('./routes/auth'));
-app.use('/api/v1/races', rateLimit(apiLimiter, { skip: (req) => req.path.startsWith('/health') }), require('./routes/races'));
-app.use('/api/v1/stats', rateLimit(apiLimiter, { skip: (req) => req.path.startsWith('/health') }), require('./routes/stats'));
-app.use('/api/v1/stages', rateLimit(apiLimiter, { skip: (req) => req.path.startsWith('/health') }), require('./routes/stages'));
-app.use('/api/v1/riders', rateLimit(apiLimiter, { skip: (req) => req.path.startsWith('/health') }), require('./routes/riders'));
-app.use('/api/v1/teams', rateLimit(apiLimiter, { skip: (req) => req.path.startsWith('/health') }), require('./routes/teams'));
-app.use('/api/v1/search', rateLimit(apiLimiter, { skip: (req) => req.path.startsWith('/health') }), require('./routes/search'));
-app.use('/api/v1/sync', rateLimit(syncLimiter), require('./routes/sync'));
-app.use('/api/v1/admin', rateLimit(adminLimiter), require('./routes/admin'));
-app.use('/api/v1/realtime', rateLimit(apiLimiter, { skip: (req) => req.path.startsWith('/health') }), require('./routes/realtime'));
-app.use('/api/v1/push', rateLimit(apiLimiter, { skip: (req) => req.path.startsWith('/health') }), require('./routes/push'));
+app.use('/api/v1/races', require('./routes/races'));
+app.use('/api/v1/stats', require('./routes/stats'));
+app.use('/api/v1/stages', require('./routes/stages'));
+app.use('/api/v1/riders', require('./routes/riders'));
+app.use('/api/v1/teams', require('./routes/teams'));
+app.use('/api/v1/search', require('./routes/search'));
+app.use('/api/v1/sync', require('./routes/sync'));
+app.use('/api/v1/admin', require('./routes/admin'));
+app.use('/api/v1/realtime', require('./routes/realtime'));
+app.use('/api/v1/push', require('./routes/push'));
 
 // 404处理（使用统一错误格式）
 app.use('*', (req, res) => {

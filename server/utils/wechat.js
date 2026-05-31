@@ -176,10 +176,10 @@ async function batchSendSubscribeMessage(messages) {
  */
 async function code2Session(code) {
   const appId = process.env.WECHAT_APPID;
-  const appSecret = process.env.WECHAT_SECRET;
+  const appSecret = process.env.WECHAT_APPSECRET;
 
   if (!appId || !appSecret) {
-    throw new Error('缺少微信配置: WECHAT_APPID 或 WECHAT_SECRET');
+    throw new Error('缺少微信配置: WECHAT_APPID 或 WECHAT_APPSECRET');
   }
 
   return new Promise((resolve, reject) => {
