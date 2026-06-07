@@ -40,12 +40,19 @@ function sendError(res, statusCode, message, details = null) {
  * 错误处理中间件（必须放在所有路由之后）
  */
 function errorHandler(err, req, res, next) {
-  console.error('错误详情:', {
+  // 结构化错误日志（JSON 格式，便于 Fly.io 收集和检索）
+  const errorLog = {
+    ts: new Date().toISOString(),
+    level: 'error',
+    type: 'unhandled_error',
+    method: req.method,
+    path: req.originalUrl || req.path,
     message: err.message,
-    stack: err.stack,
-    path: req.path,
-    method: req.method
-  });
+    stack: err.stack ? err.stack.split('\n').slice(0, 5).join(' | ') : undefined,
+    code: err.code || undefined,
+    statusCode: err.statusCode || 500
+  };
+  console.error(JSON.stringify(errorLog));
 
   // 默认错误
   let statusCode = err.statusCode || 500;

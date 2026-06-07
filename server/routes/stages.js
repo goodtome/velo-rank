@@ -3,6 +3,26 @@ const router = express.Router();
 const pool = require('../config/db-pool');
 const { PAGINATION, VALIDATION, ERROR_CODE } = require('../constants');
 const { AppError, asyncHandler } = require('../middleware/errorHandler');
+const { adminMiddleware } = require('../middleware/auth');
+const { routeLog } = require('../middleware/requestLogger');
+const { getJerseysForStage } = require('../services/jerseyService');
+const log = routeLog('stages');
+
+const STAGE_CHILD_TABLES = [
+  'stage_results',
+  'jerseys',
+  'general_classification',
+  'points_classification',
+  'mountains_classification',
+  'youth_classification',
+  'team_classification'
+];
+
+async function deleteStageData(conn, stageId) {
+  for (const table of STAGE_CHILD_TABLES) {
+    await conn.query(`DELETE FROM ${table} WHERE stage_id = ?`, [stageId]);
+  }
+}
 
 // GET /api/v1/stages - 获取赛段列表
 router.get('/', asyncHandler(async (req, res) => {
@@ -82,42 +102,49 @@ router.get('/:id', asyncHandler(async (req, res) => {
   res.json({ code: 200, data: rows[0] });
 }));
 
-// GET /api/v1/stages/:id/results - 获取赛段成绩
+// GET /api/v1/stages/:id/results - 获取赛段成绩（支持分页）
 router.get('/:id/results', asyncHandler(async (req, res) => {
   const { id } = req.params;
-  const { limit = 20 } = req.query;
+  const { page = 1, limit = 50 } = req.query;
   
-  const stageId = id; // UUID是字符串
+  const stageId = id;
   if (!id || id.trim() === '') {
     throw new AppError('无效的赛段ID', ERROR_CODE.BAD_REQUEST);
   }
+
+  const pageNum = Math.max(1, parseInt(page) || 1);
+  const limitNum = Math.min(PAGINATION.MAX_LIMIT, Math.max(1, parseInt(limit) || 50));
+  const offset = (pageNum - 1) * limitNum;
+
+  // 查总数
+  const [countResult] = await pool.query(
+    'SELECT COUNT(*) as total FROM stage_results WHERE stage_id = ?',
+    [stageId]
+  );
+  const total = countResult[0].total;
     
-  // 验证并限制查询结果数量
-  const parsedLimit = parseInt(limit);
-  if (isNaN(parsedLimit)) {
-    throw new AppError('无效的limit参数', ERROR_CODE.BAD_REQUEST);
-  }
-  const limitNum = Math.min(PAGINATION.MAX_LIMIT, Math.max(1, parsedLimit));
-    
-  // 使用参数化查询避免语法问题
   const sql = `
-    SELECT sr.*, r.rider_name, r.rider_name_zh, r.nationality, r.photo_url,
+    SELECT sr.*, sr.rank_pos AS \`rank\`,
+           r.rider_name, r.rider_name_zh, r.nationality, r.photo_url,
            t.team_name, t.team_name_zh, t.uci_code
     FROM stage_results sr
     JOIN riders r ON sr.rider_id = r.id
     JOIN teams t ON sr.team_id = t.id
     WHERE sr.stage_id = ?
     ORDER BY sr.rank_pos
-    LIMIT ?
+    LIMIT ? OFFSET ?
   `;
     
-  const [rows] = await pool.query(sql, [stageId, limitNum]);
+  const [rows] = await pool.query(sql, [stageId, limitNum, offset]);
     
   res.json({
     code: 200,
     data: rows,
     pagination: {
-      limit: limitNum
+      page: pageNum,
+      limit: limitNum,
+      total,
+      pages: Math.ceil(total / limitNum)
     }
   });
 }));
@@ -131,66 +158,7 @@ router.get('/:id/jerseys', asyncHandler(async (req, res) => {
     throw new AppError('无效的赛段ID', ERROR_CODE.BAD_REQUEST);
   }
     
-  // 查询领骑衫持有者，联表查询车手和车队信息
-  const sql = `
-    SELECT j.jersey_type, j.rider_id, j.team_id,
-           r.rider_name, r.rider_name_zh, r.nationality, r.photo_url,
-           t.team_name, t.team_name_zh, t.uci_code
-    FROM jerseys j
-    JOIN riders r ON j.rider_id = r.id
-    JOIN teams t ON j.team_id = t.id
-    WHERE j.stage_id = ?
-  `;
-    
-  const [rows] = await pool.query(sql, [stageId]);
-    
-  // 为每个领骑衫获取积分或时间差
-  const jerseysList = await Promise.all(rows.map(async (row) => {
-    let time_gap = null;
-    let points = null;
-    
-    // 根据领骑衫类型，从对应classification表获取积分或时间差
-    if (row.jersey_type === 'pink') {
-      // 粉衫：从general_classification获取time_gap
-      const [gc] = await pool.query(
-        'SELECT time_gap FROM general_classification WHERE stage_id = ? AND rider_id = ? ORDER BY `rank` LIMIT 1',
-        [stageId, row.rider_id]
-      );
-      if (gc.length > 0) time_gap = gc[0].time_gap;
-    } else if (row.jersey_type === 'purple') {
-      // 紫衫：从points_classification获取points
-      const [pc] = await pool.query(
-        'SELECT points FROM points_classification WHERE stage_id = ? AND rider_id = ? ORDER BY points DESC LIMIT 1',
-        [stageId, row.rider_id]
-      );
-      if (pc.length > 0) points = pc[0].points;
-    } else if (row.jersey_type === 'blue') {
-      // 蓝衫：从points_classification获取points（冲刺积分）
-      const [pc] = await pool.query(
-        'SELECT points FROM points_classification WHERE stage_id = ? AND rider_id = ? ORDER BY points DESC LIMIT 1',
-        [stageId, row.rider_id]
-      );
-      if (pc.length > 0) points = pc[0].points;
-    } else if (row.jersey_type === 'white') {
-      // 白衫：从youth_classification获取time_gap
-      const [yc] = await pool.query(
-        'SELECT time_gap FROM youth_classification WHERE stage_id = ? AND rider_id = ? ORDER BY `rank` LIMIT 1',
-        [stageId, row.rider_id]
-      );
-      if (yc.length > 0) time_gap = yc[0].time_gap;
-    }
-    
-    return {
-      jersey_type: row.jersey_type,
-      rider_name: row.rider_name,
-      rider_name_zh: row.rider_name_zh,
-      team_name: row.team_name,
-      team_name_zh: row.team_name_zh,
-      uci_code: row.uci_code,
-      time_gap,
-      points
-    };
-  }));
+  const jerseysList = await getJerseysForStage(pool, stageId);
     
   res.json({
     code: 200,
@@ -199,7 +167,7 @@ router.get('/:id/jerseys', asyncHandler(async (req, res) => {
 }));
 
 // POST /api/v1/stages - 创建赛段
-router.post('/', asyncHandler(async (req, res) => {
+router.post('/', adminMiddleware, asyncHandler(async (req, res) => {
   const {
     race_id,
     stage_number,
@@ -273,7 +241,7 @@ router.post('/', asyncHandler(async (req, res) => {
 }));
 
 // PUT /api/v1/stages/:id - 更新赛段
-router.put('/:id', asyncHandler(async (req, res) => {
+router.put('/:id', adminMiddleware, asyncHandler(async (req, res) => {
   const { id } = req.params;
   const stageId = id; // UUID是字符串
     
@@ -385,13 +353,13 @@ router.put('/:id', asyncHandler(async (req, res) => {
       message: '赛段更新成功'
     });
   } catch (err) {
-    console.error('更新赛段失败:', err);
+    log.error('更新赛段失败', { error: err.message });
     throw new AppError('更新赛段失败: ' + err.message, ERROR_CODE.INTERNAL_ERROR);
   }
 }));
 
 // DELETE /api/v1/stages/:id - 删除赛段
-router.delete('/:id', asyncHandler(async (req, res) => {
+router.delete('/:id', adminMiddleware, asyncHandler(async (req, res) => {
   const { id } = req.params;
   const stageId = id; // UUID是字符串
     
@@ -399,18 +367,25 @@ router.delete('/:id', asyncHandler(async (req, res) => {
     throw new AppError('无效的赛段ID', ERROR_CODE.BAD_REQUEST);
   }
 
-  // 检查赛段是否存在
-  const [existing] = await pool.query('SELECT id FROM stages WHERE id = ?', [stageId]);
-  if (existing.length === 0) {
-    throw new AppError('赛段不存在', ERROR_CODE.NOT_FOUND);
-  }
+  const conn = await pool.getConnection();
+  try {
+    await conn.beginTransaction();
 
-  // 删除关联的赛段成绩和领骑衫数据
-  await pool.query('DELETE FROM stage_results WHERE stage_id = ?', [stageId]);
-  await pool.query('DELETE FROM jerseys WHERE stage_id = ?', [stageId]);
-    
-  // 删除赛段
-  await pool.query('DELETE FROM stages WHERE id = ?', [stageId]);
+    const [existing] = await conn.query('SELECT id FROM stages WHERE id = ? FOR UPDATE', [stageId]);
+    if (existing.length === 0) {
+      throw new AppError('赛段不存在', ERROR_CODE.NOT_FOUND);
+    }
+
+    await deleteStageData(conn, stageId);
+    await conn.query('DELETE FROM stages WHERE id = ?', [stageId]);
+
+    await conn.commit();
+  } catch (err) {
+    await conn.rollback();
+    throw err;
+  } finally {
+    conn.release();
+  }
 
   res.json({
     code: 200,
@@ -418,14 +393,26 @@ router.delete('/:id', asyncHandler(async (req, res) => {
   });
 }));
 
-// GET /api/v1/stages/:id/general-classification - 获取GC总成绩排名
+// GET /api/v1/stages/:id/general-classification - 获取GC总成绩排名（支持分页）
 router.get('/:id/general-classification', asyncHandler(async (req, res) => {
   const { id } = req.params;
+  const { page = 1, limit = 50 } = req.query;
   const stageId = id; // UUID是字符串
   
   if (!id || id.trim() === '') {
     throw new AppError('无效的赛段ID', ERROR_CODE.BAD_REQUEST);
   }
+
+  const pageNum = Math.max(1, parseInt(page) || 1);
+  const limitNum = Math.min(PAGINATION.MAX_LIMIT, Math.max(1, parseInt(limit) || 50));
+  const offset = (pageNum - 1) * limitNum;
+
+  // 查总数
+  const [countResult] = await pool.query(
+    'SELECT COUNT(*) as total FROM general_classification WHERE stage_id = ?',
+    [stageId]
+  );
+  const total = countResult[0].total;
   
   // 查询GC总成绩排名，关联车手和车队信息
   const sql = `
@@ -438,86 +425,134 @@ router.get('/:id/general-classification', asyncHandler(async (req, res) => {
     LEFT JOIN teams t ON sr.team_id = t.id
     WHERE gc.stage_id = ?
     ORDER BY gc.\`rank\`
+    LIMIT ? OFFSET ?
   `;
   
-  const [rows] = await pool.query(sql, [stageId]);
+  const [rows] = await pool.query(sql, [stageId, limitNum, offset]);
   
   res.json({
     code: 200,
     data: rows,
+    pagination: { page: pageNum, limit: limitNum, total, pages: Math.ceil(total / limitNum) },
     message: 'success'
   });
 }));
 
-// GET /api/v1/stages/:id/points - 获取冲刺积分排名
+// GET /api/v1/stages/:id/points - 获取冲刺积分排名（支持分页）
 router.get('/:id/points', asyncHandler(async (req, res) => {
   const { id } = req.params;
+  const { page = 1, limit = 50 } = req.query;
   const stageId = id;
   
   if (!id || id.trim() === '') {
     throw new AppError('无效的赛段ID', ERROR_CODE.BAD_REQUEST);
   }
+
+  const pageNum = Math.max(1, parseInt(page) || 1);
+  const limitNum = Math.min(PAGINATION.MAX_LIMIT, Math.max(1, parseInt(limit) || 50));
+  const offset = (pageNum - 1) * limitNum;
   
+  // 查总数
+  const [countResult] = await pool.query(
+    'SELECT COUNT(*) as total FROM points_classification WHERE stage_id = ?',
+    [stageId]
+  );
+  const total = countResult[0].total;
+
   const sql = `
-    SELECT p.*, 
+    SELECT sub.*, 
            r.rider_name, r.rider_name_zh, r.nationality, r.photo_url,
            t.team_name, t.team_name_zh, t.uci_code
-    FROM points_classification p
-    JOIN riders r ON p.rider_id = r.id
-    LEFT JOIN stage_results sr ON p.stage_id = sr.stage_id AND p.rider_id = sr.rider_id
+    FROM (
+      SELECT id, stage_id, rider_id, points,
+             DENSE_RANK() OVER (ORDER BY points DESC) AS \`rank\`
+      FROM points_classification
+      WHERE stage_id = ?
+    ) sub
+    JOIN riders r ON sub.rider_id = r.id
+    LEFT JOIN stage_results sr ON sub.stage_id = sr.stage_id AND sub.rider_id = sr.rider_id
     LEFT JOIN teams t ON sr.team_id = t.id
-    WHERE p.stage_id = ?
-    ORDER BY p.points DESC
+    ORDER BY sub.\`rank\`, sub.points DESC, sub.rider_id
+    LIMIT ? OFFSET ?
   `;
   
-  const [rows] = await pool.query(sql, [stageId]);
-  
+  const [rows] = await pool.query(sql, [stageId, limitNum, offset]);
+
   res.json({
     code: 200,
     data: rows,
-    message: 'success'
+    pagination: { page: pageNum, limit: limitNum, total, pages: Math.ceil(total / limitNum) }
   });
 }));
 
-// GET /api/v1/stages/:id/mountains - 获取爬坡积分排名
+// GET /api/v1/stages/:id/mountains - 获取爬坡积分排名（支持分页）
 router.get('/:id/mountains', asyncHandler(async (req, res) => {
   const { id } = req.params;
+  const { page = 1, limit = 50 } = req.query;
   const stageId = id;
   
   if (!id || id.trim() === '') {
     throw new AppError('无效的赛段ID', ERROR_CODE.BAD_REQUEST);
   }
-  
+
+  const pageNum = Math.max(1, parseInt(page) || 1);
+  const limitNum = Math.min(PAGINATION.MAX_LIMIT, Math.max(1, parseInt(limit) || 50));
+  const offset = (pageNum - 1) * limitNum;
+
+  // 查总数
+  const [countResult] = await pool.query(
+    'SELECT COUNT(*) as total FROM mountains_classification WHERE stage_id = ?',
+    [stageId]
+  );
+  const total = countResult[0].total;
+
   const sql = `
-    SELECT m.*, 
+    SELECT sub.*, 
            r.rider_name, r.rider_name_zh, r.nationality, r.photo_url,
            t.team_name, t.team_name_zh, t.uci_code
-    FROM mountains_classification m
-    JOIN riders r ON m.rider_id = r.id
-    LEFT JOIN stage_results sr ON m.stage_id = sr.stage_id AND m.rider_id = sr.rider_id
+    FROM (
+      SELECT id, stage_id, rider_id, points,
+             DENSE_RANK() OVER (ORDER BY points DESC) AS \`rank\`
+      FROM mountains_classification
+      WHERE stage_id = ?
+    ) sub
+    JOIN riders r ON sub.rider_id = r.id
+    LEFT JOIN stage_results sr ON sub.stage_id = sr.stage_id AND sub.rider_id = sr.rider_id
     LEFT JOIN teams t ON sr.team_id = t.id
-    WHERE m.stage_id = ?
-    ORDER BY m.points DESC
+    ORDER BY sub.\`rank\`, sub.points DESC, sub.rider_id
+    LIMIT ? OFFSET ?
   `;
   
-  const [rows] = await pool.query(sql, [stageId]);
-  
+  const [rows] = await pool.query(sql, [stageId, limitNum, offset]);
+
   res.json({
     code: 200,
     data: rows,
-    message: 'success'
+    pagination: { page: pageNum, limit: limitNum, total, pages: Math.ceil(total / limitNum) }
   });
 }));
 
-// GET /api/v1/stages/:id/youth - 获取青年排名
+// GET /api/v1/stages/:id/youth - 获取青年排名（支持分页）
 router.get('/:id/youth', asyncHandler(async (req, res) => {
   const { id } = req.params;
+  const { page = 1, limit = 50 } = req.query;
   const stageId = id;
   
   if (!id || id.trim() === '') {
     throw new AppError('无效的赛段ID', ERROR_CODE.BAD_REQUEST);
   }
-  
+
+  const pageNum = Math.max(1, parseInt(page) || 1);
+  const limitNum = Math.min(PAGINATION.MAX_LIMIT, Math.max(1, parseInt(limit) || 50));
+  const offset = (pageNum - 1) * limitNum;
+
+  // 查总数
+  const [countResult] = await pool.query(
+    'SELECT COUNT(*) as total FROM youth_classification WHERE stage_id = ?',
+    [stageId]
+  );
+  const total = countResult[0].total;
+
   const sql = `
     SELECT y.*, 
            r.rider_name, r.rider_name_zh, r.nationality, r.photo_url,
@@ -528,14 +563,15 @@ router.get('/:id/youth', asyncHandler(async (req, res) => {
     LEFT JOIN teams t ON sr.team_id = t.id
     WHERE y.stage_id = ?
     ORDER BY y.\`rank\`
+    LIMIT ? OFFSET ?
   `;
   
-  const [rows] = await pool.query(sql, [stageId]);
+  const [rows] = await pool.query(sql, [stageId, limitNum, offset]);
   
   res.json({
     code: 200,
     data: rows,
-    message: 'success'
+    pagination: { page: pageNum, limit: limitNum, total, pages: Math.ceil(total / limitNum) }
   });
 }));
 

@@ -23,7 +23,7 @@
   <!-- 错误状态 -->
   <view wx:elif="{{loadError}}" class="error-state">
     <text class="error-state-icon">😵</text>
-    <text class="error-state-text">网络错误，请检查网络连接</text>
+    <text class="error-state-text">{{errorMessage || '网络错误，请检查网络连接'}}</text>
     <button class="retry-btn" bindtap="retryLoad">重试</button>
   </view>
 
@@ -40,7 +40,7 @@
     <view class="header-card">
       <view class="header-main">
         <view class="avatar-wrap">
-          <image wx:if="{{rider.photo_url}}" class="avatar" src="{{rider.photo_url}}" mode="aspectFill"></image>
+          <image wx:if="{{rider.photo_url}}" class="avatar" src="{{rider.photo_url}}" mode="aspectFill" lazy-load></image>
           <view wx:else class="avatar avatar-placeholder">🚴</view>
         </view>
         <view class="header-info">
@@ -74,7 +74,7 @@
       <!-- 领骑衫历史 -->
       <view wx:if="{{stats.jerseys && stats.jerseys.length > 0}}" class="jersey-history">
         <text class="jersey-label">🛡️ 曾穿领骑衫：</text>
-        <text wx:for="{{stats.jerseys}}" wx:for-item="j" wx:key="jersey_type" class="jersey-tag jersey-tag-{{j.jersey_type}}">{{j.jersey_type}}</text>
+        <text wx:for="{{stats.jerseys}}" wx:for-item="j" wx:key="jersey_type" class="jersey-tag jersey-tag-{{j.jersey_type}}">{{j._jersey_name_zh || j.jersey_type}}</text>
       </view>
     </view>
 

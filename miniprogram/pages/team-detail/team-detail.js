@@ -3,8 +3,8 @@
  * 新增：统计数据卡片、赛事历史
  */
 
-const { get } = require('../../utils/request');
-const { showError } = require('../../utils/util');
+const { get, formatErrorMessage } = require('../../utils/request');
+const { showError, navigateTo } = require('../../utils/util');
 const { formatTeamName } = require('../../utils/string-format');
 
 Page({
@@ -61,8 +61,8 @@ Page({
       }
     } catch (err) {
       console.error('加载车队详情失败:', err);
-      this.setData({ loading: false, loadError: true });
-      showError('网络请求失败');
+      this.setData({ loading: false, loadError: true, errorMessage: formatErrorMessage(err) });
+      showError(formatErrorMessage(err));
     }
   },
 
@@ -89,7 +89,7 @@ Page({
   goToRider(e) {
     const { id } = e.currentTarget.dataset;
     if (!id) return;
-    wx.navigateTo({ url: `/pages/rider-detail/rider-detail?id=${id}` });
+    navigateTo({ url: `/pages/rider-detail/rider-detail?id=${id}` });
   },
 
   onPullDownRefresh() {

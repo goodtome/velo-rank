@@ -49,3 +49,8 @@ server/uploads/
 server/scripts/__pycache__/
 .env.production
 .env.example
+
+# Database backups
+backups/
+*.sql.gz
+server/scripts/backup_*.sql

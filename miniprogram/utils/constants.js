@@ -7,10 +7,14 @@
 const REQUEST = {
   // 请求超时时间（毫秒）
   TIMEOUT: 10000,
+  // 弱网超时时间（毫秒）— 3G/2G 环境自动切换
+  TIMEOUT_WEAK: 30000,
   // 重试次数
   MAX_RETRIES: 2,
   // 重试延迟基础值（毫秒）
   RETRY_DELAY_BASE: 1000,
+  // 弱网判定：wifi/4G/5G 以外视为弱网
+  WEAK_NETWORK_TYPES: ['2g', '3g', 'none', 'unknown'],
 };
 
 // 防抖配置

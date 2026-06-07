@@ -107,10 +107,22 @@ page {
   flex-shrink: 0;
 }
 
-.jersey-pink { background: linear-gradient(135deg, #ff69b4, #ff1493); }
-.jersey-purple { background: linear-gradient(135deg, #9b59b6, #8e44ad); }
-.jersey-blue { background: linear-gradient(135deg, #3498db, #2980b9); }
-.jersey-white { background: linear-gradient(135deg, #ecf0f1, #bdc3c7); }
+/* 环意领骑衫 */
+.jersey-pink, .jersey-PINK { background: linear-gradient(135deg, #ff69b4, #ff1493); }
+.jersey-purple, .jersey-PURPLE { background: linear-gradient(135deg, #9b59b6, #8e44ad); }
+.jersey-blue, .jersey-BLUE { background: linear-gradient(135deg, #3498db, #2980b9); }
+.jersey-BLUE_SPRINT { background: linear-gradient(135deg, #3498db, #2980b9); }
+
+/* 环法令骑衫 */
+.jersey-yellow, .jersey-YELLOW { background: linear-gradient(135deg, #FFD700, #FFC107); }
+.jersey-green, .jersey-GREEN { background: linear-gradient(135deg, #4CAF50, #2E7D32); }
+.jersey-polka_dot, .jersey-POLKA_DOT, .jersey-POLKADOT { background: linear-gradient(135deg, #e74c3c, #c0392b); }
+
+/* 环西领骑衫 */
+.jersey-red, .jersey-RED { background: linear-gradient(135deg, #e74c3c, #c0392b); }
+
+/* 通用 - 白衫（三大环赛青年车手） */
+.jersey-white, .jersey-WHITE, .jersey-WHITE_YOUTH { background: linear-gradient(135deg, #ecf0f1, #bdc3c7); }
 
 /* ========== 公共组件样式 ========== */
 

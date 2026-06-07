@@ -3,8 +3,8 @@
  * v1.0 优化版：赛事期间全覆盖标记 + 状态颜色 + 新日历API
  */
 
-const { get } = require('../../utils/request');
-const { formatDate } = require('../../utils/util');
+const { get, formatErrorMessage } = require('../../utils/request');
+const { formatDate, navigateTo } = require('../../utils/util');
 
 Page({
   data: {
@@ -18,6 +18,8 @@ Page({
     upcomingRaces: [],
     allRaces: [], // 当前月的所有赛事
     loading: false,
+    loadError: false,
+    errorMessage: '',
     // 赛事类型颜色映射（key 对齐数据库 category 实际值）
     categoryColors: {
       'Grand Tour':              '#f1c40f', // 大环赛 - 金色
@@ -43,7 +45,7 @@ Page({
    * 加载赛事日历数据
    */
   async loadCalendarData() {
-    this.setData({ loading: true });
+    this.setData({ loading: true, loadError: false, errorMessage: '' });
 
     try {
       const res = await get('/races/calendar', {
@@ -99,6 +101,10 @@ Page({
       }
     } catch (err) {
       console.error('降级加载赛事失败:', err);
+      this.setData({
+        loadError: true,
+        errorMessage: formatErrorMessage(err)
+      });
     }
   },
 
@@ -209,6 +215,13 @@ Page({
     this.setData({ upcomingRaces: upcoming });
   },
 
+  /**
+   * 重试加载
+   */
+  retryLoad() {
+    this.loadCalendarData();
+  },
+
   // 切换月份
   prevMonth() {
     let { currentYear, currentMonth } = this.data;
@@ -261,7 +274,7 @@ Page({
   goToRace(e) {
     const { id } = e.currentTarget.dataset;
     if (!id) return;
-    wx.navigateTo({
+    navigateTo({
       url: `/pages/race-detail/race-detail?id=${id}`
     });
   },
@@ -273,17 +286,44 @@ Page({
     const { race } = e.currentTarget.dataset;
     if (!race) return;
 
+    const title = race.race_name_zh || race.race_name;
+    const startDate = race.start_date ? new Date(race.start_date) : null;
+    const endDate = race.end_date ? new Date(race.end_date) : null;
+
+    if (!startDate || isNaN(startDate.getTime())) {
+      wx.showToast({ title: '赛事日期未知', icon: 'none' });
+      return;
+    }
+
     wx.showModal({
       title: '添加到日历',
-      content: `将"${race.race_name_zh || race.race_name}"添加到系统日历？`,
+      content: `将"${title}"添加到系统日历？`,
       success: (res) => {
-        if (res.confirm) {
-          wx.showToast({
-            title: '已添加到日历',
-            icon: 'success'
-          });
-          // TODO: 调用 wx.addPhoneCalendar 或服务端生成 .ics 文件
-        }
+        if (!res.confirm) return;
+
+        const startTime = Math.floor(startDate.getTime() / 1000);
+        // 如果赛事有结束日期，设为全天事件（结束日 23:59）；否则设为 1 天
+        const endTime = endDate && !isNaN(endDate.getTime())
+          ? Math.floor((endDate.getTime() + 86400000 - 1) / 1000)
+          : startTime + 86400;
+
+        wx.addPhoneCalendar({
+          title,
+          startTime,
+          endTime,
+          allDay: 1,
+          description: `${race.race_name_en || title}\n${race.category || ''}`,
+          success: () => {
+            wx.showToast({ title: '已添加到日历', icon: 'success' });
+          },
+          fail: (err) => {
+            if (err.errMsg && err.errMsg.includes('auth deny')) {
+              wx.showToast({ title: '请授权日历权限', icon: 'none' });
+            } else {
+              wx.showToast({ title: '添加失败', icon: 'none' });
+            }
+          }
+        });
       }
     });
   },

@@ -22,7 +22,7 @@
   <!-- 错误状态 -->
   <view wx:elif="{{loadError}}" class="error-state">
     <text class="error-state-icon">😵</text>
-    <text class="error-state-text">加载失败，请检查网络</text>
+    <text class="error-state-text">{{errorMessage || '加载失败，请检查网络'}}</text>
     <button class="retry-btn" bindtap="retryLoad">重新加载</button>
   </view>
 
@@ -32,9 +32,9 @@
       <view class="race-name">{{race.race_name_zh || race.race_name}}</view>
       <view class="race-name-en" wx:if="{{race.race_name_en && race.race_name_zh}}">{{race.race_name_en}}</view>
       <view class="race-meta-row">
-        <text class="tag tag-blue" wx:if="{{race.category}}">{{categoryName(race.category)}}</text>
+        <text class="tag tag-blue" wx:if="{{race.category}}">{{race._category_zh}}</text>
         <text class="tag tag-green" wx:if="{{genderLabel}}">{{genderLabel}}</text>
-        <text class="race-date">{{formatDate(race.start_date)}} — {{formatDate(race.end_date)}}</text>
+        <text class="race-date">{{race._start_date_fmt}} — {{race._end_date_fmt}}</text>
       </view>
       <view class="race-stats">
         <view class="stat">
@@ -59,7 +59,7 @@
         <view wx:for="{{jerseys}}" wx:key="jersey_type" class="jersey-card">
           <view class="jersey-circle-lg jersey-{{item.jersey_type}}"></view>
           <view class="jersey-detail">
-            <text class="jersey-type-label">{{jerseyTypeName(item.jersey_type)}}</text>
+            <text class="jersey-type-label">{{item._jersey_type_zh}}</text>
             <text class="jersey-rider">{{item.rider_name_zh || item.rider_name}}</text>
             <text class="jersey-team">{{item.team_name_zh || item.team_name}}</text>
           </view>
@@ -97,7 +97,7 @@
           <view class="stage-info">
             <view class="stage-route">{{item.stage_name}}</view>
             <view class="stage-meta-row">
-              <text>{{formatDate(item.date)}}</text>
+              <text>{{item._date_fmt}}</text>
               <text wx:if="{{item.distance_km}}"> · {{item.distance_km}}km</text>
               <text class="stage-type-tag tag-{{item.stage_type}}" wx:if="{{item.stage_type}}">{{item.stage_type}}</text>
             </view>
@@ -122,37 +122,24 @@
     <!-- 分类榜入口 -->
     <view class="section-label" style="margin-top:24rpx;">分类排名</view>
 
-    <view class="clf-card clf-points" hover-class="clf-card-hover" bindtap="onClassTap" data-type="points">
+    <view class="clf-section clf-race-{{raceType || 'default'}}">
+    <view 
+      wx:for="{{clfEntries}}" 
+      wx:key="type"
+      class="clf-card clf-{{item.type}}" 
+      hover-class="clf-card-hover" 
+      bindtap="onClassTap" 
+      data-type="{{item.type}}"
+    >
       <view class="clf-left">
-        <view class="clf-icon">🟣</view>
+        <view class="clf-icon">{{item.icon}}</view>
         <view class="clf-text">
-          <view class="clf-title">冲刺积分榜</view>
-          <view class="clf-sub">Points Classification</view>
+          <view class="clf-title">{{item.title}}</view>
+          <view class="clf-sub">{{item.sub}}</view>
         </view>
       </view>
       <view class="arrow">></view>
     </view>
-
-    <view class="clf-card clf-mountains" hover-class="clf-card-hover" bindtap="onClassTap" data-type="mountains">
-      <view class="clf-left">
-        <view class="clf-icon">🔵</view>
-        <view class="clf-text">
-          <view class="clf-title">爬坡积分榜</view>
-          <view class="clf-sub">Mountains Classification</view>
-        </view>
-      </view>
-      <view class="arrow">></view>
-    </view>
-
-    <view class="clf-card clf-youth" hover-class="clf-card-hover" bindtap="onClassTap" data-type="youth">
-      <view class="clf-left">
-        <view class="clf-icon">⚪</view>
-        <view class="clf-text">
-          <view class="clf-title">青年车手榜</view>
-          <view class="clf-sub">Youth Classification</view>
-        </view>
-      </view>
-      <view class="arrow">></view>
     </view>
 
   </view>

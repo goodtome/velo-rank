@@ -11,6 +11,15 @@ primary_region = 'nrt'
 [env]
   NODE_ENV = 'production'
   PORT = '3000'
+  BACKUP_DIR = '/app/backups'
+  BACKUP_DAYS = '7'
+  BACKUP_HOUR = '3'
+
+# 数据库备份持久卷（1GB）
+# 首次部署前需手动创建: fly volumes create backups --region nrt --size 1
+[[mounts]]
+  source = 'backups'
+  destination = '/app/backups'
 
 [http_service]
   internal_port = 3000
@@ -34,6 +43,5 @@ primary_region = 'nrt'
     soft_limit = 20
 
 [[vm]]
-  memory = '256mb'
-  cpus = 1
   memory_mb = 256
+  cpus = 1

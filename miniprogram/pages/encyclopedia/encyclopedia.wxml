@@ -27,6 +27,10 @@
         <text class="tag" wx:for="{{item.tags}}" wx:key="*this" wx:for-item="tag">{{tag}}</text>
       </view>
     </view>
+    <view wx:if="{{filteredTerms.length === 0}}" class="empty-state">
+      <text class="empty-state-icon">🔍</text>
+      <text class="empty-state-text">未找到相关术语</text>
+    </view>
   </view>
   
   <!-- 术语详情弹窗 -->
@@ -52,7 +56,7 @@
           <text class="section-content example">{{currentTerm.example}}</text>
         </view>
         
-        <view class="detail-section" wx:if="{{currentTerm.relatedTerms.length > 0}}">
+        <view class="detail-section" wx:if="{{currentTerm.relatedTerms && currentTerm.relatedTerms.length > 0}}">
           <text class="section-title">相关术语</text>
           <view class="related-terms">
             <text class="related-term" wx:for="{{currentTerm.relatedTerms}}" wx:key="*this" bindtap="showRelatedTerm" data-term="{{item}}">{{item}}</text>

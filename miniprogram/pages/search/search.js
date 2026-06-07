@@ -4,7 +4,7 @@
  */
 
 const { get } = require('../../utils/request');
-const { debounce, showError } = require('../../utils/util');
+const { debounce, showError, navigateTo } = require('../../utils/util');
 const { t, getLocale } = require('../../utils/i18n');
 const { DEBOUNCE, STORAGE, PAGINATION } = require('../../utils/constants');
 const { getCountryName } = require('../../utils/country-map');
@@ -206,7 +206,7 @@ Page({
       ? `/pages/rider-detail/rider-detail?id=${id}`
       : `/pages/team-detail/team-detail?id=${id}`;
 
-    wx.navigateTo({ url });
+    navigateTo(url);
   },
 
   retrySearch() {

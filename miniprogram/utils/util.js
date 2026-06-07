@@ -1,13 +1,7 @@
 /**
- * 工具函数库
+ * Utility helpers.
  */
 
-/**
- * 格式化日期
- * @param {Date|string} date - 日期对象或字符串
- * @param {string} fmt - 格式字符串，如 'YYYY-MM-DD'
- * @returns {string}
- */
 function formatDate(date, fmt = 'YYYY-MM-DD') {
   if (typeof date === 'string') {
     date = new Date(date);
@@ -23,12 +17,6 @@ function formatDate(date, fmt = 'YYYY-MM-DD') {
     .replace('DD', day);
 }
 
-/**
- * 防抖函数
- * @param {Function} fn - 要防抖的函数
- * @param {number} delay - 延迟时间（毫秒）
- * @returns {Function}
- */
 function debounce(fn, delay = 300) {
   let timer = null;
   return function (...args) {
@@ -39,12 +27,6 @@ function debounce(fn, delay = 300) {
   };
 }
 
-/**
- * 节流函数
- * @param {Function} fn - 要节流的函数
- * @param {number} interval - 间隔时间（毫秒）
- * @returns {Function}
- */
 function throttle(fn, interval = 300) {
   let lastTime = 0;
   return function (...args) {
@@ -56,10 +38,6 @@ function throttle(fn, interval = 300) {
   };
 }
 
-/**
- * 显示错误提示
- * @param {string} message - 错误消息
- */
 function showError(message) {
   wx.showToast({
     title: message,
@@ -68,10 +46,6 @@ function showError(message) {
   });
 }
 
-/**
- * 显示成功提示
- * @param {string} message - 成功消息
- */
 function showSuccess(message) {
   wx.showToast({
     title: message,
@@ -80,16 +54,32 @@ function showSuccess(message) {
   });
 }
 
-/**
- * 安全获取数据（避免 undefined）
- * @param {Object} obj - 对象
- * @param {string} key - 键名
- * @param {*} defaultValue - 默认值
- * @returns {*}
- */
 function getSafeData(obj, key, defaultValue = '') {
   if (!obj || typeof obj !== 'object') return defaultValue;
   return obj[key] !== undefined ? obj[key] : defaultValue;
+}
+
+function navigateTo(target, options = {}) {
+  const config = typeof target === 'string'
+    ? { url: target, ...options }
+    : { ...(target || {}), ...options };
+
+  const { url } = config;
+  if (!url || typeof url !== 'string') {
+    console.error('导航失败: url must be a string', target);
+    return;
+  }
+
+  wx.navigateTo({
+    ...config,
+    url,
+    fail: (err) => {
+      console.error('导航失败:', { url }, err);
+      if (err.errMsg && err.errMsg.includes('limit')) {
+        wx.redirectTo({ ...config, url });
+      }
+    }
+  });
 }
 
 module.exports = {
@@ -98,5 +88,6 @@ module.exports = {
   throttle,
   showError,
   showSuccess,
-  getSafeData
+  getSafeData,
+  navigateTo
 };

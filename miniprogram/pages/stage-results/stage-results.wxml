@@ -21,7 +21,7 @@
   <!-- 错误状态 -->
   <view wx:elif="{{loadError}}" class="error-state">
     <text class="error-state-icon">😵</text>
-    <text class="error-state-text">加载失败，请检查网络</text>
+    <text class="error-state-text">{{errorMessage || '加载失败，请检查网络'}}</text>
     <button class="retry-btn" bindtap="retryLoad">重新加载</button>
   </view>
 
@@ -58,7 +58,7 @@
     </view>
 
     <!-- 总成绩榜标题 -->
-    <view wx:if="{{type === 'gc'}}" class="gc-header card">
+    <view wx:if="{{type === 'gc'}}" class="gc-header card {{gcHeaderClass}}">
       <view class="gc-icon">🏆</view>
       <view>
         <view class="gc-title">总成绩榜 (GC)</view>
@@ -151,7 +151,11 @@
 
       <!-- 加载更多 -->
       <view wx:if="{{hasMore}}" class="load-more" bindtap="loadMore">
-        <text>加载更多</text>
+        <text wx:if="{{loadingMore}}">加载中...</text>
+        <text wx:else>加载更多</text>
+      </view>
+      <view wx:elif="{{results.length > 0}}" class="load-more">
+        <text style="color:#999;">已加载全部 {{results.length}} 条数据</text>
       </view>
     </view>
   </view>

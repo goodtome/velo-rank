@@ -113,6 +113,22 @@
   gap: 20rpx;
 }
 
+/* 环法 - 黄衫配色 */
+.gc-header.gc-tdf {
+  background: linear-gradient(135deg, #FFD700, #FFC107);
+  color: #333;
+}
+
+/* 环意 - 粉衫配色 */
+.gc-header.gc-giro {
+  background: linear-gradient(135deg, #ff69b4, #ff1493);
+}
+
+/* 环西 - 红衫配色 */
+.gc-header.gc-vuelta {
+  background: linear-gradient(135deg, #e74c3c, #c0392b);
+}
+
 .gc-icon {
   font-size: 48rpx;
 }
@@ -167,17 +183,6 @@
   flex-shrink: 0;
   margin-right: 12rpx;
 }
-
-.jersey-pink,
-.jersey-PINK { background: linear-gradient(135deg, #ff69b4, #ff1493); }
-.jersey-purple,
-.jersey-PURPLE { background: linear-gradient(135deg, #9b59b6, #8e44ad); }
-.jersey-blue,
-.jersey-BLUE { background: linear-gradient(135deg, #3498db, #2980b9); }
-.jersey-white,
-.jersey-WHITE { background: linear-gradient(135deg, #ecf0f1, #bdc3c7); }
-.jersey-BLUE_SPRINT { background: linear-gradient(135deg, #3498db, #2980b9); }
-.jersey-WHITE_YOUTH { background: linear-gradient(135deg, #ecf0f1, #bdc3c7); }
 
 .jersey-detail {
   display: flex;

@@ -106,17 +106,6 @@
   margin-right: 14rpx;
 }
 
-.jersey-pink,
-.jersey-PINK { background: linear-gradient(135deg, #ff69b4, #ff1493); }
-.jersey-purple,
-.jersey-PURPLE { background: linear-gradient(135deg, #9b59b6, #8e44ad); }
-.jersey-blue,
-.jersey-BLUE { background: linear-gradient(135deg, #3498db, #2980b9); }
-.jersey-white,
-.jersey-WHITE { background: linear-gradient(135deg, #ecf0f1, #bdc3c7); }
-.jersey-BLUE_SPRINT { background: linear-gradient(135deg, #3498db, #2980b9); }
-.jersey-WHITE_YOUTH { background: linear-gradient(135deg, #ecf0f1, #bdc3c7); }
-
 .jersey-detail {
   display: flex;
   flex-direction: column;
@@ -332,6 +321,34 @@
   box-shadow: 0 4rpx 16rpx rgba(41, 128, 185, 0.2);
 }
 .clf-youth {
+  background: linear-gradient(135deg, #7f8c8d, #636e72);
+  box-shadow: 0 4rpx 16rpx rgba(99, 110, 114, 0.2);
+}
+
+/* 环法(TdF) 分类卡片配色覆盖 */
+.clf-race-tdf .clf-points {
+  background: linear-gradient(135deg, #4CAF50, #2E7D32);
+  box-shadow: 0 4rpx 16rpx rgba(46, 125, 50, 0.25);
+}
+.clf-race-tdf .clf-mountains {
+  background: linear-gradient(135deg, #e74c3c, #c0392b);
+  box-shadow: 0 4rpx 16rpx rgba(192, 57, 43, 0.25);
+}
+.clf-race-tdf .clf-youth {
+  background: linear-gradient(135deg, #7f8c8d, #636e72);
+  box-shadow: 0 4rpx 16rpx rgba(99, 110, 114, 0.2);
+}
+
+/* 环西(Vuelta) 分类卡片配色覆盖 */
+.clf-race-vuelta .clf-points {
+  background: linear-gradient(135deg, #4CAF50, #2E7D32);
+  box-shadow: 0 4rpx 16rpx rgba(46, 125, 50, 0.25);
+}
+.clf-race-vuelta .clf-mountains {
+  background: linear-gradient(135deg, #e74c3c, #c0392b);
+  box-shadow: 0 4rpx 16rpx rgba(192, 57, 43, 0.25);
+}
+.clf-race-vuelta .clf-youth {
   background: linear-gradient(135deg, #7f8c8d, #636e72);
   box-shadow: 0 4rpx 16rpx rgba(99, 110, 114, 0.2);
 }

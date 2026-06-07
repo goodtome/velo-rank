@@ -15,8 +15,8 @@ WORKDIR /app
 # 先只复制 package 文件，利用 Docker 层缓存
 COPY package.json package-lock.json ./
 
-# 安装生产依赖
-RUN npm ci --omit=dev
+# 安装生产依赖（跳过 post-install 脚本，避免 puppeteer/playwright 下载浏览器失败）
+RUN npm ci --omit=dev --ignore-scripts
 
 # 删除重型爬虫包目录（仅占空间，运行时路由不依赖）
 # 用 rm -rf 而非 npm uninstall，避免级联删除共享依赖（如 ws 模块）
@@ -33,6 +33,9 @@ RUN rm -rf node_modules/.cache \
 
 # ---- 应用代码 ----
 COPY server/ ./server/
+
+# 创建备份存储目录（挂载 Fly volume 时使用）
+RUN mkdir -p /app/backups
 
 # ---- 健康检查 ----
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \

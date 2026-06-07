@@ -4,6 +4,9 @@ const mysql = require('mysql2/promise');
 const { v4: uuidv4 } = require('uuid');
 const pool = require('../config/db-pool');
 const { sleep } = require('./scrape-pcs');
+const { taskLogger } = require('../middleware/requestLogger');
+
+const log = taskLogger('sync-pcs');
 
 const BASE_URL = 'https://www.procyclingstats.com';
 const headers = {
@@ -273,19 +276,20 @@ async function saveJerseys(stageId, jerseys) {
  * 主同步函数：爬取指定赛事数据并入库
  */
 async function syncRace(raceCode) {
-  console.log(`\n🚴 开始同步 ${raceCode}...\n`);
+  log.start({ raceCode });
   
   try {
     // 1. 爬取赛段列表
-    console.log('📋 步骤1: 爬取赛段列表...');
+    log.progress('爬取赛段列表', { step: 1 });
     const stages = await scrapeRaceStages(raceCode);
     if (stages.length === 0) {
-      console.log('⚠️ 未找到赛段信息');
+      log.progress('未找到赛段信息，跳过', { raceCode });
       return { success: false, message: '未找到赛段信息' };
     }
+    log.progress('赛段列表获取完成', { stagesFound: stages.length });
     
     // 2. 保存赛事信息
-    console.log('💾 步骤2: 保存赛事信息...');
+    log.progress('保存赛事信息', { step: 2 });
     const raceData = {
       race_name: raceCode.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
       race_name_en: raceCode.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
@@ -297,10 +301,10 @@ async function syncRace(raceCode) {
     };
     
     const raceId = await saveRace(raceData);
-    console.log(`✅ 赛事已保存: ${raceId}`);
+    log.progress('赛事已保存', { raceId });
     
     // 3. 保存赛段信息
-    console.log('💾 步骤3: 保存赛段信息...');
+    log.progress('保存赛段信息', { step: 3, totalStages: stages.length });
     const stageIds = [];
     for (const stage of stages) {
       const stageData = {
@@ -311,15 +315,18 @@ async function syncRace(raceCode) {
       stageIds.push({ number: stage.stage_number, id: stageId });
       console.log(`  ✅ Stage ${stage.stage_number}: ${stage.stage_name}`);
     }
+    log.progress('赛段信息保存完成', { stagesSaved: stageIds.length });
     
     // 4. 爬取并保存每个赛段的成绩
-    console.log('\n📊 步骤4: 爬取赛段成绩...');
+    log.progress('爬取赛段成绩', { step: 4, stagesToProcess: stageIds.length });
+    let totalResultsImported = 0;
     for (const { number: stageNum, id: stageId } of stageIds) {
       console.log(`\n--- Stage ${stageNum} ---`);
       
       const results = await scrapeStageResult(raceCode, stageNum);
       if (results && results.length > 0) {
         await saveStageResults(stageId, results);
+        totalResultsImported += results.length;
         console.log(`  ✅ 保存了 ${results.length} 条成绩`);
       }
       
@@ -328,18 +335,27 @@ async function syncRace(raceCode) {
         await sleep(30000);
       }
     }
+    log.progress('赛段成绩导入完成', { totalResultsImported });
     
     // 5. 爬取领骑衫
-    console.log('\n🎨 步骤5: 爬取领骑衫信息...');
+    log.progress('爬取领骑衫信息', { step: 5 });
     const jerseys = await scrapeJerseys(raceCode);
+    let jerseysImported = 0;
     if (jerseys && jerseys.length > 0) {
       // 保存到最新赛段的领骑衫
       const latestStageId = stageIds[stageIds.length - 1].id;
       await saveJerseys(latestStageId, jerseys);
-      console.log(`✅ 保存了 ${jerseys.length} 个领骑衫信息`);
+      jerseysImported = jerseys.length;
+      log.progress('领骑衫信息保存完成', { jerseysImported });
     }
     
-    console.log('\n🎉 同步完成！');
+    log.success({
+      raceCode,
+      raceId,
+      stagesProcessed: stages.length,
+      totalResultsImported,
+      jerseysImported
+    });
     return { 
       success: true, 
       message: '同步完成',
@@ -347,7 +363,7 @@ async function syncRace(raceCode) {
     };
     
   } catch (err) {
-    console.error('同步失败:', err);
+    log.fail(err, { raceCode });
     return { success: false, message: err.message };
   }
 }
@@ -361,7 +377,7 @@ if (require.main === module) {
     process.exit(1);
   }
   
-  syncRace(raceCode).catch(console.error);
+  syncRace(raceCode).catch(err => log.fail(err));
 }
 
 module.exports = {

@@ -3,17 +3,26 @@
  * 使用 ES6+ 语法、统一请求封装、Async/Await
  */
 
-const { get } = require('../../utils/request');
-const { showError } = require('../../utils/util');
+const { get, formatErrorMessage } = require('../../utils/request');
+const { showError, navigateTo } = require('../../utils/util');
+const { jerseyTypeName, detectRaceType, getClassificationConfig } = require('../../utils/jersey-config');
 
 Page({
   data: {
     raceId: '',
+    raceCode: '',
+    raceType: '',
     race: {},
     stages: [],
     jerseys: [],
     loading: true,
-    loadError: false
+    loadError: false,
+    // 分类榜入口配置（根据赛事类型动态生成）
+    clfEntries: [
+      { type: 'points',    icon: '🟣', title: '冲刺积分榜', sub: 'Points Classification' },
+      { type: 'mountains', icon: '🔵', title: '爬坡积分榜', sub: 'Mountains Classification' },
+      { type: 'youth',     icon: '⚪', title: '青年车手榜',  sub: 'Youth Classification' }
+    ]
   },
 
   onLoad(options) {
@@ -47,12 +56,22 @@ Page({
 
       if (raceRes && raceRes.code === 200 && raceRes.data) {
         race = raceRes.data;
+        // 预处理：WXML 中不支持调用 JS 函数，需要提前计算
+        race._category_zh = this.categoryName(race.category);
+        race._start_date_fmt = this.formatDate(race.start_date);
+        race._end_date_fmt = this.formatDate(race.end_date);
       }
       if (stagesRes && stagesRes.code === 200 && Array.isArray(stagesRes.data)) {
-        stages = stagesRes.data;
+        stages = stagesRes.data.map(s => ({
+          ...s,
+          _date_fmt: this.formatDate(s.date)
+        }));
       }
       if (jerseysRes && jerseysRes.code === 200 && Array.isArray(jerseysRes.data)) {
-        jerseys = jerseysRes.data;
+        jerseys = jerseysRes.data.map(j => ({
+          ...j,
+          _jersey_type_zh: jerseyTypeName(j.jersey_type)
+        }));
       }
 
       // 设置导航栏标题
@@ -61,15 +80,19 @@ Page({
 
       this.setData({
         race,
+        raceCode: race.race_code || '',
         stages,
         jerseys,
         loading: false,
         genderLabel: race.gender === 'MEN' ? '男子' : race.gender === 'WOMEN' ? '女子' : ''
       });
+
+      // 根据赛事类型动态更新分类榜入口配置
+      this._updateClfEntries();
     } catch (err) {
       console.error('加载赛事失败:', err);
-      this.setData({ loading: false, loadError: true });
-      showError('网络请求失败');
+      this.setData({ loading: false, loadError: true, errorMessage: formatErrorMessage(err) });
+      showError(formatErrorMessage(err));
     }
   },
 
@@ -86,22 +109,10 @@ Page({
   },
 
   /**
-   * 领骑衫类型中文名
+   * 领骑衫类型中文名（使用统一配置模块）
    */
   jerseyTypeName(type) {
-    const map = {
-      'pink': '粉衫 GC',
-      'PINK': '粉衫 GC',
-      'purple': '紫衫 积分',
-      'PURPLE': '紫衫 积分',
-      'blue': '蓝衫 冲刺',
-      'BLUE': '蓝衫 冲刺',
-      'BLUE_SPRINT': '蓝衫 冲刺',
-      'white': '白衫 青年',
-      'WHITE': '白衫 青年',
-      'WHITE_YOUTH': '白衫 青年'
-    };
-    return map[type] || type;
+    return jerseyTypeName(type);
   },
 
   /**
@@ -141,16 +152,18 @@ Page({
    */
   onStageTap(e) {
     const { stageId, stageNumber } = e.currentTarget.dataset;
-    const { raceId } = this.data;
+    const { raceId, raceCode } = this.data;
 
     if (!stageId) {
       showError('赛段数据异常');
       return;
     }
 
-    wx.navigateTo({
-      url: `/pages/stage-results/stage-results?stageId=${stageId}&stageNumber=${stageNumber}&raceId=${raceId}`
-    });
+    let url = `/pages/stage-results/stage-results?stageId=${stageId}&stageNumber=${stageNumber}&raceId=${raceId}`;
+    if (raceCode) {
+      url += `&raceCode=${encodeURIComponent(raceCode)}`;
+    }
+    navigateTo(url);
   },
 
   /**
@@ -169,13 +182,33 @@ Page({
    * 点击总成绩榜(GC)
    */
   onGCTap() {
-    const { raceId } = this.data;
+    const { raceId, raceCode } = this.data;
     const stageId = this.getLatestStageId();
     if (!stageId) return;
 
-    wx.navigateTo({
-      url: `/pages/stage-results/stage-results?stageId=${stageId}&raceId=${raceId}&type=gc`
+    let url = `/pages/stage-results/stage-results?stageId=${stageId}&raceId=${raceId}&type=gc`;
+    if (raceCode) {
+      url += `&raceCode=${encodeURIComponent(raceCode)}`;
+    }
+    navigateTo(url);
+  },
+
+  /**
+   * 根据赛事类型更新分类榜入口配置
+   */
+  _updateClfEntries() {
+    const raceType = detectRaceType(this.data.raceCode);
+    const types = ['points', 'mountains', 'youth'];
+    const clfEntries = types.map(t => {
+      const config = getClassificationConfig(t, raceType);
+      return {
+        type: t,
+        icon: config.typeIcon,
+        title: config.typeName,
+        sub: config.typeSub
+      };
     });
+    this.setData({ clfEntries, raceType });
   },
 
   /**
@@ -184,11 +217,13 @@ Page({
    */
   onClassTap(e) {
     const { type } = e.currentTarget.dataset;
-    const { raceId } = this.data;
+    const { raceId, raceCode } = this.data;
 
-    wx.navigateTo({
-      url: `/pages/stage-results/stage-results?raceId=${raceId}&type=${type}`
-    });
+    let url = `/pages/stage-results/stage-results?raceId=${raceId}&type=${type}`;
+    if (raceCode) {
+      url += `&raceCode=${encodeURIComponent(raceCode)}`;
+    }
+    navigateTo(url);
   },
 
   /**

@@ -32,6 +32,7 @@ function login() {
           method: 'POST',
           data: { code: loginRes.code },
           header: { 'Content-Type': 'application/json' },
+          timeout: 10000, // 10秒超时，避免Fly.io冷启动时无限等待
           success: (res) => {
             if (res.statusCode === 200 && res.data && res.data.code === 200 && res.data.data) {
               const { token, openid } = res.data.data;

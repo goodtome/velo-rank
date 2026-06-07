@@ -1,10 +1,11 @@
 const express = require('express');
 const router = express.Router();
 const pool = require('../config/db-pool');
+const { routeLog } = require('../middleware/requestLogger');
+const log = routeLog('stats');
 
 // GET /api/v1/stats/overview - 数据库统计概览
 router.get('/overview', async (req, res) => {
-  console.log('[stats] GET /overview called');
   try {
     const [stats] = await pool.query(`
       SELECT 
@@ -16,10 +17,9 @@ router.get('/overview', async (req, res) => {
         (SELECT COUNT(*) FROM jerseys) as jerseys,
         (SELECT COUNT(*) FROM general_classification) as general_classification
     `);
-    console.log('[stats] query result:', JSON.stringify(stats));
     res.json({ code: 200, data: stats[0] });
   } catch (err) {
-    console.error('[stats] error:', err);
+    log.error('获取统计信息失败', { error: err.message });
     res.status(500).json({ code: 500, message: '获取统计信息失败' });
   }
 });

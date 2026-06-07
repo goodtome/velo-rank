@@ -1,188 +1,187 @@
 <!-- 实时成绩页面 -->
 <view class="realtime-container">
-  <!-- 赛事信息栏 -->
-  <view class="race-info-bar">
-    <view class="race-name">{{raceName}}</view>
-    <view class="stage-info">第{{stageNumber}}赛段 | {{stageType}}</view>
-    <view class="race-status {{raceStatus === 'live' ? 'live' : ''}}">
-      <view class="status-dot" wx:if="{{raceStatus === 'live'}}"></view>
-      <text>{{raceStatusText}}</text>
-    </view>
+
+  <!-- 加载状态 -->
+  <view wx:if="{{loading}}" class="loading-state">
+    <view class="loading-spinner"></view>
+    <text class="loading-text">正在加载排名数据...</text>
   </view>
-  
-  <!-- 实时时间栏 -->
-  <view class="time-bar" wx:if="{{raceStatus === 'live'}}">
-    <view class="elapsed-time">
-      <text class="time-label">已用时</text>
-      <text class="time-value">{{elapsedTime}}</text>
-    </view>
-    <view class="remaining-distance">
-      <text class="distance-label">剩余距离</text>
-      <text class="distance-value">{{remainingDistance}}km</text>
-    </view>
-    <view class="leader-info">
-      <text class="leader-label">当前领先</text>
-      <text class="leader-value">{{leaderName}}</text>
-    </view>
+
+  <!-- 错误状态 -->
+  <view wx:elif="{{loadError}}" class="error-state">
+    <text class="error-icon">😵</text>
+    <text class="error-text">{{errorMessage || '加载失败，请检查网络'}}</text>
+    <button class="retry-btn" bindtap="retryLoad">重新加载</button>
   </view>
-  
-  <!-- 标签切换 -->
-  <view class="tab-bar">
-    <view class="tab-item {{activeTab === 'gc' ? 'active' : ''}}" bindtap="switchTab" data-tab="gc">
-      <text>总成绩</text>
-      <text class="tab-english">GC</text>
-    </view>
-    <view class="tab-item {{activeTab === 'stage' ? 'active' : ''}}" bindtap="switchTab" data-tab="stage">
-      <text>赛段</text>
-    </view>
-    <view class="tab-item {{activeTab === 'points' ? 'active' : ''}}" bindtap="switchTab" data-tab="points">
-      <text>冲刺</text>
-      <text class="tab-english">Points</text>
-    </view>
-    <view class="tab-item {{activeTab === 'mountains' ? 'active' : ''}}" bindtap="switchTab" data-tab="mountains">
-      <text>爬坡</text>
-      <text class="tab-english">KOM</text>
-    </view>
-    <view class="tab-item {{activeTab === 'youth' ? 'active' : ''}}" bindtap="switchTab" data-tab="youth">
-      <text>青年</text>
-    </view>
-  </view>
-  
-  <!-- 排名列表 -->
-  <scroll-view scroll-y class="ranking-list" refresher-enabled="{{true}}" bindrefresherrefresh="onRefresh" refresher-triggered="{{isRefreshing}}">
-    <!-- GC排名 -->
-    <view wx:if="{{activeTab === 'gc'}}">
-      <view class="ranking-header">
-        <text class="header-title">总成绩排名 (GC)</text>
-        <text class="header-update">最后更新: {{lastUpdate}}</text>
-      </view>
-      <view class="rider-card {{item.isLeader ? 'leader' : ''}} {{item.isUserFavorite ? 'favorite' : ''}}" 
-            wx:for="{{gcRankings}}" 
-            wx:key="riderId"
-            bindtap="viewRiderDetail"
-            data-rider-id="{{item.riderId}}">
-        <view class="rank">{{item.rank}}</view>
-        <view class="rider-info">
-          <view class="rider-name">{{item.riderName}}</view>
-          <view class="team-name">{{item.teamName}}</view>
-        </view>
-        <view class="time-info">
-          <text class="time-gap">{{item.timeGap}}</text>
-          <text class="rank-change {{item.rankChange > 0 ? 'up' : item.rankChange < 0 ? 'down' : 'same'}}">
-            <text wx:if="{{item.rankChange > 0}}">↑{{item.rankChange}}</text>
-            <text wx:elif="{{item.rankChange < 0}}">↓{{item.rankChange * -1}}</text>
-            <text wx:else="">-</text>
-          </text>
-        </view>
-        <view class="favorite-btn" catchtap="toggleFavorite" data-rider-id="{{item.riderId}}">
-          <text>{{item.isUserFavorite ? '★' : '☆'}}</text>
-        </view>
+
+  <view wx:else>
+    <!-- 赛事信息栏 -->
+    <view class="race-info-bar" wx:if="{{raceName}}">
+      <view class="race-name">{{raceName}}</view>
+      <view class="race-status {{connectionStatus}}">
+        <view class="status-dot" wx:if="{{connectionStatus === 'connected'}}"></view>
+        <text wx:if="{{connectionStatus === 'connected'}}">实时连接</text>
+        <text wx:elif="{{connectionStatus === 'connecting'}}">连接中...</text>
+        <text wx:else>离线模式</text>
       </view>
     </view>
-    
-    <!-- 赛段成绩 -->
-    <view wx:elif="{{activeTab === 'stage'}}">
-      <view class="ranking-header">
-        <text class="header-title">赛段成绩</text>
-        <text class="header-update">最后更新: {{lastUpdate}}</text>
+
+    <!-- 标签切换 -->
+    <scroll-view scroll-x class="tab-bar" enable-flex>
+      <view class="tab-item {{activeTab === 'gc' ? 'active' : ''}}" bindtap="switchTab" data-tab="gc">
+        <text>总成绩</text>
+        <text class="tab-sub">GC</text>
       </view>
-      <view class="rider-card" 
-            wx:for="{{stageResults}}" 
-            wx:key="riderId"
-            bindtap="viewRiderDetail"
-            data-rider-id="{{item.riderId}}">
-        <view class="rank">{{item.rank}}</view>
-        <view class="rider-info">
-          <view class="rider-name">{{item.riderName}}</view>
-          <view class="team-name">{{item.teamName}}</view>
-        </view>
-        <view class="time-info">
-          <text class="time">{{item.time}}</text>
-        </view>
+      <view class="tab-item {{activeTab === 'stage' ? 'active' : ''}}" bindtap="switchTab" data-tab="stage">
+        <text>赛段</text>
       </view>
-    </view>
-    
-    <!-- 冲刺积分排名 -->
-    <view wx:elif="{{activeTab === 'points'}}">
-      <view class="ranking-header">
-        <text class="header-title">冲刺积分排名</text>
-        <text class="header-update">最后更新: {{lastUpdate}}</text>
+      <view class="tab-item {{activeTab === 'points' ? 'active' : ''}}" bindtap="switchTab" data-tab="points">
+        <text>冲刺</text>
+        <text class="tab-sub">Points</text>
       </view>
-      <view class="rider-card {{item.isLeader ? 'leader' : ''}}" 
-            wx:for="{{pointsRankings}}" 
-            wx:key="riderId">
-        <view class="rank">{{item.rank}}</view>
-        <view class="rider-info">
-          <view class="rider-name">{{item.riderName}}</view>
-          <view class="team-name">{{item.teamName}}</view>
-        </view>
-        <view class="points-info">
-          <text class="points-value">{{item.points}} 分</text>
-        </view>
+      <view class="tab-item {{activeTab === 'mountains' ? 'active' : ''}}" bindtap="switchTab" data-tab="mountains">
+        <text>爬坡</text>
+        <text class="tab-sub">KOM</text>
       </view>
-    </view>
-    
-    <!-- 爬坡积分排名 -->
-    <view wx:elif="{{activeTab === 'mountains'}}">
-      <view class="ranking-header">
-        <text class="header-title">爬坡积分排名</text>
-        <text class="header-update">最后更新: {{lastUpdate}}</text>
-      </view>
-      <view class="rider-card {{item.isLeader ? 'leader' : ''}}" 
-            wx:for="{{mountainsRankings}}" 
-            wx:key="riderId">
-        <view class="rank">{{item.rank}}</view>
-        <view class="rider-info">
-          <view class="rider-name">{{item.riderName}}</view>
-          <view class="team-name">{{item.teamName}}</view>
-        </view>
-        <view class="points-info">
-          <text class="points-value">{{item.points}} 分</text>
-        </view>
-      </view>
-    </view>
-    
-    <!-- 青年排名 -->
-    <view wx:elif="{{activeTab === 'youth'}}">
-      <view class="ranking-header">
-        <text class="header-title">青年排名 (U25)</text>
-        <text class="header-update">最后更新: {{lastUpdate}}</text>
-      </view>
-      <view class="rider-card {{item.isLeader ? 'leader' : ''}}" 
-            wx:for="{{youthRankings}}" 
-            wx:key="riderId">
-        <view class="rank">{{item.rank}}</view>
-        <view class="rider-info">
-          <view class="rider-name">{{item.riderName}}</view>
-          <view class="team-name">{{item.teamName}}</view>
-          <view class="rider-age">{{item.age}}岁</view>
-        </view>
-        <view class="time-info">
-          <text class="time-gap">{{item.timeGap}}</text>
-        </view>
-      </view>
-    </view>
-  </scroll-view>
-  
-  <!-- 关注车手快速跳转 -->
-  <view class="favorite-shortcut" wx:if="{{favoriteRiders.length > 0}}">
-    <text class="shortcut-title">关注车手</text>
-    <scroll-view scroll-x class="favorite-list">
-      <view class="favorite-item" 
-            wx:for="{{favoriteRiders}}" 
-            wx:key="riderId"
-            bindtap="scrollToRider"
-            data-rider-id="{{item.riderId}}">
-        <text class="favorite-rank">#{{item.rank}}</text>
-        <text class="favorite-name">{{item.riderName}}</text>
+      <view class="tab-item {{activeTab === 'youth' ? 'active' : ''}}" bindtap="switchTab" data-tab="youth">
+        <text>青年</text>
+        <text class="tab-sub">U25</text>
       </view>
     </scroll-view>
-  </view>
-  
-  <!-- 连接状态指示器 -->
-  <view class="connection-status {{connectionStatus}}">
-    <text wx:if="{{connectionStatus === 'connected'}}">实时连接已建立</text>
-    <text wx:elif="{{connectionStatus === 'connecting'}}">正在连接...</text>
-    <text wx:else="">连接已断开，正在重试...</text>
+
+    <!-- 更新时间 -->
+    <view class="update-bar" wx:if="{{lastUpdate}}">
+      <text>最后更新: {{lastUpdate}}</text>
+    </view>
+
+    <!-- 排名列表 -->
+    <scroll-view scroll-y class="ranking-list" refresher-enabled="{{true}}" bindrefresherrefresh="onRefresh" refresher-triggered="{{isRefreshing}}">
+
+      <!-- GC排名 -->
+      <block wx:if="{{activeTab === 'gc'}}">
+        <view wx:if="{{gcRankings.length === 0}}" class="empty-state">
+          <text class="empty-icon">🏆</text>
+          <text class="empty-text">暂无总成绩数据</text>
+          <text class="empty-hint">比赛可能尚未开始</text>
+        </view>
+        <view class="rider-card {{index < 3 ? 'top3' : ''}}"
+              wx:for="{{gcRankings}}"
+              wx:key="rider_id"
+              bindtap="viewRiderDetail"
+              data-rider-id="{{item.rider_id}}">
+          <view class="rank {{index === 0 ? 'gold' : index === 1 ? 'silver' : index === 2 ? 'bronze' : ''}}">
+            <text wx:if="{{index === 0}}">🥇</text>
+            <text wx:elif="{{index === 1}}">🥈</text>
+            <text wx:elif="{{index === 2}}">🥉</text>
+            <text wx:else>{{item.rank}}</text>
+          </view>
+          <view class="rider-info">
+            <text class="rider-name">{{item.rider_name_zh || item.rider_name}}</text>
+            <text class="team-name">{{item.team_name_zh || item.team_name}}</text>
+          </view>
+          <view class="time-info">
+            <text class="time-main">{{item.total_time || item.time || '-'}}</text>
+            <text class="time-gap" wx:if="{{item.time_gap}}">({{item.time_gap}})</text>
+          </view>
+        </view>
+      </block>
+
+      <!-- 赛段成绩 -->
+      <block wx:elif="{{activeTab === 'stage'}}">
+        <view wx:if="{{stageResults.length === 0}}" class="empty-state">
+          <text class="empty-icon">🏁</text>
+          <text class="empty-text">暂无赛段成绩</text>
+          <text class="empty-hint">赛段可能尚未结束</text>
+        </view>
+        <view class="rider-card {{index < 3 ? 'top3' : ''}}"
+              wx:for="{{stageResults}}"
+              wx:key="rider_id"
+              bindtap="viewRiderDetail"
+              data-rider-id="{{item.rider_id}}">
+          <view class="rank {{index === 0 ? 'gold' : index === 1 ? 'silver' : index === 2 ? 'bronze' : ''}}">
+            <text wx:if="{{index === 0}}">🥇</text>
+            <text wx:elif="{{index === 1}}">🥈</text>
+            <text wx:elif="{{index === 2}}">🥉</text>
+            <text wx:else>{{item.rank_pos || item.rank}}</text>
+          </view>
+          <view class="rider-info">
+            <text class="rider-name">{{item.rider_name_zh || item.rider_name}}</text>
+            <text class="team-name">{{item.team_name_zh || item.team_name}}</text>
+          </view>
+          <view class="time-info">
+            <text class="time-main">{{item.time_gap || item.time || '-'}}</text>
+          </view>
+        </view>
+      </block>
+
+      <!-- 冲刺积分排名 -->
+      <block wx:elif="{{activeTab === 'points'}}">
+        <view wx:if="{{pointsRankings.length === 0}}" class="empty-state">
+          <text class="empty-icon">💨</text>
+          <text class="empty-text">暂无冲刺积分数据</text>
+        </view>
+        <view class="rider-card"
+              wx:for="{{pointsRankings}}"
+              wx:key="rider_id">
+          <view class="rank">{{item.rank}}</view>
+          <view class="rider-info">
+            <text class="rider-name">{{item.rider_name_zh || item.rider_name}}</text>
+            <text class="team-name">{{item.team_name_zh || item.team_name}}</text>
+          </view>
+          <view class="points-info">
+            <text class="points-value">{{item.points}} Pts</text>
+          </view>
+        </view>
+      </block>
+
+      <!-- 爬坡积分排名 -->
+      <block wx:elif="{{activeTab === 'mountains'}}">
+        <view wx:if="{{mountainsRankings.length === 0}}" class="empty-state">
+          <text class="empty-icon">⛰️</text>
+          <text class="empty-text">暂无爬坡积分数据</text>
+        </view>
+        <view class="rider-card"
+              wx:for="{{mountainsRankings}}"
+              wx:key="rider_id">
+          <view class="rank">{{item.rank}}</view>
+          <view class="rider-info">
+            <text class="rider-name">{{item.rider_name_zh || item.rider_name}}</text>
+            <text class="team-name">{{item.team_name_zh || item.team_name}}</text>
+          </view>
+          <view class="points-info">
+            <text class="points-value">{{item.points}} Pts</text>
+          </view>
+        </view>
+      </block>
+
+      <!-- 青年排名 -->
+      <block wx:elif="{{activeTab === 'youth'}}">
+        <view wx:if="{{youthRankings.length === 0}}" class="empty-state">
+          <text class="empty-icon">🌟</text>
+          <text class="empty-text">暂无青年排名数据</text>
+        </view>
+        <view class="rider-card"
+              wx:for="{{youthRankings}}"
+              wx:key="rider_id">
+          <view class="rank">{{item.rank}}</view>
+          <view class="rider-info">
+            <text class="rider-name">{{item.rider_name_zh || item.rider_name}}</text>
+            <text class="team-name">{{item.team_name_zh || item.team_name}}</text>
+          </view>
+          <view class="time-info">
+            <text class="time-main">{{item.total_time || item.time || '-'}}</text>
+            <text class="time-gap" wx:if="{{item.time_gap}}">({{item.time_gap}})</text>
+          </view>
+        </view>
+      </block>
+
+    </scroll-view>
+
+    <!-- 连接状态指示器 -->
+    <view class="connection-bar {{connectionStatus}}">
+      <text wx:if="{{connectionStatus === 'connected'}}">● 实时连接已建立</text>
+      <text wx:elif="{{connectionStatus === 'connecting'}}">○ 正在连接...</text>
+      <text wx:else>○ 离线模式（数据可能非最新）</text>
+    </view>
   </view>
 </view>

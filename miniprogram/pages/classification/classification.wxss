@@ -148,7 +148,7 @@
   font-weight: 600;
 }
 
-/* 分类颜色 */
+/* 分类颜色（默认环意配色） */
 .class-points {
   background: linear-gradient(135deg, #9b59b6, #8e44ad);
   box-shadow: 0 4rpx 20rpx rgba(142, 68, 173, 0.3);
@@ -160,6 +160,26 @@
 .class-youth {
   background: linear-gradient(135deg, #7f8c8d, #636e72);
   box-shadow: 0 4rpx 20rpx rgba(99, 110, 114, 0.3);
+}
+
+/* 环法(TdF) 分类头部配色 */
+.class-race-tdf.class-points {
+  background: linear-gradient(135deg, #4CAF50, #2E7D32);
+  box-shadow: 0 4rpx 20rpx rgba(46, 125, 50, 0.3);
+}
+.class-race-tdf.class-mountains {
+  background: linear-gradient(135deg, #e74c3c, #c0392b);
+  box-shadow: 0 4rpx 20rpx rgba(192, 57, 43, 0.3);
+}
+
+/* 环西(Vuelta) 分类头部配色 */
+.class-race-vuelta.class-points {
+  background: linear-gradient(135deg, #4CAF50, #2E7D32);
+  box-shadow: 0 4rpx 20rpx rgba(46, 125, 50, 0.3);
+}
+.class-race-vuelta.class-mountains {
+  background: linear-gradient(135deg, #e74c3c, #c0392b);
+  box-shadow: 0 4rpx 20rpx rgba(192, 57, 43, 0.3);
 }
 
 /* ====== 排名列表 ====== */
