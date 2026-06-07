@@ -14,7 +14,7 @@
 // 当前活跃环境：修改此处切换 'development' | 'production'
 // 类似 server 端 NODE_ENV 的作用
 // ============================================================
-const CURRENT_ENV = 'development';
+const CURRENT_ENV = 'production';
 
 const STORAGE_KEY = 'app_env_mode';
 
