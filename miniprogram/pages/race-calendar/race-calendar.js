@@ -1,10 +1,58 @@
-/**
+﻿/**
  * 赛事日历页面逻辑
  * v1.0 优化版：赛事期间全覆盖标记 + 状态颜色 + 新日历API
  */
 
 const { get, formatErrorMessage } = require('../../utils/request');
 const { formatDate, navigateTo } = require('../../utils/util');
+
+function toDateOnly(value) {
+  if (!value) return '';
+
+  if (typeof value === 'string') {
+    const match = value.match(/^(\d{4}-\d{2}-\d{2})/);
+    if (match) return match[1];
+  }
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+function parseDateOnly(value) {
+  const dateOnly = toDateOnly(value);
+  if (!dateOnly) return null;
+
+  const [year, month, day] = dateOnly.split('-').map(Number);
+  return new Date(year, month - 1, day);
+}
+
+function isFinishedAfterEndOfDay(endDateValue, now = new Date()) {
+  const endDate = parseDateOnly(endDateValue);
+  if (!endDate) return false;
+
+  endDate.setHours(23, 59, 59, 999);
+  return now.getTime() > endDate.getTime();
+}
+
+function buildRaceDays(startDateValue, endDateValue) {
+  const start = parseDateOnly(startDateValue);
+  const end = parseDateOnly(endDateValue);
+  if (!start || !end) return [];
+
+  const raceDays = [];
+  const current = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+  while (current <= end) {
+    raceDays.push(toDateOnly(current));
+    current.setDate(current.getDate() + 1);
+  }
+
+  return raceDays;
+}
 
 Page({
   data: {
@@ -78,21 +126,17 @@ Page({
     try {
       const res = await get('/races', { limit: 100 });
       if (res && res.code === 200) {
-        const today = new Date().toISOString().split('T')[0];
+        const now = new Date();
+        const today = toDateOnly(now);
         const races = (res.data || []).map(r => {
+          const startDate = toDateOnly(r.start_date);
+          const endDate = toDateOnly(r.end_date);
           let status = 'upcoming';
-          if (r.start_date <= today && r.end_date >= today) status = 'ongoing';
-          else if (r.end_date < today) status = 'finished';
-          // 计算赛事覆盖日期
-          const raceDays = [];
-          if (r.start_date && r.end_date) {
-            const start = new Date(r.start_date);
-            const end = new Date(r.end_date);
-            for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-              raceDays.push(d.toISOString().split('T')[0]);
-            }
+          if (startDate && endDate) {
+            if (startDate <= today && !isFinishedAfterEndOfDay(endDate, now)) status = 'ongoing';
+            else if (isFinishedAfterEndOfDay(endDate, now)) status = 'finished';
           }
-          return { ...r, status, raceDays };
+          return { ...r, start_date: startDate, end_date: endDate, status, raceDays: buildRaceDays(startDate, endDate) };
         });
 
         this.setData({ allRaces: races });
