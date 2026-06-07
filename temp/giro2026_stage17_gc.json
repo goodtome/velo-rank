@@ -1,0 +1,1562 @@
+[
+  {
+    "rank": "1",
+    "riderName": "Valgren Michael",
+    "riderSlug": "michael-valgren-andersen",
+    "teamName": "EF Education - EasyPost",
+    "teamSlug": "ef-education-easypost-2026",
+    "nationality": "DK",
+    "value": "12″",
+    "gap": "4:41:334:41:33"
+  },
+  {
+    "rank": "2",
+    "riderName": "Leknessund Andreas",
+    "riderSlug": "andreas-leknessund",
+    "teamName": "Uno-X Mobility",
+    "teamSlug": "uno-x-mobility-2026",
+    "nationality": "NO",
+    "value": "6″",
+    "gap": "0:030:03"
+  },
+  {
+    "rank": "3",
+    "riderName": "Caruso Damiano",
+    "riderSlug": "damiano-caruso",
+    "teamName": "Bahrain - Victorious",
+    "teamSlug": "bahrain-victorious-2026",
+    "nationality": "IT",
+    "value": "4″",
+    "gap": "0:060:06"
+  },
+  {
+    "rank": "4",
+    "riderName": "Vlasov Aleksandr",
+    "riderSlug": "aleksandr-vlasov",
+    "teamName": "Red Bull - BORA - hansgrohe",
+    "teamSlug": "red-bull-bora-hansgrohe-2026",
+    "nationality": "RU",
+    "value": "",
+    "gap": ",,0:06"
+  },
+  {
+    "rank": "5",
+    "riderName": "Rubio Einer",
+    "riderSlug": "einer-rubio",
+    "teamName": "Movistar Team",
+    "teamSlug": "movistar-team-2026",
+    "nationality": "CO",
+    "value": "4″",
+    "gap": ",,0:06"
+  },
+  {
+    "rank": "6",
+    "riderName": "Arrieta Igor",
+    "riderSlug": "igor-arrieta-lizarraga",
+    "teamName": "UAE Team Emirates - XRG",
+    "teamSlug": "uae-team-emirates-xrg-2026",
+    "nationality": "ES",
+    "value": "6″",
+    "gap": "0:140:14"
+  },
+  {
+    "rank": "7",
+    "riderName": "Garofoli Gianmarco",
+    "riderSlug": "gianmarco-garofoli",
+    "teamName": "Soudal Quick-Step",
+    "teamSlug": "soudal-quick-step-2026",
+    "nationality": "IT",
+    "value": "",
+    "gap": "0:520:52"
+  },
+  {
+    "rank": "8",
+    "riderName": "de la Cruz David",
+    "riderSlug": "david-de-la-cruz",
+    "teamName": "Pinarello Q36.5 Pro Cycling Team",
+    "teamSlug": "pinarello-q365-pro-cycling-team-2026",
+    "nationality": "ES",
+    "value": "",
+    "gap": "1:081:08"
+  },
+  {
+    "rank": "9",
+    "riderName": "Narváez Jhonatan",
+    "riderSlug": "jhonatan-narvaez",
+    "teamName": "UAE Team Emirates - XRG",
+    "teamSlug": "uae-team-emirates-xrg-2026",
+    "nationality": "EC",
+    "value": "",
+    "gap": "1:441:44"
+  },
+  {
+    "rank": "10",
+    "riderName": "Donovan Mark",
+    "riderSlug": "mark-donovan",
+    "teamName": "Pinarello Q36.5 Pro Cycling Team",
+    "teamSlug": "pinarello-q365-pro-cycling-team-2026",
+    "nationality": "GB",
+    "value": "",
+    "gap": ",,1:44"
+  },
+  {
+    "rank": "11",
+    "riderName": "Stork Florian",
+    "riderSlug": "florian-stork",
+    "teamName": "Tudor Pro Cycling Team",
+    "teamSlug": "tudor-pro-cycling-team-2026",
+    "nationality": "DE",
+    "value": "",
+    "gap": ",,1:44"
+  },
+  {
+    "rank": "12",
+    "riderName": "Hirt Jan",
+    "riderSlug": "jan-hirt",
+    "teamName": "NSN Cycling Team",
+    "teamSlug": "nsn-cycling-team-2026",
+    "nationality": "CZ",
+    "value": "",
+    "gap": ",,1:44"
+  },
+  {
+    "rank": "13",
+    "riderName": "Ciccone Giulio",
+    "riderSlug": "giulio-ciccone",
+    "teamName": "Lidl - Trek",
+    "teamSlug": "lidl-trek-2026",
+    "nationality": "IT",
+    "value": "",
+    "gap": "1:471:47"
+  },
+  {
+    "rank": "14",
+    "riderName": "van der Lee Jardi Christiaan",
+    "riderSlug": "jardi-christiaan-van-der-lee",
+    "teamName": "EF Education - EasyPost",
+    "teamSlug": "ef-education-easypost-2026",
+    "nationality": "NL",
+    "value": "",
+    "gap": "2:002:00"
+  },
+  {
+    "rank": "15",
+    "riderName": "Van den Bossche Fabio",
+    "riderSlug": "fabio-van-den-bossche",
+    "teamName": "Soudal Quick-Step",
+    "teamSlug": "soudal-quick-step-2026",
+    "nationality": "BE",
+    "value": "",
+    "gap": "2:192:19"
+  },
+  {
+    "rank": "16",
+    "riderName": "López Juan Pedro",
+    "riderSlug": "juan-pedro-lopez",
+    "teamName": "Movistar Team",
+    "teamSlug": "movistar-team-2026",
+    "nationality": "ES",
+    "value": "",
+    "gap": ",,2:19"
+  },
+  {
+    "rank": "17",
+    "riderName": "Bais Mattia",
+    "riderSlug": "mattia-bais",
+    "teamName": "Team Polti VisitMalta",
+    "teamSlug": "team-polti-visitmalta-2026",
+    "nationality": "IT",
+    "value": "",
+    "gap": "2:222:22"
+  },
+  {
+    "rank": "18",
+    "riderName": "van Dijke Mick",
+    "riderSlug": "mick-van-dijke",
+    "teamName": "Red Bull - BORA - hansgrohe",
+    "teamSlug": "red-bull-bora-hansgrohe-2026",
+    "nationality": "NL",
+    "value": "",
+    "gap": "2:382:38"
+  },
+  {
+    "rank": "19",
+    "riderName": "Gualdi Simone",
+    "riderSlug": "simone-gualdi",
+    "teamName": "Lotto Intermarché",
+    "teamSlug": "lotto-intermarche-2026",
+    "nationality": "IT",
+    "value": "",
+    "gap": "3:333:33"
+  },
+  {
+    "rank": "20",
+    "riderName": "Mas Enric",
+    "riderSlug": "enric-mas",
+    "teamName": "Movistar Team",
+    "teamSlug": "movistar-team-2026",
+    "nationality": "ES",
+    "value": "",
+    "gap": "4:124:12"
+  },
+  {
+    "rank": "21",
+    "riderName": "Tonelli Alessandro",
+    "riderSlug": "alessandro-tonelli",
+    "teamName": "Team Polti VisitMalta",
+    "teamSlug": "team-polti-visitmalta-2026",
+    "nationality": "IT",
+    "value": "",
+    "gap": "4:584:58"
+  },
+  {
+    "rank": "22",
+    "riderName": "Aular Orluis",
+    "riderSlug": "orluis-aular",
+    "teamName": "Movistar Team",
+    "teamSlug": "movistar-team-2026",
+    "nationality": "VE",
+    "value": "",
+    "gap": "5:155:15"
+  },
+  {
+    "rank": "23",
+    "riderName": "Kulset Johannes",
+    "riderSlug": "johannes-kulset",
+    "teamName": "Uno-X Mobility",
+    "teamSlug": "uno-x-mobility-2026",
+    "nationality": "NO",
+    "value": "",
+    "gap": ",,5:15"
+  },
+  {
+    "rank": "24",
+    "riderName": "Raccagni Noviero Andrea",
+    "riderSlug": "andrea-raccagni-noviero",
+    "teamName": "Soudal Quick-Step",
+    "teamSlug": "soudal-quick-step-2026",
+    "nationality": "IT",
+    "value": "",
+    "gap": ",,5:15"
+  },
+  {
+    "rank": "25",
+    "riderName": "Rochas Rémy",
+    "riderSlug": "remy-rochas",
+    "teamName": "Groupama - FDJ United",
+    "teamSlug": "groupama-fdj-united-2026",
+    "nationality": "FR",
+    "value": "",
+    "gap": ",,5:15"
+  },
+  {
+    "rank": "26",
+    "riderName": "Vergallito Luca",
+    "riderSlug": "luca-vergallito",
+    "teamName": "Alpecin - Premier Tech",
+    "teamSlug": "alpecin-premier-tech-2026",
+    "nationality": "IT",
+    "value": "",
+    "gap": ",,5:15"
+  },
+  {
+    "rank": "27",
+    "riderName": "Aerts Toon",
+    "riderSlug": "toon-aerts",
+    "teamName": "Lotto Intermarché",
+    "teamSlug": "lotto-intermarche-2026",
+    "nationality": "BE",
+    "value": "",
+    "gap": ",,5:15"
+  },
+  {
+    "rank": "28",
+    "riderName": "Bouwman Koen",
+    "riderSlug": "koen-bouwman",
+    "teamName": "Team Jayco AlUla",
+    "teamSlug": "team-jayco-alula-2026",
+    "nationality": "NL",
+    "value": "",
+    "gap": ",,5:15"
+  },
+  {
+    "rank": "29",
+    "riderName": "Lemmen Bart",
+    "riderSlug": "bart-lemmen",
+    "teamName": "Team Visma | Lease a Bike",
+    "teamSlug": "team-visma-lease-a-bike-2026",
+    "nationality": "NL",
+    "value": "",
+    "gap": ",,5:15"
+  },
+  {
+    "rank": "30",
+    "riderName": "Zwiehoff Ben",
+    "riderSlug": "ben-zwiehoff",
+    "teamName": "Red Bull - BORA - hansgrohe",
+    "teamSlug": "red-bull-bora-hansgrohe-2026",
+    "nationality": "DE",
+    "value": "",
+    "gap": ",,5:15"
+  },
+  {
+    "rank": "31",
+    "riderName": "Kuss Sepp",
+    "riderSlug": "sepp-kuss",
+    "teamName": "Team Visma | Lease a Bike",
+    "teamSlug": "team-visma-lease-a-bike-2026",
+    "nationality": "US",
+    "value": "",
+    "gap": ",,5:15"
+  },
+  {
+    "rank": "32",
+    "riderName": "Rondel Mathys",
+    "riderSlug": "mathys-rondel",
+    "teamName": "Tudor Pro Cycling Team",
+    "teamSlug": "tudor-pro-cycling-team-2026",
+    "nationality": "FR",
+    "value": "",
+    "gap": ",,5:15"
+  },
+  {
+    "rank": "33",
+    "riderName": "Piganzoli Davide",
+    "riderSlug": "davide-piganzoli",
+    "teamName": "Team Visma | Lease a Bike",
+    "teamSlug": "team-visma-lease-a-bike-2026",
+    "nationality": "IT",
+    "value": "",
+    "gap": ",,5:15"
+  },
+  {
+    "rank": "34",
+    "riderName": "Vingegaard Jonas",
+    "riderSlug": "jonas-vingegaard",
+    "teamName": "Team Visma | Lease a Bike",
+    "teamSlug": "team-visma-lease-a-bike-2026",
+    "nationality": "DK",
+    "value": "",
+    "gap": ",,5:15"
+  },
+  {
+    "rank": "35",
+    "riderName": "Crescioli Ludovico",
+    "riderSlug": "ludovico-crescioli",
+    "teamName": "Team Polti VisitMalta",
+    "teamSlug": "team-polti-visitmalta-2026",
+    "nationality": "IT",
+    "value": "",
+    "gap": ",,5:15"
+  },
+  {
+    "rank": "36",
+    "riderName": "Pedersen Rasmus Søjberg",
+    "riderSlug": "rasmus-sojbergpedersen",
+    "teamName": "Decathlon CMA CGM Team",
+    "teamSlug": "decathlon-cma-cgm-team-2026",
+    "nationality": "DK",
+    "value": "",
+    "gap": ",,5:15"
+  },
+  {
+    "rank": "37",
+    "riderName": "Aleotti Giovanni",
+    "riderSlug": "giovanni-aleotti",
+    "teamName": "Red Bull - BORA - hansgrohe",
+    "teamSlug": "red-bull-bora-hansgrohe-2026",
+    "nationality": "IT",
+    "value": "",
+    "gap": ",,5:15"
+  },
+  {
+    "rank": "38",
+    "riderName": "Scotson Callum",
+    "riderSlug": "callum-scotson",
+    "teamName": "Decathlon CMA CGM Team",
+    "teamSlug": "decathlon-cma-cgm-team-2026",
+    "nationality": "AU",
+    "value": "",
+    "gap": ",,5:15"
+  },
+  {
+    "rank": "39",
+    "riderName": "Eulálio Afonso",
+    "riderSlug": "afonso-eulalio",
+    "teamName": "Bahrain - Victorious",
+    "teamSlug": "bahrain-victorious-2026",
+    "nationality": "PT",
+    "value": "",
+    "gap": ",,5:15"
+  },
+  {
+    "rank": "40",
+    "riderName": "Sheffield Magnus",
+    "riderSlug": "magnus-sheffield",
+    "teamName": "Netcompany INEOS",
+    "teamSlug": "netcompany-ineos-2026",
+    "nationality": "US",
+    "value": "",
+    "gap": ",,5:15"
+  },
+  {
+    "rank": "41",
+    "riderName": "Gall Felix",
+    "riderSlug": "felix-gall",
+    "teamName": "Decathlon CMA CGM Team",
+    "teamSlug": "decathlon-cma-cgm-team-2026",
+    "nationality": "AT",
+    "value": "",
+    "gap": ",,5:15"
+  },
+  {
+    "rank": "42",
+    "riderName": "Beloki Markel",
+    "riderSlug": "markel-beloki",
+    "teamName": "EF Education - EasyPost",
+    "teamSlug": "ef-education-easypost-2026",
+    "nationality": "ES",
+    "value": "",
+    "gap": ",,5:15"
+  },
+  {
+    "rank": "43",
+    "riderName": "Arensman Thymen",
+    "riderSlug": "thymen-arensman",
+    "teamName": "Netcompany INEOS",
+    "teamSlug": "netcompany-ineos-2026",
+    "nationality": "NL",
+    "value": "",
+    "gap": ",,5:15"
+  },
+  {
+    "rank": "44",
+    "riderName": "Campenaerts Victor",
+    "riderSlug": "victor-campenaerts",
+    "teamName": "Team Visma | Lease a Bike",
+    "teamSlug": "team-visma-lease-a-bike-2026",
+    "nationality": "BE",
+    "value": "",
+    "gap": ",,5:15"
+  },
+  {
+    "rank": "45",
+    "riderName": "Mühlberger Gregor",
+    "riderSlug": "gregor-muhlberger",
+    "teamName": "Decathlon CMA CGM Team",
+    "teamSlug": "decathlon-cma-cgm-team-2026",
+    "nationality": "AT",
+    "value": "",
+    "gap": ",,5:15"
+  },
+  {
+    "rank": "46",
+    "riderName": "Hindley Jai",
+    "riderSlug": "jai-hindley",
+    "teamName": "Red Bull - BORA - hansgrohe",
+    "teamSlug": "red-bull-bora-hansgrohe-2026",
+    "nationality": "AU",
+    "value": "",
+    "gap": ",,5:15"
+  },
+  {
+    "rank": "47",
+    "riderName": "Zambanini Edoardo",
+    "riderSlug": "edoardo-zambanini",
+    "teamName": "Bahrain - Victorious",
+    "teamSlug": "bahrain-victorious-2026",
+    "nationality": "IT",
+    "value": "",
+    "gap": ",,5:15"
+  },
+  {
+    "rank": "48",
+    "riderName": "Harper Chris",
+    "riderSlug": "chris-harper",
+    "teamName": "Pinarello Q36.5 Pro Cycling Team",
+    "teamSlug": "pinarello-q365-pro-cycling-team-2026",
+    "nationality": "AU",
+    "value": "",
+    "gap": ",,5:15"
+  },
+  {
+    "rank": "49",
+    "riderName": "Poels Wout",
+    "riderSlug": "wout-poels",
+    "teamName": "Unibet Rose Rockets",
+    "teamSlug": "unibet-rose-rockets-2026",
+    "nationality": "NL",
+    "value": "",
+    "gap": ",,5:15"
+  },
+  {
+    "rank": "50",
+    "riderName": "Gee-West Derek",
+    "riderSlug": "derek-gee",
+    "teamName": "Lidl - Trek",
+    "teamSlug": "lidl-trek-2026",
+    "nationality": "CA",
+    "value": "",
+    "gap": ",,5:15"
+  },
+  {
+    "rank": "51",
+    "riderName": "Bernal Egan",
+    "riderSlug": "egan-bernal",
+    "teamName": "Netcompany INEOS",
+    "teamSlug": "netcompany-ineos-2026",
+    "nationality": "CO",
+    "value": "",
+    "gap": ",,5:15"
+  },
+  {
+    "rank": "52",
+    "riderName": "Naesen Oliver",
+    "riderSlug": "oliver-naesen",
+    "teamName": "Decathlon CMA CGM Team",
+    "teamSlug": "decathlon-cma-cgm-team-2026",
+    "nationality": "BE",
+    "value": "",
+    "gap": ",,5:15"
+  },
+  {
+    "rank": "53",
+    "riderName": "Milesi Lorenzo",
+    "riderSlug": "lorenzo-milesi",
+    "teamName": "Movistar Team",
+    "teamSlug": "movistar-team-2026",
+    "nationality": "IT",
+    "value": "",
+    "gap": ",,5:15"
+  },
+  {
+    "rank": "54",
+    "riderName": "Svestad-Bårdseng Embret",
+    "riderSlug": "embret-svestad-bardseng",
+    "teamName": "Netcompany INEOS",
+    "teamSlug": "netcompany-ineos-2026",
+    "nationality": "NO",
+    "value": "",
+    "gap": ",,5:15"
+  },
+  {
+    "rank": "55",
+    "riderName": "O'Connor Ben",
+    "riderSlug": "ben-o-connor",
+    "teamName": "Team Jayco AlUla",
+    "teamSlug": "team-jayco-alula-2026",
+    "nationality": "AU",
+    "value": "",
+    "gap": ",,5:15"
+  },
+  {
+    "rank": "56",
+    "riderName": "Haig Jack",
+    "riderSlug": "jack-haig",
+    "teamName": "Netcompany INEOS",
+    "teamSlug": "netcompany-ineos-2026",
+    "nationality": "AU",
+    "value": "",
+    "gap": ",,5:15"
+  },
+  {
+    "rank": "57",
+    "riderName": "Staune-Mittet Johannes",
+    "riderSlug": "johannes-staune-mittet",
+    "teamName": "Decathlon CMA CGM Team",
+    "teamSlug": "decathlon-cma-cgm-team-2026",
+    "nationality": "NO",
+    "value": "",
+    "gap": ",,5:15"
+  },
+  {
+    "rank": "58",
+    "riderName": "Storer Michael",
+    "riderSlug": "michael-storer",
+    "teamName": "Tudor Pro Cycling Team",
+    "teamSlug": "tudor-pro-cycling-team-2026",
+    "nationality": "AU",
+    "value": "",
+    "gap": ",,5:15"
+  },
+  {
+    "rank": "59",
+    "riderName": "Miholjević Fran",
+    "riderSlug": "fran-miholjevic",
+    "teamName": "Bahrain - Victorious",
+    "teamSlug": "bahrain-victorious-2026",
+    "nationality": "HR",
+    "value": "",
+    "gap": "6:176:17"
+  },
+  {
+    "rank": "60",
+    "riderName": "Mifsud Andrea",
+    "riderSlug": "andrea-mifsud",
+    "teamName": "Team Polti VisitMalta",
+    "teamSlug": "team-polti-visitmalta-2026",
+    "nationality": "MT",
+    "value": "",
+    "gap": "7:037:03"
+  },
+  {
+    "rank": "61",
+    "riderName": "Ulissi Diego",
+    "riderSlug": "diego-ulissi",
+    "teamName": "XDS Astana Team",
+    "teamSlug": "xds-astana-team-2026",
+    "nationality": "IT",
+    "value": "",
+    "gap": ",,7:03"
+  },
+  {
+    "rank": "62",
+    "riderName": "Hoelgaard Markus",
+    "riderSlug": "markus-hoelgaard",
+    "teamName": "Uno-X Mobility",
+    "teamSlug": "uno-x-mobility-2026",
+    "nationality": "NO",
+    "value": "",
+    "gap": ",,7:03"
+  },
+  {
+    "rank": "63",
+    "riderName": "Løland Sakarias Koller",
+    "riderSlug": "sakarias-koller-loland",
+    "teamName": "Uno-X Mobility",
+    "teamSlug": "uno-x-mobility-2026",
+    "nationality": "NO",
+    "value": "",
+    "gap": ",,7:03"
+  },
+  {
+    "rank": "64",
+    "riderName": "Ghebreigzabhier Amanuel",
+    "riderSlug": "amanuel-ghebreigzabhier",
+    "teamName": "Lidl - Trek",
+    "teamSlug": "lidl-trek-2026",
+    "nationality": "ER",
+    "value": "",
+    "gap": ",,7:03"
+  },
+  {
+    "rank": "65",
+    "riderName": "Barta Will",
+    "riderSlug": "william-barta",
+    "teamName": "Tudor Pro Cycling Team",
+    "teamSlug": "tudor-pro-cycling-team-2026",
+    "nationality": "US",
+    "value": "",
+    "gap": ",,7:03"
+  },
+  {
+    "rank": "66",
+    "riderName": "Moscon Gianni",
+    "riderSlug": "gianni-moscon",
+    "teamName": "Red Bull - BORA - hansgrohe",
+    "teamSlug": "red-bull-bora-hansgrohe-2026",
+    "nationality": "IT",
+    "value": "",
+    "gap": "7:487:48"
+  },
+  {
+    "rank": "67",
+    "riderName": "Ganna Filippo",
+    "riderSlug": "filippo-ganna",
+    "teamName": "Netcompany INEOS",
+    "teamSlug": "netcompany-ineos-2026",
+    "nationality": "IT",
+    "value": "",
+    "gap": "8:228:22"
+  },
+  {
+    "rank": "68",
+    "riderName": "Sobrero Matteo",
+    "riderSlug": "matteo-sobrero",
+    "teamName": "Lidl - Trek",
+    "teamSlug": "lidl-trek-2026",
+    "nationality": "IT",
+    "value": "",
+    "gap": ",,8:22"
+  },
+  {
+    "rank": "69",
+    "riderName": "Swift Connor",
+    "riderSlug": "connor-swift",
+    "teamName": "Netcompany INEOS",
+    "teamSlug": "netcompany-ineos-2026",
+    "nationality": "GB",
+    "value": "",
+    "gap": "8:298:29"
+  },
+  {
+    "rank": "70",
+    "riderName": "Barguil Warren",
+    "riderSlug": "warren-barguil",
+    "teamName": "Team Picnic PostNL",
+    "teamSlug": "team-picnic-postnl-2026",
+    "nationality": "FR",
+    "value": "",
+    "gap": "9:439:43"
+  },
+  {
+    "rank": "71",
+    "riderName": "Stannard Robert",
+    "riderSlug": "robert-stannard",
+    "teamName": "Bahrain - Victorious",
+    "teamSlug": "bahrain-victorious-2026",
+    "nationality": "AU",
+    "value": "",
+    "gap": "10:1510:15"
+  },
+  {
+    "rank": "72",
+    "riderName": "Warbasse Larry",
+    "riderSlug": "lawrence-warbasse",
+    "teamName": "Tudor Pro Cycling Team",
+    "teamSlug": "tudor-pro-cycling-team-2026",
+    "nationality": "US",
+    "value": "",
+    "gap": "12:4612:46"
+  },
+  {
+    "rank": "73",
+    "riderName": "Hatherly Alan",
+    "riderSlug": "alan-hatherly",
+    "teamName": "Team Jayco AlUla",
+    "teamSlug": "team-jayco-alula-2026",
+    "nationality": "ZA",
+    "value": "",
+    "gap": ",,12:46"
+  },
+  {
+    "rank": "74",
+    "riderName": "Barthe Cyril",
+    "riderSlug": "cyril-barthe",
+    "teamName": "Groupama - FDJ United",
+    "teamSlug": "groupama-fdj-united-2026",
+    "nationality": "FR",
+    "value": "",
+    "gap": "12:5212:52"
+  },
+  {
+    "rank": "75",
+    "riderName": "Pinarello Alessandro",
+    "riderSlug": "alessandro-pinarello",
+    "teamName": "NSN Cycling Team",
+    "teamSlug": "nsn-cycling-team-2026",
+    "nationality": "IT",
+    "value": "",
+    "gap": "13:2913:29"
+  },
+  {
+    "rank": "76",
+    "riderName": "Zana Filippo",
+    "riderSlug": "filippo-zana",
+    "teamName": "Soudal Quick-Step",
+    "teamSlug": "soudal-quick-step-2026",
+    "nationality": "IT",
+    "value": "",
+    "gap": ",,13:29"
+  },
+  {
+    "rank": "77",
+    "riderName": "Pellizzari Giulio",
+    "riderSlug": "giulio-pellizzari",
+    "teamName": "Red Bull - BORA - hansgrohe",
+    "teamSlug": "red-bull-bora-hansgrohe-2026",
+    "nationality": "IT",
+    "value": "",
+    "gap": ",,13:29"
+  },
+  {
+    "rank": "78",
+    "riderName": "Tarozzi Manuele",
+    "riderSlug": "manuele-tarozzi",
+    "teamName": "Bardiani CSF 7 Saber",
+    "teamSlug": "bardiani-csf-7-saber-2026",
+    "nationality": "IT",
+    "value": "",
+    "gap": ",,13:29"
+  },
+  {
+    "rank": "79",
+    "riderName": "Bayer Tobias",
+    "riderSlug": "tobias-bayer",
+    "teamName": "Alpecin - Premier Tech",
+    "teamSlug": "alpecin-premier-tech-2026",
+    "nationality": "AT",
+    "value": "",
+    "gap": ",,13:29"
+  },
+  {
+    "rank": "80",
+    "riderName": "Cavagna Rémi",
+    "riderSlug": "remi-cavagna",
+    "teamName": "Groupama - FDJ United",
+    "teamSlug": "groupama-fdj-united-2026",
+    "nationality": "FR",
+    "value": "",
+    "gap": ",,13:29"
+  },
+  {
+    "rank": "81",
+    "riderName": "Leemreize Gijs",
+    "riderSlug": "gijs-leemreize",
+    "teamName": "Team Picnic PostNL",
+    "teamSlug": "team-picnic-postnl-2026",
+    "nationality": "NL",
+    "value": "",
+    "gap": "13:4013:40"
+  },
+  {
+    "rank": "82",
+    "riderName": "van den Broek Frank",
+    "riderSlug": "frank-van-den-broek",
+    "teamName": "Team Picnic PostNL",
+    "teamSlug": "team-picnic-postnl-2026",
+    "nationality": "NL",
+    "value": "",
+    "gap": ",,13:40"
+  },
+  {
+    "rank": "83",
+    "riderName": "Oliveira Nelson",
+    "riderSlug": "nelson-oliveira",
+    "teamName": "Movistar Team",
+    "teamSlug": "movistar-team-2026",
+    "nationality": "PT",
+    "value": "",
+    "gap": "14:5714:57"
+  },
+  {
+    "rank": "84",
+    "riderName": "Bettiol Alberto",
+    "riderSlug": "alberto-bettiol",
+    "teamName": "XDS Astana Team",
+    "teamSlug": "xds-astana-team-2026",
+    "nationality": "IT",
+    "value": "",
+    "gap": ",,14:57"
+  },
+  {
+    "rank": "85",
+    "riderName": "Larsen Niklas",
+    "riderSlug": "niklas-larsen",
+    "teamName": "Unibet Rose Rockets",
+    "teamSlug": "unibet-rose-rockets-2026",
+    "nationality": "DK",
+    "value": "",
+    "gap": "15:5415:54"
+  },
+  {
+    "rank": "86",
+    "riderName": "Rolland Brieuc",
+    "riderSlug": "brieuc-rolland",
+    "teamName": "Groupama - FDJ United",
+    "teamSlug": "groupama-fdj-united-2026",
+    "nationality": "FR",
+    "value": "",
+    "gap": "17:0117:01"
+  },
+  {
+    "rank": "87",
+    "riderName": "Juul-Jensen Christopher",
+    "riderSlug": "christopher-juul-jensen",
+    "teamName": "Team Jayco AlUla",
+    "teamSlug": "team-jayco-alula-2026",
+    "nationality": "DK",
+    "value": "",
+    "gap": "18:2818:28"
+  },
+  {
+    "rank": "88",
+    "riderName": "Rex Tim",
+    "riderSlug": "tim-rex",
+    "teamName": "Team Visma | Lease a Bike",
+    "teamSlug": "team-visma-lease-a-bike-2026",
+    "nationality": "BE",
+    "value": "",
+    "gap": "18:5118:51"
+  },
+  {
+    "rank": "89",
+    "riderName": "Christen Jan",
+    "riderSlug": "jan-christen",
+    "teamName": "UAE Team Emirates - XRG",
+    "teamSlug": "uae-team-emirates-xrg-2026",
+    "nationality": "CH",
+    "value": "",
+    "gap": "19:0019:00"
+  },
+  {
+    "rank": "90",
+    "riderName": "Walscheid Max",
+    "riderSlug": "max-walscheid",
+    "teamName": "Lidl - Trek",
+    "teamSlug": "lidl-trek-2026",
+    "nationality": "DE",
+    "value": "",
+    "gap": "19:1519:15"
+  },
+  {
+    "rank": "91",
+    "riderName": "Rutsch Jonas",
+    "riderSlug": "jonas-rutsch",
+    "teamName": "Lotto Intermarché",
+    "teamSlug": "lotto-intermarche-2026",
+    "nationality": "DE",
+    "value": "",
+    "gap": ",,19:15"
+  },
+  {
+    "rank": "92",
+    "riderName": "Turconi Filippo",
+    "riderSlug": "filippo-turconi",
+    "teamName": "Bardiani CSF 7 Saber",
+    "teamSlug": "bardiani-csf-7-saber-2026",
+    "nationality": "IT",
+    "value": "",
+    "gap": ",,19:15"
+  },
+  {
+    "rank": "93",
+    "riderName": "Mullen Ryan",
+    "riderSlug": "ryan-mullen",
+    "teamName": "NSN Cycling Team",
+    "teamSlug": "nsn-cycling-team-2026",
+    "nationality": "IE",
+    "value": "",
+    "gap": ",,19:15"
+  },
+  {
+    "rank": "94",
+    "riderName": "Paletti Luca",
+    "riderSlug": "luca-paletti",
+    "teamName": "Bardiani CSF 7 Saber",
+    "teamSlug": "bardiani-csf-7-saber-2026",
+    "nationality": "IT",
+    "value": "",
+    "gap": ",,19:15"
+  },
+  {
+    "rank": "95",
+    "riderName": "Tsvetkov Nikita",
+    "riderSlug": "nikita-tsvetkov",
+    "teamName": "Bardiani CSF 7 Saber",
+    "teamSlug": "bardiani-csf-7-saber-2026",
+    "nationality": "UZ",
+    "value": "",
+    "gap": ",,19:15"
+  },
+  {
+    "rank": "96",
+    "riderName": "Pesenti Thomas",
+    "riderSlug": "thomas-pesenti",
+    "teamName": "Team Polti VisitMalta",
+    "teamSlug": "team-polti-visitmalta-2026",
+    "nationality": "IT",
+    "value": "",
+    "gap": ",,19:15"
+  },
+  {
+    "rank": "97",
+    "riderName": "Kielich Timo",
+    "riderSlug": "timo-kielich",
+    "teamName": "Team Visma | Lease a Bike",
+    "teamSlug": "team-visma-lease-a-bike-2026",
+    "nationality": "BE",
+    "value": "",
+    "gap": ",,19:15"
+  },
+  {
+    "rank": "98",
+    "riderName": "Maestri Mirco",
+    "riderSlug": "mirco-maestri",
+    "teamName": "Team Polti VisitMalta",
+    "teamSlug": "team-polti-visitmalta-2026",
+    "nationality": "IT",
+    "value": "",
+    "gap": ",,19:15"
+  },
+  {
+    "rank": "99",
+    "riderName": "Segaert Alec",
+    "riderSlug": "alec-segaert",
+    "teamName": "Bahrain - Victorious",
+    "teamSlug": "bahrain-victorious-2026",
+    "nationality": "BE",
+    "value": "",
+    "gap": ",,19:15"
+  },
+  {
+    "rank": "100",
+    "riderName": "Paasschens Mathijs",
+    "riderSlug": "mathijs-paasschens",
+    "teamName": "Bahrain - Victorious",
+    "teamSlug": "bahrain-victorious-2026",
+    "nationality": "NL",
+    "value": "",
+    "gap": ",,19:15"
+  },
+  {
+    "rank": "101",
+    "riderName": "Van Gestel Dries",
+    "riderSlug": "dries-van-gestel",
+    "teamName": "Soudal Quick-Step",
+    "teamSlug": "soudal-quick-step-2026",
+    "nationality": "BE",
+    "value": "",
+    "gap": ",,19:15"
+  },
+  {
+    "rank": "102",
+    "riderName": "Turner Ben",
+    "riderSlug": "ben-turner",
+    "teamName": "Netcompany INEOS",
+    "teamSlug": "netcompany-ineos-2026",
+    "nationality": "GB",
+    "value": "",
+    "gap": ",,19:15"
+  },
+  {
+    "rank": "103",
+    "riderName": "Denz Nico",
+    "riderSlug": "nico-denz",
+    "teamName": "Red Bull - BORA - hansgrohe",
+    "teamSlug": "red-bull-bora-hansgrohe-2026",
+    "nationality": "DE",
+    "value": "",
+    "gap": ",,19:15"
+  },
+  {
+    "rank": "104",
+    "riderName": "Rota Lorenzo",
+    "riderSlug": "lorenzo-rota",
+    "teamName": "Lotto Intermarché",
+    "teamSlug": "lotto-intermarche-2026",
+    "nationality": "IT",
+    "value": "",
+    "gap": ",,19:15"
+  },
+  {
+    "rank": "105",
+    "riderName": "Plowright Jensen",
+    "riderSlug": "jensen-plowright",
+    "teamName": "Alpecin - Premier Tech",
+    "teamSlug": "alpecin-premier-tech-2026",
+    "nationality": "AU",
+    "value": "",
+    "gap": ",,19:15"
+  },
+  {
+    "rank": "106",
+    "riderName": "Geens Jonas",
+    "riderSlug": "jonas-geens",
+    "teamName": "Alpecin - Premier Tech",
+    "teamSlug": "alpecin-premier-tech-2026",
+    "nationality": "BE",
+    "value": "",
+    "gap": ",,19:15"
+  },
+  {
+    "rank": "107",
+    "riderName": "Kopecký Matyáš",
+    "riderSlug": "matyas-kopecky",
+    "teamName": "Unibet Rose Rockets",
+    "teamSlug": "unibet-rose-rockets-2026",
+    "nationality": "CZ",
+    "value": "",
+    "gap": ",,19:15"
+  },
+  {
+    "rank": "108",
+    "riderName": "Sevilla Diego Pablo",
+    "riderSlug": "diego-pablo-sevilla",
+    "teamName": "Team Polti VisitMalta",
+    "teamSlug": "team-polti-visitmalta-2026",
+    "nationality": "ES",
+    "value": "",
+    "gap": ",,19:15"
+  },
+  {
+    "rank": "109",
+    "riderName": "Milan Jonathan",
+    "riderSlug": "jonathan-milan",
+    "teamName": "Lidl - Trek",
+    "teamSlug": "lidl-trek-2026",
+    "nationality": "IT",
+    "value": "",
+    "gap": ",,19:15"
+  },
+  {
+    "rank": "110",
+    "riderName": "González David",
+    "riderSlug": "david-gonzalez-lopez",
+    "teamName": "Pinarello Q36.5 Pro Cycling Team",
+    "teamSlug": "pinarello-q365-pro-cycling-team-2026",
+    "nationality": "ES",
+    "value": "",
+    "gap": ",,19:15"
+  },
+  {
+    "rank": "111",
+    "riderName": "Busatto Francesco",
+    "riderSlug": "francesco-busatto",
+    "teamName": "Alpecin - Premier Tech",
+    "teamSlug": "alpecin-premier-tech-2026",
+    "nationality": "IT",
+    "value": "",
+    "gap": ",,19:15"
+  },
+  {
+    "rank": "112",
+    "riderName": "van Uden Casper",
+    "riderSlug": "casper-van-uden",
+    "teamName": "Team Picnic PostNL",
+    "teamSlug": "team-picnic-postnl-2026",
+    "nationality": "NL",
+    "value": "",
+    "gap": ",,19:15"
+  },
+  {
+    "rank": "113",
+    "riderName": "Stuyven Jasper",
+    "riderSlug": "jasper-stuyven",
+    "teamName": "Soudal Quick-Step",
+    "teamSlug": "soudal-quick-step-2026",
+    "nationality": "BE",
+    "value": "",
+    "gap": ",,19:15"
+  },
+  {
+    "rank": "114",
+    "riderName": "Bastiaens Ayco",
+    "riderSlug": "ayco-bastiaens",
+    "teamName": "Soudal Quick-Step",
+    "teamSlug": "soudal-quick-step-2026",
+    "nationality": "BE",
+    "value": "",
+    "gap": ",,19:15"
+  },
+  {
+    "rank": "115",
+    "riderName": "Magnier Paul",
+    "riderSlug": "paul-magnier",
+    "teamName": "Soudal Quick-Step",
+    "teamSlug": "soudal-quick-step-2026",
+    "nationality": "FR",
+    "value": "",
+    "gap": ",,19:15"
+  },
+  {
+    "rank": "116",
+    "riderName": "Kubiš Lukáš",
+    "riderSlug": "lukas-kubis",
+    "teamName": "Unibet Rose Rockets",
+    "teamSlug": "unibet-rose-rockets-2026",
+    "nationality": "SK",
+    "value": "",
+    "gap": ",,19:15"
+  },
+  {
+    "rank": "117",
+    "riderName": "Reinders Elmar",
+    "riderSlug": "elmar-reinders",
+    "teamName": "Unibet Rose Rockets",
+    "teamSlug": "unibet-rose-rockets-2026",
+    "nationality": "NL",
+    "value": "",
+    "gap": ",,19:15"
+  },
+  {
+    "rank": "118",
+    "riderName": "Strong Corbin",
+    "riderSlug": "corbin-strong",
+    "teamName": "NSN Cycling Team",
+    "teamSlug": "nsn-cycling-team-2026",
+    "nationality": "NZ",
+    "value": "",
+    "gap": ",,19:15"
+  },
+  {
+    "rank": "119",
+    "riderName": "Mihkels Madis",
+    "riderSlug": "madis-mihkels",
+    "teamName": "EF Education - EasyPost",
+    "teamSlug": "ef-education-easypost-2026",
+    "nationality": "EE",
+    "value": "",
+    "gap": ",,19:15"
+  },
+  {
+    "rank": "120",
+    "riderName": "Vernon Ethan",
+    "riderSlug": "ethan-vernon",
+    "teamName": "NSN Cycling Team",
+    "teamSlug": "nsn-cycling-team-2026",
+    "nationality": "GB",
+    "value": "",
+    "gap": ",,19:15"
+  },
+  {
+    "rank": "121",
+    "riderName": "Hamilton Chris",
+    "riderSlug": "chris-hamilton",
+    "teamName": "Team Picnic PostNL",
+    "teamSlug": "team-picnic-postnl-2026",
+    "nationality": "AU",
+    "value": "",
+    "gap": ",,19:15"
+  },
+  {
+    "rank": "122",
+    "riderName": "Shaw James",
+    "riderSlug": "james-shaw",
+    "teamName": "EF Education - EasyPost",
+    "teamSlug": "ef-education-easypost-2026",
+    "nationality": "GB",
+    "value": "",
+    "gap": ",,19:15"
+  },
+  {
+    "rank": "123",
+    "riderName": "Silva Guillermo Thomas",
+    "riderSlug": "guillermo-thomas-silva-coussan",
+    "teamName": "XDS Astana Team",
+    "teamSlug": "xds-astana-team-2026",
+    "nationality": "UY",
+    "value": "",
+    "gap": ",,19:15"
+  },
+  {
+    "rank": "124",
+    "riderName": "Schultz Nick",
+    "riderSlug": "nick-schultz",
+    "teamName": "NSN Cycling Team",
+    "teamSlug": "nsn-cycling-team-2026",
+    "nationality": "AU",
+    "value": "",
+    "gap": ",,19:15"
+  },
+  {
+    "rank": "125",
+    "riderName": "García Cortina Iván",
+    "riderSlug": "ivan-garcia-cortina",
+    "teamName": "Movistar Team",
+    "teamSlug": "movistar-team-2026",
+    "nationality": "ES",
+    "value": "",
+    "gap": ",,19:15"
+  },
+  {
+    "rank": "126",
+    "riderName": "Rafferty Darren",
+    "riderSlug": "darren-rafferty",
+    "teamName": "EF Education - EasyPost",
+    "teamSlug": "ef-education-easypost-2026",
+    "nationality": "IE",
+    "value": "",
+    "gap": ",,19:15"
+  },
+  {
+    "rank": "127",
+    "riderName": "Groenewegen Dylan",
+    "riderSlug": "dylan-groenewegen",
+    "teamName": "Unibet Rose Rockets",
+    "teamSlug": "unibet-rose-rockets-2026",
+    "nationality": "NL",
+    "value": "",
+    "gap": ",,19:15"
+  },
+  {
+    "rank": "128",
+    "riderName": "Smith Dion",
+    "riderSlug": "dion-smith",
+    "teamName": "NSN Cycling Team",
+    "teamSlug": "nsn-cycling-team-2026",
+    "nationality": "NZ",
+    "value": "",
+    "gap": ",,19:15"
+  },
+  {
+    "rank": "129",
+    "riderName": "Flynn Sean",
+    "riderSlug": "sean-flynn",
+    "teamName": "Team Picnic PostNL",
+    "teamSlug": "team-picnic-postnl-2026",
+    "nationality": "GB",
+    "value": "",
+    "gap": ",,19:15"
+  },
+  {
+    "rank": "130",
+    "riderName": "López Harold Martín",
+    "riderSlug": "harold-martin-lopez",
+    "teamName": "XDS Astana Team",
+    "teamSlug": "xds-astana-team-2026",
+    "nationality": "EC",
+    "value": "",
+    "gap": ",,19:15"
+  },
+  {
+    "rank": "131",
+    "riderName": "Mozzato Luca",
+    "riderSlug": "luca-mozzato",
+    "teamName": "Tudor Pro Cycling Team",
+    "teamSlug": "tudor-pro-cycling-team-2026",
+    "nationality": "IT",
+    "value": "",
+    "gap": ",,19:15"
+  },
+  {
+    "rank": "132",
+    "riderName": "Naberman Tim",
+    "riderSlug": "tim-naberman",
+    "teamName": "Team Picnic PostNL",
+    "teamSlug": "team-picnic-postnl-2026",
+    "nationality": "NL",
+    "value": "",
+    "gap": ",,19:15"
+  },
+  {
+    "rank": "133",
+    "riderName": "Cepeda Jefferson Alexander",
+    "riderSlug": "jefferson-alexander-cepeda",
+    "teamName": "EF Education - EasyPost",
+    "teamSlug": "ef-education-easypost-2026",
+    "nationality": "EC",
+    "value": "",
+    "gap": ",,19:15"
+  },
+  {
+    "rank": "134",
+    "riderName": "Livyns Arjen",
+    "riderSlug": "arjen-livyns",
+    "teamName": "XDS Astana Team",
+    "teamSlug": "xds-astana-team-2026",
+    "nationality": "BE",
+    "value": "",
+    "gap": ",,19:15"
+  },
+  {
+    "rank": "135",
+    "riderName": "Penhoët Paul",
+    "riderSlug": "paul-penhoet",
+    "teamName": "Groupama - FDJ United",
+    "teamSlug": "groupama-fdj-united-2026",
+    "nationality": "FR",
+    "value": "",
+    "gap": ",,19:15"
+  },
+  {
+    "rank": "136",
+    "riderName": "Froidevaux Robin",
+    "riderSlug": "robin-froidevaux",
+    "teamName": "Tudor Pro Cycling Team",
+    "teamSlug": "tudor-pro-cycling-team-2026",
+    "nationality": "CH",
+    "value": "",
+    "gap": ",,19:15"
+  },
+  {
+    "rank": "137",
+    "riderName": "Kench Josh",
+    "riderSlug": "josh-kench",
+    "teamName": "Groupama - FDJ United",
+    "teamSlug": "groupama-fdj-united-2026",
+    "nationality": "NZ",
+    "value": "",
+    "gap": ",,19:15"
+  },
+  {
+    "rank": "138",
+    "riderName": "Lienhard Fabian",
+    "riderSlug": "fabian-lienhard",
+    "teamName": "Tudor Pro Cycling Team",
+    "teamSlug": "tudor-pro-cycling-team-2026",
+    "nationality": "CH",
+    "value": "",
+    "gap": ",,19:15"
+  },
+  {
+    "rank": "139",
+    "riderName": "Dversnes Lavik Fredrik",
+    "riderSlug": "fredrik-dversnes",
+    "teamName": "Uno-X Mobility",
+    "teamSlug": "uno-x-mobility-2026",
+    "nationality": "NO",
+    "value": "",
+    "gap": ",,19:15"
+  },
+  {
+    "rank": "140",
+    "riderName": "Morgado António",
+    "riderSlug": "antonio-morgado",
+    "teamName": "UAE Team Emirates - XRG",
+    "teamSlug": "uae-team-emirates-xrg-2026",
+    "nationality": "PT",
+    "value": "",
+    "gap": ",,19:15"
+  },
+  {
+    "rank": "141",
+    "riderName": "Bjerg Mikkel",
+    "riderSlug": "mikkel-bjerg",
+    "teamName": "UAE Team Emirates - XRG",
+    "teamSlug": "uae-team-emirates-xrg-2026",
+    "nationality": "DK",
+    "value": "",
+    "gap": ",,19:15"
+  },
+  {
+    "rank": "142",
+    "riderName": "Jacobs Johan",
+    "riderSlug": "johan-jacobs",
+    "teamName": "Groupama - FDJ United",
+    "teamSlug": "groupama-fdj-united-2026",
+    "nationality": "CH",
+    "value": "",
+    "gap": ",,19:15"
+  },
+  {
+    "rank": "143",
+    "riderName": "Kopecký Tomáš",
+    "riderSlug": "tomas-kopecky",
+    "teamName": "Unibet Rose Rockets",
+    "teamSlug": "unibet-rose-rockets-2026",
+    "nationality": "CZ",
+    "value": "",
+    "gap": ",,19:15"
+  },
+  {
+    "rank": "144",
+    "riderName": "Teutenberg Tim Torn",
+    "riderSlug": "tim-torn-teutenberg",
+    "teamName": "Lidl - Trek",
+    "teamSlug": "lidl-trek-2026",
+    "nationality": "DE",
+    "value": "",
+    "gap": ",,19:15"
+  },
+  {
+    "rank": "145",
+    "riderName": "de Vries Hartthijs",
+    "riderSlug": "hartthijs-de-vries",
+    "teamName": "Unibet Rose Rockets",
+    "teamSlug": "unibet-rose-rockets-2026",
+    "nationality": "NL",
+    "value": "",
+    "gap": ",,19:15"
+  },
+  {
+    "rank": "146",
+    "riderName": "Donaldson Robert",
+    "riderSlug": "robert-donaldson",
+    "teamName": "Team Jayco AlUla",
+    "teamSlug": "team-jayco-alula-2026",
+    "nationality": "GB",
+    "value": "",
+    "gap": ",,19:15"
+  },
+  {
+    "rank": "147",
+    "riderName": "Lonardi Giovanni",
+    "riderSlug": "giovanni-lonardi",
+    "teamName": "Team Polti VisitMalta",
+    "teamSlug": "team-polti-visitmalta-2026",
+    "nationality": "IT",
+    "value": "",
+    "gap": ",,19:15"
+  },
+  {
+    "rank": "148",
+    "riderName": "Rojas Vicente",
+    "riderSlug": "vicente-rojas",
+    "teamName": "Bardiani CSF 7 Saber",
+    "teamSlug": "bardiani-csf-7-saber-2026",
+    "nationality": "CL",
+    "value": "",
+    "gap": ",,19:15"
+  },
+  {
+    "rank": "149",
+    "riderName": "Huens Axel",
+    "riderSlug": "axel-huens",
+    "teamName": "Groupama - FDJ United",
+    "teamSlug": "groupama-fdj-united-2026",
+    "nationality": "FR",
+    "value": "",
+    "gap": ",,19:15"
+  },
+  {
+    "rank": "150",
+    "riderName": "Price-Pejtersen Johan",
+    "riderSlug": "johan-price-pejtersen",
+    "teamName": "Alpecin - Premier Tech",
+    "teamSlug": "alpecin-premier-tech-2026",
+    "nationality": "DK",
+    "value": "",
+    "gap": ",,19:15"
+  },
+  {
+    "rank": "151",
+    "riderName": "Consonni Simone",
+    "riderSlug": "simone-consonni",
+    "teamName": "Lidl - Trek",
+    "teamSlug": "lidl-trek-2026",
+    "nationality": "IT",
+    "value": "",
+    "gap": "19:4219:42"
+  },
+  {
+    "rank": "152",
+    "riderName": "Malucelli Matteo",
+    "riderSlug": "matteo-malucelli",
+    "teamName": "XDS Astana Team",
+    "teamSlug": "xds-astana-team-2026",
+    "nationality": "IT",
+    "value": "",
+    "gap": ",,19:42"
+  },
+  {
+    "rank": "153",
+    "riderName": "Gudmestad Tord",
+    "riderSlug": "tord-gudmestad",
+    "teamName": "Decathlon CMA CGM Team",
+    "teamSlug": "decathlon-cma-cgm-team-2026",
+    "nationality": "NO",
+    "value": "",
+    "gap": "20:1520:15"
+  },
+  {
+    "rank": "154",
+    "riderName": "Andresen Tobias Lund",
+    "riderSlug": "tobias-lund-andresen",
+    "teamName": "Decathlon CMA CGM Team",
+    "teamSlug": "decathlon-cma-cgm-team-2026",
+    "nationality": "DK",
+    "value": "",
+    "gap": ",,20:15"
+  },
+  {
+    "rank": "155",
+    "riderName": "Marcellusi Martin",
+    "riderSlug": "martin-marcellusi",
+    "teamName": "Bardiani CSF 7 Saber",
+    "teamSlug": "bardiani-csf-7-saber-2026",
+    "nationality": "IT",
+    "value": "",
+    "gap": ",,20:15"
+  },
+  {
+    "rank": "156",
+    "riderName": "Magli Filippo",
+    "riderSlug": "filippo-magli2",
+    "teamName": "Bardiani CSF 7 Saber",
+    "teamSlug": "bardiani-csf-7-saber-2026",
+    "nationality": "IT",
+    "value": "",
+    "gap": ",,20:15"
+  }
+]
