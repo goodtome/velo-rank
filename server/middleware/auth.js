@@ -4,7 +4,9 @@
  * 验证有效性后将 openid 挂载到 req.openid
  */
 
-const pool = require('../config/db-pool');
+function getPool() {
+  return require('../config/db-pool');
+}
 
 /**
  * 输入验证辅助函数
@@ -49,7 +51,7 @@ function authMiddleware(req, res, next) {
 
   const token = authHeader.slice(7);
 
-  pool.query(
+  getPool().query(
     'SELECT openid FROM user_tokens WHERE token = ? AND expires_at > NOW()',
     [token]
   ).then(([rows]) => {
@@ -59,6 +61,25 @@ function authMiddleware(req, res, next) {
     req.openid = rows[0].openid;
     next();
   }).catch(next);
+}
+
+function adminMiddleware(req, res, next) {
+  const configuredKey = process.env.ADMIN_API_KEY || process.env.ADMIN_KEY;
+  const providedKey = req.headers['x-admin-key'];
+
+  if (configuredKey) {
+    if (providedKey === configuredKey) {
+      req.adminAuthenticated = true;
+      return next();
+    }
+    return res.status(403).json({ code: 403, message: '管理密钥无效' });
+  }
+
+  if (process.env.NODE_ENV === 'production') {
+    return res.status(503).json({ code: 503, message: '管理密钥未配置' });
+  }
+
+  return authMiddleware(req, res, next);
 }
 
 /**
@@ -74,7 +95,7 @@ function optionalAuth(req, res, next) {
 
   const token = authHeader.slice(7);
 
-  pool.query(
+  getPool().query(
     'SELECT openid FROM user_tokens WHERE token = ? AND expires_at > NOW()',
     [token]
   ).then(([rows]) => {
@@ -86,9 +107,9 @@ function optionalAuth(req, res, next) {
 }
 
 module.exports = {
+  adminMiddleware,
   authMiddleware,
   optionalAuth,
   validateInput,
   checkRequiredFields
 };
-

@@ -3,7 +3,9 @@ const router = express.Router();
 const pool = require('../config/db-pool');
 const { v4: uuidv4 } = require('uuid');
 const { AppError, asyncHandler } = require('../middleware/errorHandler');
-const { checkRequiredFields, validateInput } = require('../middleware/auth');
+const { adminMiddleware, checkRequiredFields, validateInput } = require('../middleware/auth');
+const { routeLog } = require('../middleware/requestLogger');
+const log = routeLog('sync');
 const Joi = require('joi');
 
 // 状态查询schema验证
@@ -44,13 +46,13 @@ router.get('/status', asyncHandler(async (req, res) => {
       }
     });
   } catch (err) {
-    console.error(err);
+    log.error('获取同步状态失败', { error: err.message });
     res.status(500).json({ code: 500, message: '获取同步状态失败' });
   }
 }));
 
 // POST /api/v1/sync/races/:id - 手动触发赛事数据同步（需认证）
-router.post('/races/:id', asyncHandler(async (req, res) => {
+router.post('/races/:id', adminMiddleware, asyncHandler(async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -67,7 +69,7 @@ router.post('/races/:id', asyncHandler(async (req, res) => {
     const syncEntry = {
       id: syncId,
       race_id: id,
-      requested_by: req.user?.openid || 'unknown',
+      requested_by: req.openid || 'unknown',
       status: 'pending',
       created_at: new Date().toISOString()
     };
@@ -100,7 +102,7 @@ router.post('/races/:id', asyncHandler(async (req, res) => {
     syncProcess.unref();
     */
 
-    console.log(`同步任务已提交: raceId=${id}, syncId=${syncId}, user=${req.user?.openid}`);
+    log.info('同步任务已提交', { raceId: id, syncId });
 
     res.json({
       code: 200,
@@ -114,7 +116,7 @@ router.post('/races/:id', asyncHandler(async (req, res) => {
       }
     });
   } catch (err) {
-    console.error(err);
+    log.error('提交同步任务失败', { error: err.message });
     if (err instanceof AppError) {
       throw err;
     }
@@ -123,7 +125,7 @@ router.post('/races/:id', asyncHandler(async (req, res) => {
 }));
 
 // GET /api/v1/sync/logs - 查询同步日志（需认证）
-router.get('/logs', asyncHandler(async (req, res) => {
+router.get('/logs', adminMiddleware, asyncHandler(async (req, res) => {
   try {
     const { page = 1, limit = 20 } = req.query;
 
@@ -171,7 +173,7 @@ router.get('/logs', asyncHandler(async (req, res) => {
       }
     });
   } catch (err) {
-    console.error(err);
+    log.error('查询同步日志失败', { error: err.message });
     res.status(500).json({ code: 500, message: '查询同步日志失败' });
   }
 }));

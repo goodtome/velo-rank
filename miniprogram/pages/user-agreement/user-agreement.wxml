@@ -1,0 +1,216 @@
+<view class="page-container">
+  <!-- 页面头部 -->
+  <view class="page-header">
+    <text class="header-title">用户协议</text>
+    <text class="header-desc">请仔细阅读以下用户协议条款</text>
+    <text class="header-date">更新日期：2026年6月5日</text>
+  </view>
+
+  <!-- 引言 -->
+  <view class="content-card">
+    <view class="intro-text">
+      <text>欢迎使用「正一领骑」（以下简称"本应用"）。在您使用本应用提供的各项服务之前，请仔细阅读并充分理解本用户协议的全部内容。您使用本应用即表示您已阅读并同意接受本协议的约束。</text>
+    </view>
+  </view>
+
+  <!-- 一、服务说明 -->
+  <view class="content-card">
+    <view class="section-header">
+      <view class="section-icon">🚴</view>
+      <text class="section-title">一、服务说明</text>
+    </view>
+    <view class="section-body">
+      <view class="info-item">
+        <view class="info-dot"></view>
+        <view class="info-content">
+          <text class="info-desc">本应用是一款专注于自行车赛事成绩和数据分析的工具类应用。</text>
+        </view>
+      </view>
+      <view class="info-item">
+        <view class="info-dot"></view>
+        <view class="info-content">
+          <text class="info-desc">我们为用户提供赛事成绩查询、车手排名统计、赛事日历浏览、实时赛况跟踪等功能服务。</text>
+        </view>
+      </view>
+      <view class="info-item">
+        <view class="info-dot"></view>
+        <view class="info-content">
+          <text class="info-desc">本应用保留随时修改、暂停或终止部分或全部服务的权利，无需事先通知。</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 二、使用规范 -->
+  <view class="content-card">
+    <view class="section-header">
+      <view class="section-icon">📋</view>
+      <text class="section-title">二、使用规范</text>
+    </view>
+    <view class="section-body">
+      <text class="body-text">本应用仅供个人非商业用途使用。在使用本应用时，您同意遵守以下规范：</text>
+      <view class="usage-item">
+        <view class="usage-num">1</view>
+        <text class="usage-text">不得利用本应用从事任何违反法律法规的活动。</text>
+      </view>
+      <view class="usage-item">
+        <view class="usage-num">2</view>
+        <text class="usage-text">不得对本应用进行反编译、反汇编或其他逆向工程操作。</text>
+      </view>
+      <view class="usage-item">
+        <view class="usage-num">3</view>
+        <text class="usage-text">不得利用技术手段对本应用的服务器或网络进行攻击、干扰。</text>
+      </view>
+      <view class="usage-item">
+        <view class="usage-num">4</view>
+        <text class="usage-text">不得将本应用的内容用于商业用途或批量数据抓取。</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 三、数据准确性 -->
+  <view class="content-card">
+    <view class="section-header">
+      <view class="section-icon">📊</view>
+      <text class="section-title">三、数据准确性</text>
+    </view>
+    <view class="section-body">
+      <view class="info-item">
+        <view class="info-dot"></view>
+        <view class="info-content">
+          <text class="info-desc">本应用所展示的赛事成绩、排名等数据均来源于公开渠道，包括但不限于赛事官方网站、权威体育数据平台等。</text>
+        </view>
+      </view>
+      <view class="info-item">
+        <view class="info-dot"></view>
+        <view class="info-content">
+          <text class="info-desc">我们尽最大努力确保数据的准确性和时效性，但无法保证所有数据100%准确、完整或及时。</text>
+        </view>
+      </view>
+      <view class="info-item">
+        <view class="info-dot"></view>
+        <view class="info-content">
+          <text class="info-desc">如发现数据有误，欢迎通过邮箱 1044125641@qq.com 向我们报告，我们将尽快核实并更正。</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 四、知识产权 -->
+  <view class="content-card">
+    <view class="section-header">
+      <view class="section-icon">©️</view>
+      <text class="section-title">四、知识产权</text>
+    </view>
+    <view class="section-body">
+      <view class="info-item">
+        <view class="info-dot"></view>
+        <view class="info-content">
+          <text class="info-desc">本应用中展示的赛事名称、标志、图片等内容的知识产权归其原始权利人所有。</text>
+        </view>
+      </view>
+      <view class="info-item">
+        <view class="info-dot"></view>
+        <view class="info-content">
+          <text class="info-desc">本应用的界面设计、功能实现、代码等受知识产权法律保护，未经授权不得复制或仿制。</text>
+        </view>
+      </view>
+      <view class="info-item">
+        <view class="info-dot"></view>
+        <view class="info-content">
+          <text class="info-desc">用户不得在未经授权的情况下使用本应用中的任何内容用于商业目的。</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 五、免责声明 -->
+  <view class="content-card">
+    <view class="section-header">
+      <view class="section-icon">⚠️</view>
+      <text class="section-title">五、免责声明</text>
+    </view>
+    <view class="section-body">
+      <view class="info-item">
+        <view class="info-dot"></view>
+        <view class="info-content">
+          <text class="info-desc">本应用按"现状"提供服务，不作任何明示或暗示的保证，包括但不限于对适用性、准确性、可靠性的保证。</text>
+        </view>
+      </view>
+      <view class="info-item">
+        <view class="info-dot"></view>
+        <view class="info-content">
+          <text class="info-desc">因使用本应用而产生的任何直接或间接损失，本应用不承担法律责任。</text>
+        </view>
+      </view>
+      <view class="info-item">
+        <view class="info-dot"></view>
+        <view class="info-content">
+          <text class="info-desc">因不可抗力（如自然灾害、政策变化、网络故障等）导致的服务中断，本应用不承担责任。</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 六、账号管理 -->
+  <view class="content-card">
+    <view class="section-header">
+      <view class="section-icon">👤</view>
+      <text class="section-title">六、账号管理</text>
+    </view>
+    <view class="section-body">
+      <view class="info-item">
+        <view class="info-dot"></view>
+        <view class="info-content">
+          <text class="info-desc">您可以通过微信授权登录本应用，系统会自动创建您的用户账号。</text>
+        </view>
+      </view>
+      <view class="info-item">
+        <view class="info-dot"></view>
+        <view class="info-content">
+          <text class="info-desc">您有权随时通过「我的 → 注销账号」功能删除您的账号。账号删除后，与该账号关联的所有个人数据（登录凭证、收藏、推送偏好）将被永久删除且无法恢复。</text>
+        </view>
+      </view>
+      <view class="info-item">
+        <view class="info-dot"></view>
+        <view class="info-content">
+          <text class="info-desc">如您违反本协议的相关条款，本应用保留暂停或终止您账号的权利。</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 七、争议解决 -->
+  <view class="content-card">
+    <view class="section-header">
+      <view class="section-icon">⚖️</view>
+      <text class="section-title">七、争议解决</text>
+    </view>
+    <view class="section-body">
+      <view class="info-item">
+        <view class="info-dot"></view>
+        <view class="info-content">
+          <text class="info-desc">本协议的解释、执行及争议解决均适用中华人民共和国法律。</text>
+        </view>
+      </view>
+      <view class="info-item">
+        <view class="info-dot"></view>
+        <view class="info-content">
+          <text class="info-desc">因本协议产生的争议，双方应首先通过友好协商解决。协商不成的，任何一方可向本应用所在地有管辖权的人民法院提起诉讼。</text>
+        </view>
+      </view>
+      <view class="info-item">
+        <view class="info-dot"></view>
+        <view class="info-content">
+          <text class="info-desc">本协议的任何条款如被认定为无效，不影响其余条款的效力。</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 底部信息 -->
+  <view class="footer-section">
+    <text class="footer-text">正一领骑 团队</text>
+    <text class="footer-date">最后更新：2026年6月5日</text>
+  </view>
+</view>

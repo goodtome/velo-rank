@@ -3,8 +3,8 @@
  * 使用 ES6+ 语法、统一请求封装、Async/Await
  */
 
-const { get } = require('../../utils/request');
-const { showError } = require('../../utils/util');
+const { get, formatErrorMessage } = require('../../utils/request');
+const { showError, navigateTo } = require('../../utils/util');
 
 Page({
   data: {
@@ -16,7 +16,41 @@ Page({
   },
 
   onLoad() {
+    // 先展示缓存数据（如有），再后台刷新
+    this.loadCache();
     this.loadRaces();
+  },
+
+  /**
+   * 读取本地缓存，快速首屏展示
+   * 缓存有效期 30 分钟，过期则不展示但仍可用作兜底
+   */
+  loadCache() {
+    try {
+      const cached = wx.getStorageSync('home_races_cache');
+      if (cached && cached.activeRaces) {
+        const age = Date.now() - (cached.timestamp || 0);
+        const isFresh = age < 30 * 60 * 1000; // 30 分钟
+        this.setData({
+          activeRaces: cached.activeRaces,
+          recentRaces: cached.recentRaces || [],
+          loading: !isFresh // 过期数据仍展示但保留 loading 状态
+        });
+      }
+    } catch (e) { /* ignore cache read errors */ }
+  },
+
+  /**
+   * 保存数据到本地缓存
+   */
+  saveCache(activeRaces, recentRaces) {
+    try {
+      wx.setStorageSync('home_races_cache', {
+        activeRaces,
+        recentRaces,
+        timestamp: Date.now()
+      });
+    } catch (e) { /* ignore cache write errors */ }
   },
 
   /**
@@ -69,10 +103,11 @@ Page({
         recentRaces,
         loading: false
       });
+      this.saveCache(activeRaces, recentRaces);
     } catch (err) {
       console.error('加载赛事失败:', err);
-      this.setData({ loading: false, loadError: true });
-      showError('网络请求失败');
+      this.setData({ loading: false, loadError: true, errorMessage: formatErrorMessage(err) });
+      showError(formatErrorMessage(err));
     }
   },
 
@@ -103,7 +138,7 @@ Page({
     const { raceId } = e.currentTarget.dataset;
     if (!raceId) return;
 
-    wx.navigateTo({
+    navigateTo({
       url: `/pages/race-detail/race-detail?id=${raceId}`
     });
   },

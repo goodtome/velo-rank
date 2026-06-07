@@ -1,10 +1,58 @@
-/**
+﻿/**
  * 赛事日历页面逻辑
  * v1.0 优化版：赛事期间全覆盖标记 + 状态颜色 + 新日历API
  */
 
-const { get } = require('../../utils/request');
-const { formatDate } = require('../../utils/util');
+const { get, formatErrorMessage } = require('../../utils/request');
+const { formatDate, navigateTo } = require('../../utils/util');
+
+function toDateOnly(value) {
+  if (!value) return '';
+
+  if (typeof value === 'string') {
+    const match = value.match(/^(\d{4}-\d{2}-\d{2})/);
+    if (match) return match[1];
+  }
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+function parseDateOnly(value) {
+  const dateOnly = toDateOnly(value);
+  if (!dateOnly) return null;
+
+  const [year, month, day] = dateOnly.split('-').map(Number);
+  return new Date(year, month - 1, day);
+}
+
+function isFinishedAfterEndOfDay(endDateValue, now = new Date()) {
+  const endDate = parseDateOnly(endDateValue);
+  if (!endDate) return false;
+
+  endDate.setHours(23, 59, 59, 999);
+  return now.getTime() > endDate.getTime();
+}
+
+function buildRaceDays(startDateValue, endDateValue) {
+  const start = parseDateOnly(startDateValue);
+  const end = parseDateOnly(endDateValue);
+  if (!start || !end) return [];
+
+  const raceDays = [];
+  const current = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+  while (current <= end) {
+    raceDays.push(toDateOnly(current));
+    current.setDate(current.getDate() + 1);
+  }
+
+  return raceDays;
+}
 
 Page({
   data: {
@@ -18,6 +66,8 @@ Page({
     upcomingRaces: [],
     allRaces: [], // 当前月的所有赛事
     loading: false,
+    loadError: false,
+    errorMessage: '',
     // 赛事类型颜色映射（key 对齐数据库 category 实际值）
     categoryColors: {
       'Grand Tour':              '#f1c40f', // 大环赛 - 金色
@@ -43,7 +93,7 @@ Page({
    * 加载赛事日历数据
    */
   async loadCalendarData() {
-    this.setData({ loading: true });
+    this.setData({ loading: true, loadError: false, errorMessage: '' });
 
     try {
       const res = await get('/races/calendar', {
@@ -76,21 +126,17 @@ Page({
     try {
       const res = await get('/races', { limit: 100 });
       if (res && res.code === 200) {
-        const today = new Date().toISOString().split('T')[0];
+        const now = new Date();
+        const today = toDateOnly(now);
         const races = (res.data || []).map(r => {
+          const startDate = toDateOnly(r.start_date);
+          const endDate = toDateOnly(r.end_date);
           let status = 'upcoming';
-          if (r.start_date <= today && r.end_date >= today) status = 'ongoing';
-          else if (r.end_date < today) status = 'finished';
-          // 计算赛事覆盖日期
-          const raceDays = [];
-          if (r.start_date && r.end_date) {
-            const start = new Date(r.start_date);
-            const end = new Date(r.end_date);
-            for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-              raceDays.push(d.toISOString().split('T')[0]);
-            }
+          if (startDate && endDate) {
+            if (startDate <= today && !isFinishedAfterEndOfDay(endDate, now)) status = 'ongoing';
+            else if (isFinishedAfterEndOfDay(endDate, now)) status = 'finished';
           }
-          return { ...r, status, raceDays };
+          return { ...r, start_date: startDate, end_date: endDate, status, raceDays: buildRaceDays(startDate, endDate) };
         });
 
         this.setData({ allRaces: races });
@@ -99,6 +145,10 @@ Page({
       }
     } catch (err) {
       console.error('降级加载赛事失败:', err);
+      this.setData({
+        loadError: true,
+        errorMessage: formatErrorMessage(err)
+      });
     }
   },
 
@@ -209,6 +259,13 @@ Page({
     this.setData({ upcomingRaces: upcoming });
   },
 
+  /**
+   * 重试加载
+   */
+  retryLoad() {
+    this.loadCalendarData();
+  },
+
   // 切换月份
   prevMonth() {
     let { currentYear, currentMonth } = this.data;
@@ -261,7 +318,7 @@ Page({
   goToRace(e) {
     const { id } = e.currentTarget.dataset;
     if (!id) return;
-    wx.navigateTo({
+    navigateTo({
       url: `/pages/race-detail/race-detail?id=${id}`
     });
   },
@@ -273,17 +330,44 @@ Page({
     const { race } = e.currentTarget.dataset;
     if (!race) return;
 
+    const title = race.race_name_zh || race.race_name;
+    const startDate = race.start_date ? new Date(race.start_date) : null;
+    const endDate = race.end_date ? new Date(race.end_date) : null;
+
+    if (!startDate || isNaN(startDate.getTime())) {
+      wx.showToast({ title: '赛事日期未知', icon: 'none' });
+      return;
+    }
+
     wx.showModal({
       title: '添加到日历',
-      content: `将"${race.race_name_zh || race.race_name}"添加到系统日历？`,
+      content: `将"${title}"添加到系统日历？`,
       success: (res) => {
-        if (res.confirm) {
-          wx.showToast({
-            title: '已添加到日历',
-            icon: 'success'
-          });
-          // TODO: 调用 wx.addPhoneCalendar 或服务端生成 .ics 文件
-        }
+        if (!res.confirm) return;
+
+        const startTime = Math.floor(startDate.getTime() / 1000);
+        // 如果赛事有结束日期，设为全天事件（结束日 23:59）；否则设为 1 天
+        const endTime = endDate && !isNaN(endDate.getTime())
+          ? Math.floor((endDate.getTime() + 86400000 - 1) / 1000)
+          : startTime + 86400;
+
+        wx.addPhoneCalendar({
+          title,
+          startTime,
+          endTime,
+          allDay: 1,
+          description: `${race.race_name_en || title}\n${race.category || ''}`,
+          success: () => {
+            wx.showToast({ title: '已添加到日历', icon: 'success' });
+          },
+          fail: (err) => {
+            if (err.errMsg && err.errMsg.includes('auth deny')) {
+              wx.showToast({ title: '请授权日历权限', icon: 'none' });
+            } else {
+              wx.showToast({ title: '添加失败', icon: 'none' });
+            }
+          }
+        });
       }
     });
   },

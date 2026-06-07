@@ -29,7 +29,19 @@ import json
 import sys
 import re
 
-URL = sys.argv[1] if len(sys.argv) > 1 else "https://www.procyclingstats.com/race/giro-d-italia/2026/stage-4"
+# 解析命令行参数
+URL = sys.argv[1] if len(sys.argv) > 1 and not sys.argv[1].startswith('--') else "https://www.procyclingstats.com/race/giro-d-italia/2026/stage-4"
+TABLE_OFFSET = 0
+for i, arg in enumerate(sys.argv):
+    if arg.startswith('--offset='):
+        TABLE_OFFSET = int(arg.split('=')[1])
+    elif arg == '--offset' and i + 1 < len(sys.argv):
+        TABLE_OFFSET = int(sys.argv[i + 1])
+# 重新定位URL参数
+for arg in sys.argv[1:]:
+    if arg.startswith('http'):
+        URL = arg
+        break
 
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
@@ -57,7 +69,7 @@ def parse_rider_cell(td):
     if span_upper:
         surname = span_upper.get_text(strip=True)
         firstname = a_tag.get_text(strip=True).replace(surname, '').strip()
-        name = f"{firstname} {surname}"
+        name = f"{surname} {firstname}"
     else:
         name = a_tag.get_text(strip=True)
     
@@ -106,14 +118,14 @@ def parse_specialty(td):
         return span.get_text(strip=True)
     return ""
 
-def extract_stage_results(soup):
-    """Extract stage results from Table 0."""
+def extract_stage_results(soup, table_index=0):
+    """Extract stage results from Table at table_index."""
     results = []
     tables = soup.find_all('table')
-    if not tables:
+    if table_index >= len(tables):
         return results
     
-    table = tables[0]
+    table = tables[table_index]
     rows = table.find_all('tr')
     
     for row in rows:  # 不跳过任何行，通过th/td判断
@@ -404,12 +416,12 @@ def main():
     data = {
         'url': URL,
         'stage_info': extract_stage_info(soup),
-        'results': extract_stage_results(soup),
+        'results': extract_stage_results(soup, TABLE_OFFSET),
         'jersey_holders': extract_jersey_holders(soup),
-        'gc': extract_classification(soup, 1, 'GC'),            # Table 1: GC总成绩 (13列, 156行)
-        'youth': extract_classification(soup, 9, 'Youth'),      # Table 9: Youth总成绩 (11列, 44行)
-        'points': extract_classification(soup, 2, 'Points'),    # Table 2: 冲刺积分榜 (11列, 100行)
-        'kom': extract_classification(soup, 6, 'KOM'),        # Table 6: KOM积分榜 (11列, 66行) - 完整版
+        'gc': extract_classification(soup, TABLE_OFFSET + 1, 'GC'),
+        'youth': extract_classification(soup, TABLE_OFFSET + 9, 'Youth'),
+        'points': extract_classification(soup, TABLE_OFFSET + 2, 'Points'),
+        'kom': extract_classification(soup, TABLE_OFFSET + 6, 'KOM'),
     }
     
     # 保存到文件，避免Windows控制台编码问题

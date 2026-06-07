@@ -152,22 +152,24 @@ async function main() {
   }
   
   try {
-    // 测试1: 赛段列表
-    const stages = await scrapeRaceStages('giro-ditalia-2026');
+    // 测试1: TdF 2025 赛段列表
+    const stages = await scrapeRaceStages('tour-de-france-2025');
     if (stages.length > 0) {
-      console.log('\n📋 赛段列表:');
+      console.log('\n📋 TdF 2025 赛段列表:');
       stages.slice(0, 5).forEach(s => {
         console.log(`  Stage ${s.stage_number}: ${s.stage_name} (${s.date_str})`);
       });
+      if (stages.length > 5) console.log(`  ... 共 ${stages.length} 个赛段`);
     }
     
-    // 测试2: Stage 5成绩
-    const results = await scrapeStageResult('giro-ditalia-2026', 5);
+    // 测试2: TdF 2025 Stage 1成绩
+    const results = await scrapeStageResult('tour-de-france-2025', 1);
     if (results && results.length > 0) {
-      console.log('\n📊 Stage 5 成绩:');
+      console.log('\n📊 TdF 2025 Stage 1 成绩:');
       results.slice(0, 10).forEach(r => {
         console.log(`  ${r.rank}. ${r.rider_name} (${r.team_name}) - ${r.time_gap}`);
       });
+      if (results.length > 10) console.log(`  ... 共 ${results.length} 条`);
     }
     
     console.log('\n' + '='.repeat(60));

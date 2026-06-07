@@ -6,6 +6,8 @@
 
 const WebSocket = require('ws');
 const pool = require('./config/db-pool');
+const { routeLog } = require('./middleware/requestLogger');
+const log = routeLog('websocket');
 
 let wss = null;
 const clients = new Map(); // 存储所有连接的客户端
@@ -26,7 +28,7 @@ function initWebSocket(server) {
     };
     
     clients.set(clientId, clientInfo);
-    console.log(`WebSocket客户端连接: ${clientId}, 当前连接数: ${clients.size}`);
+    log.info('客户端连接', { clientId, connections: clients.size });
     
     // 发送欢迎消息
     ws.send(JSON.stringify({
@@ -43,17 +45,17 @@ function initWebSocket(server) {
     // 处理连接关闭
     ws.on('close', () => {
       clients.delete(clientId);
-      console.log(`WebSocket客户端断开: ${clientId}, 剩余连接数: ${clients.size}`);
+      log.info('客户端断开', { clientId, connections: clients.size });
     });
     
     // 处理错误
     ws.on('error', (error) => {
-      console.error(`WebSocket客户端错误 ${clientId}:`, error);
+      log.error('客户端错误', { clientId, error: error.message });
       clients.delete(clientId);
     });
   });
   
-  console.log('WebSocket服务器初始化成功，路径: /ws/realtime');
+  log.info('WebSocket服务器初始化成功');
 }
 
 /**
@@ -67,7 +69,7 @@ function handleClientMessage(clientId, message) {
     const client = clients.get(clientId);
     
     if (!client) {
-      console.error(`客户端不存在: ${clientId}`);
+      log.error('客户端不存在', { clientId });
       return;
     }
     
@@ -88,10 +90,10 @@ function handleClientMessage(clientId, message) {
         break;
         
       default:
-        console.warn(`未知消息类型: ${data.type}`);
+        log.warn('未知消息类型', { type: String(data.type).substring(0, 50) });
     }
   } catch (error) {
-    console.error(`处理客户端消息失败 ${clientId}:`, error);
+    log.error('处理消息失败', { clientId, error: error.message });
   }
 }
 
@@ -123,7 +125,7 @@ function handleSubscribe(client, data) {
     message: `已订阅 ${room}`
   }));
   
-  console.log(`客户端 ${client.id} 订阅: ${room}`);
+  log.info('客户端订阅', { clientId: client.id, room });
   
   // 立即发送一次当前数据
   sendInitialData(client, raceId, stageId);
@@ -146,7 +148,7 @@ function handleUnsubscribe(client, data) {
     message: `已取消订阅 ${room}`
   }));
   
-  console.log(`客户端 ${client.id} 取消订阅: ${room}`);
+  log.info('客户端取消订阅', { clientId: client.id, room });
 }
 
 /**
@@ -201,7 +203,7 @@ async function sendInitialData(client, raceId, stageId) {
     }));
     
   } catch (error) {
-    console.error(`发送初始数据失败:`, error);
+    log.error('发送初始数据失败', { error: error.message });
     client.ws.send(JSON.stringify({
       type: 'error',
       message: '获取数据失败'
@@ -236,7 +238,7 @@ function broadcastUpdate(raceId, stageId, dataType, data) {
     }
   });
   
-  console.log(`广播更新: ${room} ${dataType}, 接收客户端数: ${sentCount}`);
+  log.info('广播更新', { room, dataType, sentCount });
 }
 
 /**
@@ -264,7 +266,7 @@ function closeWebSocket() {
       client.ws.close();
     });
     wss.close();
-    console.log('WebSocket服务器已关闭');
+    log.info('WebSocket服务器已关闭');
   }
 }
 

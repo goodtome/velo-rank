@@ -11,7 +11,9 @@
     "pages/encyclopedia/encyclopedia",
     "pages/classification/classification",
     "pages/realtime-results/realtime-results",
-    "pages/push-settings/push-settings"
+    "pages/push-settings/push-settings",
+    "pages/privacy-policy/privacy-policy",
+    "pages/user-agreement/user-agreement"
   ],
   "lazyCodeLoading": "requiredComponents",
   "window": {
@@ -23,7 +25,7 @@
   },
   "tabBar": {
     "color": "#999999",
-    "selectedColor": "#2196F3",
+    "selectedColor": "#1aad19",
     "backgroundColor": "#ffffff",
     "borderStyle": "white",
     "list": [

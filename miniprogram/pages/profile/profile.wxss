@@ -82,6 +82,15 @@
   color: #999;
 }
 
+.stats-error-hint {
+  text-align: center;
+  margin-top: 16rpx;
+  padding-top: 16rpx;
+  border-top: 1rpx solid #f0f0f0;
+  font-size: 22rpx;
+  color: #e74c3c;
+}
+
 /* 菜单卡片 */
 .menu-card {
   margin: 0 24rpx 24rpx 24rpx;
@@ -112,6 +121,10 @@
 .menu-text {
   font-size: 28rpx;
   color: #333;
+}
+
+.menu-item-danger .menu-text {
+  color: #e74c3c;
 }
 
 /* 菜单分割线 */

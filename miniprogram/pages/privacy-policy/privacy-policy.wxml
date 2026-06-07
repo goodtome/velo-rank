@@ -1,0 +1,190 @@
+<view class="page-container">
+  <!-- 页面头部 -->
+  <view class="page-header">
+    <text class="header-title">隐私政策</text>
+    <text class="header-desc">正一领骑 尊重并保护您的个人隐私</text>
+    <text class="header-date">更新日期：2026年6月5日</text>
+  </view>
+
+  <!-- 引言 -->
+  <view class="content-card">
+    <view class="intro-text">
+      <text>欢迎使用「正一领骑」（以下简称"本应用"）。我们深知个人信息对您的重要性，并会尽全力保护您的隐私安全。本隐私政策旨在向您说明我们如何收集、使用、存储和保护您的个人信息。</text>
+    </view>
+  </view>
+
+  <!-- 一、我们收集的信息 -->
+  <view class="content-card">
+    <view class="section-header">
+      <view class="section-icon">📋</view>
+      <text class="section-title">一、我们收集的信息</text>
+    </view>
+    <view class="section-body">
+      <text class="body-text">为了向您提供更好的服务体验，我们会收集以下必要信息：</text>
+      <view class="info-item">
+        <view class="info-dot"></view>
+        <view class="info-content">
+          <text class="info-label">设备信息</text>
+          <text class="info-desc">包括设备型号、操作系统版本、屏幕分辨率等，用于优化页面显示效果和适配不同设备。</text>
+        </view>
+      </view>
+      <view class="info-item">
+        <view class="info-dot"></view>
+        <view class="info-content">
+          <text class="info-label">微信 OpenID</text>
+          <text class="info-desc">用于微信账号登录和身份识别，确保您的账号安全和数据归属。</text>
+        </view>
+      </view>
+      <view class="info-item">
+        <view class="info-dot"></view>
+        <view class="info-content">
+          <text class="info-label">收藏与推送偏好</text>
+          <text class="info-desc">您收藏的车手、赛事以及推送通知设置，用于提供个性化的内容推荐和赛事提醒服务。</text>
+        </view>
+      </view>
+      <view class="info-item">
+        <view class="info-dot"></view>
+        <view class="info-content">
+          <text class="info-label">浏览记录</text>
+          <text class="info-desc">您在应用内的浏览和搜索历史，用于提供搜索建议和历史记录查询功能。</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 二、我们不收集的信息 -->
+  <view class="content-card">
+    <view class="section-header">
+      <view class="section-icon">🔒</view>
+      <text class="section-title">二、我们不收集的信息</text>
+    </view>
+    <view class="section-body">
+      <text class="body-text">我们承诺不收集以下敏感信息：</text>
+      <view class="no-collect-grid">
+        <view class="no-collect-item">
+          <text class="no-collect-icon">📍</text>
+          <text class="no-collect-text">地理位置</text>
+        </view>
+        <view class="no-collect-item">
+          <text class="no-collect-icon">👥</text>
+          <text class="no-collect-text">通讯录</text>
+        </view>
+        <view class="no-collect-item">
+          <text class="no-collect-icon">💳</text>
+          <text class="no-collect-text">支付信息</text>
+        </view>
+        <view class="no-collect-item">
+          <text class="no-collect-icon">🎤</text>
+          <text class="no-collect-text">麦克风/相机</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 三、信息的使用方式 -->
+  <view class="content-card">
+    <view class="section-header">
+      <view class="section-icon">⚙️</view>
+      <text class="section-title">三、信息的使用方式</text>
+    </view>
+    <view class="section-body">
+      <text class="body-text">我们收集的信息仅用于以下目的：</text>
+      <view class="usage-item">
+        <view class="usage-num">1</view>
+        <text class="usage-text">提供自行车赛事成绩、排名和统计数据等核心服务功能。</text>
+      </view>
+      <view class="usage-item">
+        <view class="usage-num">2</view>
+        <text class="usage-text">根据您的偏好和浏览习惯，提供个性化的内容推荐和赛事提醒。</text>
+      </view>
+      <view class="usage-item">
+        <view class="usage-num">3</view>
+        <text class="usage-text">优化应用性能，改善用户体验，修复技术问题。</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 四、数据存储与安全 -->
+  <view class="content-card">
+    <view class="section-header">
+      <view class="section-icon">🛡️</view>
+      <text class="section-title">四、数据存储与安全</text>
+    </view>
+    <view class="section-body">
+      <view class="info-item">
+        <view class="info-dot"></view>
+        <view class="info-content">
+          <text class="info-desc">您的个人信息存储在我们的服务器端，采用加密数据库进行安全存储。</text>
+        </view>
+      </view>
+      <view class="info-item">
+        <view class="info-dot"></view>
+        <view class="info-content">
+          <text class="info-desc">我们采取严格的数据访问控制措施，防止未经授权的访问、使用或泄露。</text>
+        </view>
+      </view>
+      <view class="info-item">
+        <view class="info-dot"></view>
+        <view class="info-content">
+          <text class="info-desc">您可以随时通过「我的 → 注销账号」功能，永久删除我们在服务器端存储的全部个人数据（包括登录凭证、收藏和推送偏好）。注销操作不可撤销。</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 五、第三方共享 -->
+  <view class="content-card">
+    <view class="section-header">
+      <view class="section-icon">🤝</view>
+      <text class="section-title">五、第三方信息共享</text>
+    </view>
+    <view class="section-body">
+      <text class="body-text">我们承诺不会将您的个人信息分享、出售或转让给任何第三方。您的数据仅在本应用内部使用，不会用于任何第三方服务或广告推送。</text>
+    </view>
+  </view>
+
+  <!-- 六、儿童隐私保护 -->
+  <view class="content-card">
+    <view class="section-header">
+      <view class="section-icon">👶</view>
+      <text class="section-title">六、儿童隐私保护</text>
+    </view>
+    <view class="section-body">
+      <text class="body-text">本应用面向所有公众用户，不专门针对儿童群体设计。我们不会刻意收集未成年人的个人信息。如您发现未成年人在未经监护人同意的情况下使用了本应用，请通过邮箱 1044125641@qq.com 与我们联系，我们将及时处理。</text>
+    </view>
+  </view>
+
+  <!-- 七、联系我们 -->
+  <view class="content-card">
+    <view class="section-header">
+      <view class="section-icon">📧</view>
+      <text class="section-title">七、联系我们</text>
+    </view>
+    <view class="section-body">
+      <text class="body-text">如您对本隐私政策有任何疑问、建议或投诉，欢迎通过以下方式与我们联系，我们将尽快予以回复和处理：</text>
+      <view class="info-item">
+        <view class="info-dot"></view>
+        <view class="info-content">
+          <text class="info-desc">邮箱：1044125641@qq.com</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 八、政策更新 -->
+  <view class="content-card">
+    <view class="section-header">
+      <view class="section-icon">🔄</view>
+      <text class="section-title">八、隐私政策更新</text>
+    </view>
+    <view class="section-body">
+      <text class="body-text">我们可能会适时修订本隐私政策。政策更新后，我们将通过应用内通知的方式告知您变更内容。继续使用本应用即表示您同意修订后的隐私政策。</text>
+    </view>
+  </view>
+
+  <!-- 底部信息 -->
+  <view class="footer-section">
+    <text class="footer-text">正一领骑 团队</text>
+    <text class="footer-date">最后更新：2026年6月5日</text>
+  </view>
+</view>

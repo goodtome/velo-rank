@@ -2,6 +2,11 @@ const express = require('express');
 const router = express.Router();
 const { v4: uuidv4 } = require('uuid');
 const pool = require('../config/db-pool');
+const { adminMiddleware } = require('../middleware/auth');
+const { routeLog } = require('../middleware/requestLogger');
+const log = routeLog('admin');
+
+router.use(adminMiddleware);
 
 // POST /api/v1/admin/generate-sql - 生成SQL导入脚本
 router.post('/generate-sql', async (req, res) => {
@@ -184,7 +189,7 @@ SELECT
     });
     
   } catch (err) {
-    console.error('生成SQL失败:', err);
+    log.error('生成SQL失败', { error: err.message || String(err) });
     res.status(500).json({ code: 500, message: '生成SQL失败: ' + err.message });
   }
 });
@@ -203,21 +208,21 @@ router.post('/import-stage', async (req, res) => {
     
     const { race_code, stage_number, stage_name, date, distance_km, stage_type } = stage_info;
     
-    console.log(`[Admin Import] 开始导入: ${race_code} Stage ${stage_number}`);
+    log.info('开始导入', { race_code, stage_number });
     
     // 1. 获取或创建赛事
     const [races] = await pool.query('SELECT * FROM races WHERE race_code = ?', [race_code]);
     let raceId;
     if (races.length > 0) {
       raceId = races[0].id;
-      console.log(`[Admin Import] 赛事已存在: ${raceId}`);
+      log.info('赛事已存在', { raceId });
     } else {
       raceId = uuidv4();
       await pool.query(`
         INSERT INTO races (id, race_name, race_name_en, race_code, category, gender, season)
         VALUES (?, ?, ?, ?, ?, ?, ?)
       `, [raceId, "Giro d'Italia", "Giro d'Italia", race_code, 'GRAND_TOUR', 'MEN', 2026]);
-      console.log(`[Admin Import] 创建赛事: ${raceId}`);
+      log.info('创建赛事', { raceId });
     }
     
     // 2. 获取或创建赛段
@@ -228,14 +233,14 @@ router.post('/import-stage', async (req, res) => {
     let stageId;
     if (stages.length > 0) {
       stageId = stages[0].id;
-      console.log(`[Admin Import] 赛段已存在: ${stageId}`);
+      log.info('赛段已存在', { stageId });
     } else {
       stageId = uuidv4();
       await pool.query(`
         INSERT INTO stages (id, race_id, stage_number, stage_name, date, distance_km, stage_type, stage_code)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
       `, [stageId, raceId, stage_number, stage_name || `Stage ${stage_number}`, date || '2026-01-01', distance_km || 0, stage_type || 'Unknown', `${race_code}-s${stage_number}`]);
-      console.log(`[Admin Import] 创建赛段: ${stageId}`);
+      log.info('创建赛段', { stageId });
     }
     
     // 3. 批量导入成绩
@@ -277,11 +282,11 @@ router.post('/import-stage', async (req, res) => {
         imported++;
       } catch (err) {
         skipped++;
-        console.error(`[Admin Import] 失败 [${result.rank}] ${result.rider_name}:`, err.message);
+        log.error('成绩导入失败', { rank: result.rank, rider_name: result.rider_name, error: err.message });
       }
     }
     
-    console.log(`[Admin Import] 成绩导入完成: ${imported} 成功, ${skipped} 失败`);
+    log.info('成绩导入完成', { imported, skipped });
     
     // 4. 导入领骑衫
     let jerseyImported = 0;
@@ -292,7 +297,7 @@ router.post('/import-stage', async (req, res) => {
           const [teams] = await pool.query('SELECT * FROM teams WHERE team_name = ?', [jersey.team_name]);
           
           if (riders.length === 0 || teams.length === 0) {
-            console.error(`[Admin Import] 找不到车手或车队: ${jersey.rider_name} / ${jersey.team_name}`);
+            log.error('找不到车手或车队', { rider_name: jersey.rider_name, team_name: jersey.team_name });
             continue;
           }
           
@@ -304,7 +309,7 @@ router.post('/import-stage', async (req, res) => {
           
           jerseyImported++;
         } catch (err) {
-          console.error(`[Admin Import] 领骑衫失败 ${jersey.jersey_type}:`, err.message);
+          log.error('领骑衫导入失败', { jersey_type: jersey.jersey_type, error: err.message });
         }
       }
     }
@@ -317,7 +322,7 @@ router.post('/import-stage', async (req, res) => {
     
     const message = `导入完成！\n赛事: ${race_code}\n赛段: Stage ${stage_number}\n成绩: ${imported} 条 (跳过: ${skipped})\n领骑衫: ${jerseyImported} 件\n数据库验证: ${count[0].count} 条成绩`;
     
-    console.log(`[Admin Import] ${message}`);
+    log.info('导入完成', { race_code, stage_number, imported, skipped, jerseyImported, db_count: count[0].count });
     
     res.json({ 
       code: 200, 
@@ -333,7 +338,7 @@ router.post('/import-stage', async (req, res) => {
     });
     
   } catch (err) {
-    console.error('[Admin Import] 导入失败:', err);
+    log.error('导入失败', { error: err.message || String(err) });
     res.status(500).json({ code: 500, message: '导入失败: ' + err.message });
   }
 });
@@ -379,7 +384,7 @@ router.get('/riders-without-zh', async (req, res) => {
       }
     });
   } catch (err) {
-    console.error('获取车手列表失败:', err);
+    log.error('获取车手列表失败', { error: err.message || String(err) });
     res.status(500).json({ code: 500, message: '获取车手列表失败: ' + err.message });
   }
 });
@@ -405,7 +410,7 @@ router.put('/rider/:id/chinese-name', async (req, res) => {
     
     res.json({ code: 200, message: '车手中文名更新成功' });
   } catch (err) {
-    console.error('更新车手中文名失败:', err);
+    log.error('更新车手中文名失败', { error: err.message || String(err) });
     res.status(500).json({ code: 500, message: '更新失败: ' + err.message });
   }
 });
@@ -447,7 +452,7 @@ router.get('/teams-without-zh', async (req, res) => {
       }
     });
   } catch (err) {
-    console.error('获取车队列表失败:', err);
+    log.error('获取车队列表失败', { error: err.message || String(err) });
     res.status(500).json({ code: 500, message: '获取车队列表失败: ' + err.message });
   }
 });
@@ -473,7 +478,7 @@ router.put('/team/:id/chinese-name', async (req, res) => {
     
     res.json({ code: 200, message: '车队中文名更新成功' });
   } catch (err) {
-    console.error('更新车队中文名失败:', err);
+    log.error('更新车队中文名失败', { error: err.message || String(err) });
     res.status(500).json({ code: 500, message: '更新失败: ' + err.message });
   }
 });
@@ -499,7 +504,7 @@ router.put('/race/:id/chinese-name', async (req, res) => {
     
     res.json({ code: 200, message: '比赛中文名更新成功' });
   } catch (err) {
-    console.error('更新比赛中文名失败:', err);
+    log.error('更新比赛中文名失败', { error: err.message || String(err) });
     res.status(500).json({ code: 500, message: '更新失败: ' + err.message });
   }
 });
@@ -525,7 +530,7 @@ router.put('/stage/:id/chinese-name', async (req, res) => {
     
     res.json({ code: 200, message: '赛段中文名更新成功' });
   } catch (err) {
-    console.error('更新赛段中文名失败:', err);
+    log.error('更新赛段中文名失败', { error: err.message || String(err) });
     res.status(500).json({ code: 500, message: '更新失败: ' + err.message });
   }
 });
@@ -577,7 +582,7 @@ router.get('/translation-stats', async (req, res) => {
     
     res.json({ code: 200, data: stats });
   } catch (err) {
-    console.error('获取翻译统计失败:', err);
+    log.error('获取翻译统计失败', { error: err.message || String(err) });
     res.status(500).json({ code: 500, message: '获取统计失败: ' + err.message });
   }
 });

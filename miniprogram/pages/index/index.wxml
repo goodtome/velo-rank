@@ -21,7 +21,7 @@
   <!-- 错误状态 -->
   <view wx:elif="{{loadError}}" class="error-state">
     <text class="error-state-icon">😵</text>
-    <text class="error-state-text">加载失败，请检查网络</text>
+    <text class="error-state-text">{{errorMessage || '加载失败，请检查网络'}}</text>
     <button class="retry-btn" bindtap="retryLoad">重新加载</button>
   </view>
 

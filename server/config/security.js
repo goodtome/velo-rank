@@ -3,6 +3,16 @@
  * 包含限流、CORS等安全相关的配置
  */
 
+function parseCorsOrigins(value) {
+  return String(value || '')
+    .split(',')
+    .map(origin => origin.trim())
+    .filter(Boolean);
+}
+
+const isProd = process.env.NODE_ENV === 'production';
+const configuredOrigins = parseCorsOrigins(process.env.CORS_ORIGINS);
+
 // API限流配置
 const apiLimiter = {
   windowMs: 15 * 60 * 1000, // 15分钟
@@ -41,7 +51,21 @@ const syncLimiter = {
 
 // CORS配置
 const corsOptions = {
-  origin: process.env.CORS_ORIGINS || '*', // 生产环境应该配置具体的域名
+  origin(origin, callback) {
+    if (!origin) {
+      return callback(null, true);
+    }
+
+    if (!isProd && (configuredOrigins.length === 0 || configuredOrigins.includes('*'))) {
+      return callback(null, true);
+    }
+
+    if (configuredOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+
+    return callback(new Error('CORS origin not allowed'));
+  },
   credentials: true,
   allowedHeaders: [
     'Content-Type',

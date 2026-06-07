@@ -1,0 +1,37 @@
+✅ MySQL 连接成功
+
+stages 表字段： created_at, date, distance_km, elevation_m, finish_city, finish_city_zh, id, race_id, stage_code, stage_name, stage_name_zh, stage_number, stage_type, start_city, start_city_zh, start_time, updated_at, weather_summary
+是否有 stage_name_zh： true
+
+共 30 条记录（前30条）：
+
+Stage 1: Barcelone → Barcelone | zh: (空)
+Stage 1: Nessebar - Burgas | zh: (空)
+Stage 1: Monaco → Monaco | zh: (空)
+Stage 2: Burgas - Veliko Tarnovo | zh: (空)
+Stage 2: Monaco → Manosque | zh: (空)
+Stage 2: Tarragone → Barcelone | zh: (空)
+Stage 3: Granollers → Les Angles | zh: (空)
+Stage 3: Gruissan-Aude → Font Romeu | zh: (空)
+Stage 3: Plovdiv - Sofia | zh: (空)
+Stage 4: Carcassonne → Foix | zh: (空)
+Stage 4: Andorra la Vella → Andorra la Vella | zh: (空)
+Stage 4: Catanzaro - Cosenza | zh: (空)
+Stage 5: Falset → Roquetes | zh: (空)
+Stage 5: Lannemezan → Pau | zh: (空)
+Stage 5: Praia a Mare - Potenza | zh: (空)
+Stage 6: Alcossebre → Castelló | zh: (空)
+Stage 6: Paestum - Naples | zh: (空)
+Stage 6: Pau → Gavarnie-Gèdre | zh: (空)
+Stage 7: Vall d'Alba → Aramón Valdelinares | zh: (空)
+Stage 7: Formia - Blockhaus | zh: (空)
+Stage 7: Hagetmau → Bordeaux | zh: (空)
+Stage 8: Puçol → Xeraco | zh: (空)
+Stage 8: Chieti - Fermo | zh: (空)
+Stage 8: Périgueux → Bergerac | zh: (空)
+Stage 9: Villajoyosa → Alto de Aitana | zh: (空)
+Stage 9: Cervia - Corno alle Scale | zh: (空)
+Stage 9: Malemort → Ussel | zh: (空)
+Stage 10: Aurillac → Le Lioran | zh: (空)
+Stage 10: Viareggio - Massa (ITT) | zh: (空)
+Stage 10: Alcaraz → Elche de la Sierra | zh: (空)

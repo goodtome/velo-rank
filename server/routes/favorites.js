@@ -8,7 +8,11 @@ const router = express.Router();
 const pool = require('../config/db-pool');
 const { AppError, asyncHandler } = require('../middleware/errorHandler');
 const { authMiddleware } = require('../middleware/auth');
+const { routeLog } = require('../middleware/requestLogger');
+const { updateFavoritesTransaction } = require('../services/favoritesService');
+const log = routeLog('favorites');
 const Joi = require('joi');
+const { v4: uuidv4 } = require('uuid');
 
 // ========== 验证Schemas ==========
 
@@ -23,7 +27,7 @@ const removeFavoriteSchema = Joi.object({
 // GET /api/v1/favorites - 获取当前用户的关注列表
 router.get('/', authMiddleware, asyncHandler(async (req, res) => {
   try {
-    const { user_id } = req.openid;
+    const user_id = req.openid;
 
     // 验证user_id格式
     if (!user_id || typeof user_id !== 'string') {
@@ -34,11 +38,9 @@ router.get('/', authMiddleware, asyncHandler(async (req, res) => {
     const [favorites] = await pool.query(`
       SELECT rf.id, rf.rider_id, rf.created_at,
              r.rider_name, r.rider_name_zh, r.nationality, r.photo_url,
-             r.birth_date, r.country_code,
-             t.team_id, t.team_name, t.team_name_zh, t.uci_code
+             r.birth_date
       FROM riders_favorites rf
       JOIN riders r ON rf.rider_id = r.id
-      LEFT JOIN teams t ON r.team_id = t.id
       WHERE rf.user_id = ?
       ORDER BY rf.created_at DESC
     `, [user_id]);
@@ -49,7 +51,7 @@ router.get('/', authMiddleware, asyncHandler(async (req, res) => {
       total: favorites.length
     });
   } catch (err) {
-    console.error('获取关注列表失败:', err);
+    log.error('获取关注列表失败', { error: err.message });
     throw new AppError('获取关注列表失败', 500);
   }
 }));
@@ -57,7 +59,7 @@ router.get('/', authMiddleware, asyncHandler(async (req, res) => {
 // POST /api/v1/favorites/add - 添加关注
 router.post('/add', authMiddleware, asyncHandler(async (req, res) => {
   try {
-    const { user_id } = req.openid;
+    const user_id = req.openid;
     const { rider_id } = req.body;
 
     // 验证请求参数
@@ -103,14 +105,14 @@ router.post('/add', authMiddleware, asyncHandler(async (req, res) => {
     await pool.query(
       `INSERT INTO riders_favorites (id, user_id, rider_id, created_at)
        VALUES (?, ?, ?, NOW())`,
-      [require('uuid').v4(), user_id, rider_id]
+      [uuidv4(), user_id, rider_id]
     );
 
     // 记录操作日志
     await pool.query(
       `INSERT INTO admin_logs (id, user_id, action, details)
        VALUES (?, ?, 'ADD_FAVORITE', ?)`,
-      [require('uuid').v4(), user_id, JSON.stringify({ rider_id })]
+      [uuidv4(), user_id, JSON.stringify({ rider_id })]
     );
 
     // 获取车手信息
@@ -140,7 +142,7 @@ router.post('/add', authMiddleware, asyncHandler(async (req, res) => {
 // POST /api/v1/favorites/remove - 取消关注
 router.post('/remove', authMiddleware, asyncHandler(async (req, res) => {
   try {
-    const { user_id } = req.openid;
+    const user_id = req.openid;
     const { rider_id } = req.body;
 
     // 验证请求参数
@@ -182,7 +184,7 @@ router.post('/remove', authMiddleware, asyncHandler(async (req, res) => {
     await pool.query(
       `INSERT INTO admin_logs (id, user_id, action, details)
        VALUES (?, ?, 'REMOVE_FAVORITE', ?)`,
-      [require('uuid').v4(), user_id, JSON.stringify({ rider_id })]
+      [uuidv4(), user_id, JSON.stringify({ rider_id })]
     );
 
     res.json({
@@ -200,7 +202,7 @@ router.post('/remove', authMiddleware, asyncHandler(async (req, res) => {
 // GET /api/v1/favorites/check/:riderId - 检查是否已关注某个车手
 router.get('/check/:riderId', authMiddleware, asyncHandler(async (req, res) => {
   try {
-    const { user_id } = req.openid;
+    const user_id = req.openid;
     const { riderId } = req.params;
 
     // 验证riderId格式
@@ -235,8 +237,9 @@ router.get('/check/:riderId', authMiddleware, asyncHandler(async (req, res) => {
 // PUT /api/v1/favorites - 更新关注列表（批量）
 router.put('/', authMiddleware, asyncHandler(async (req, res) => {
   try {
-    const { user_id } = req.openid;
+    const user_id = req.openid;
     const { favorite_ids } = req.body; // Array of rider_id
+    const normalizedFavoriteIds = [...new Set(favorite_ids || [])];
 
     if (!Array.isArray(favorite_ids)) {
       throw new AppError('favorite_ids必须是数组', 400);
@@ -249,7 +252,7 @@ router.put('/', authMiddleware, asyncHandler(async (req, res) => {
 
     // 验证所有车手ID格式
     const uuidSchema = Joi.string().guid({ version: ['uuidv4'] }).required();
-    for (const riderId of favorite_ids) {
+    for (const riderId of normalizedFavoriteIds) {
       const { error } = uuidSchema.validate(riderId);
       if (error) {
         throw new AppError(`无效的车手ID格式: ${riderId}`, 400);
@@ -257,62 +260,32 @@ router.put('/', authMiddleware, asyncHandler(async (req, res) => {
     }
 
     // 验证所有车手都存在
-    const placeholders = favorite_ids.map(() => '?').join(',');
-    const [riders] = await pool.query(
-      `SELECT id FROM riders WHERE id IN (${placeholders})`,
-      favorite_ids
-    );
+    if (normalizedFavoriteIds.length > 0) {
+      const placeholders = normalizedFavoriteIds.map(() => '?').join(',');
+      const [riders] = await pool.query(
+        `SELECT id FROM riders WHERE id IN (${placeholders})`,
+        normalizedFavoriteIds
+      );
 
-    if (riders.length !== favorite_ids.length) {
-      throw new AppError('部分车手不存在', 404);
+      if (riders.length !== normalizedFavoriteIds.length) {
+        throw new AppError('部分车手不存在', 404);
+      }
     }
 
-    // 获取当前关注的车手ID
-    const [currentFavorites] = await pool.query(
-      'SELECT rider_id FROM riders_favorites WHERE user_id = ?',
-      [user_id]
-    );
-    const currentIds = currentFavorites.map(f => f.rider_id);
-
-    // 计算要添加和删除的关注
-    const toAdd = favorite_ids.filter(id => !currentIds.includes(id));
-    const toRemove = currentIds.filter(id => !favorite_ids.includes(id));
-
-    // 执行添加和删除
-    const insertPromises = toAdd.map(riderId =>
-      pool.query(
-        `INSERT INTO riders_favorites (id, user_id, rider_id, created_at)
-         VALUES (?, ?, ?, NOW())`,
-        [require('uuid').v4(), user_id, riderId]
-      )
-    );
-
-    const deletePromises = toRemove.map(riderId =>
-      pool.query(
-        `DELETE FROM riders_favorites WHERE user_id = ? AND rider_id = ?`,
-        [user_id, riderId]
-      )
-    );
-
-    await Promise.all([...insertPromises, ...deletePromises]);
-
-    // 记录操作日志
-    await pool.query(
-      `INSERT INTO admin_logs (id, user_id, action, details)
-       VALUES (?, ?, 'UPDATE_FAVORITES', ?)`,
-      [require('uuid').v4(), user_id, JSON.stringify({
-        added_count: toAdd.length,
-        removed_count: toRemove.length
-      })]
-    );
+    const result = await updateFavoritesTransaction({
+      pool,
+      userId: user_id,
+      favoriteIds: normalizedFavoriteIds,
+      createId: uuidv4
+    });
 
     res.json({
       code: 200,
       message: '关注列表已更新',
       data: {
-        added_count: toAdd.length,
-        removed_count: toRemove.length,
-        current_count: favorite_ids.length
+        added_count: result.added_count,
+        removed_count: result.removed_count,
+        current_count: result.current_count
       }
     });
   } catch (err) {
@@ -326,7 +299,7 @@ router.put('/', authMiddleware, asyncHandler(async (req, res) => {
 // DELETE /api/v1/favorites/:riderId - 删除单个关注
 router.delete('/:riderId', authMiddleware, asyncHandler(async (req, res) => {
   try {
-    const { user_id } = req.openid;
+    const user_id = req.openid;
     const { riderId } = req.params;
 
     // 验证riderId格式
@@ -362,7 +335,7 @@ router.delete('/:riderId', authMiddleware, asyncHandler(async (req, res) => {
     await pool.query(
       `INSERT INTO admin_logs (id, user_id, action, details)
        VALUES (?, ?, 'DELETE_FAVORITE', ?)`,
-      [require('uuid').v4(), user_id, JSON.stringify({ rider_id: riderId })]
+      [uuidv4(), user_id, JSON.stringify({ rider_id: riderId })]
     );
 
     res.json({

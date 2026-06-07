@@ -7,7 +7,8 @@
 const express = require('express');
 const router = express.Router();
 const pool = require('../config/db-pool');
-console.log('realtime.js: db-pool loaded, pool type:', typeof pool.query);
+const { routeLog } = require('../middleware/requestLogger');
+const log = routeLog('realtime');
 // 暂时禁用认证，先让服务器启动
 // const { authenticate } = require('./auth');
 
@@ -64,7 +65,7 @@ router.get('/gc', async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('获取GC排名失败:', error);
+    log.error('获取GC排名失败', { error: error.message });
     res.status(500).json({
       success: false,
       error: '服务器错误'
@@ -113,7 +114,7 @@ router.get('/stage', async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('获取赛段成绩失败:', error);
+    log.error('获取赛段成绩失败', { error: error.message });
     res.status(500).json({
       success: false,
       error: '服务器错误'
@@ -164,7 +165,7 @@ router.get('/points', async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('获取冲刺积分排名失败:', error);
+    log.error('获取冲刺积分排名失败', { error: error.message });
     res.status(500).json({
       success: false,
       error: '服务器错误'
@@ -214,7 +215,7 @@ router.get('/mountains', async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('获取爬坡积分排名失败:', error);
+    log.error('获取爬坡积分排名失败', { error: error.message });
     res.status(500).json({
       success: false,
       error: '服务器错误'
@@ -267,7 +268,7 @@ router.get('/youth', async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('获取青年排名失败:', error);
+    log.error('获取青年排名失败', { error: error.message });
     res.status(500).json({
       success: false,
       error: '服务器错误'
@@ -299,7 +300,7 @@ router.get('/race-status', async (req, res) => {
       data: raceStatus
     });
   } catch (error) {
-    console.error('获取赛事状态失败:', error);
+    log.error('获取赛事状态失败', { error: error.message });
     res.status(500).json({
       success: false,
       error: '服务器错误'

@@ -21,7 +21,7 @@
   <!-- 错误状态 -->
   <view wx:elif="{{loadError}}" class="error-state">
     <text class="error-state-icon">😵</text>
-    <text class="error-state-text">加载失败，请检查网络</text>
+    <text class="error-state-text">{{errorMessage || '加载失败，请检查网络'}}</text>
     <button class="retry-btn" bindtap="retryLoad">重新加载</button>
   </view>
 
@@ -35,14 +35,14 @@
       </view>
       <view class="stage-route">{{stage.stage_name}}</view>
       <view class="stage-meta-row">
-        <text class="meta-item">{{formatDate(stage.date)}}</text>
+        <text class="meta-item">{{stage._date_fmt}}</text>
         <text class="meta-dot">·</text>
         <text class="meta-item" wx:if="{{stage.distance_km}}">{{stage.distance_km}}km</text>
       </view>
     </view>
 
     <!-- 分类榜头部 -->
-    <view class="class-header card class-{{type}}">
+    <view class="class-header card {{headerClasses[type]}}">
       <view class="class-header-left">
         <view class="class-header-icon">{{typeIcon[type]}}</view>
         <view class="class-header-text">
@@ -85,7 +85,7 @@
           <text wx:if="{{index === 0}}">🥇</text>
           <text wx:elif="{{index === 1}}">🥈</text>
           <text wx:elif="{{index === 2}}">🥉</text>
-          <text wx:else>{{item.rank != null ? item.rank : index + 1}}</text>
+          <text wx:else>{{item.rank}}</text>
         </view>
         <view class="rr-rider">
           <text class="rider-name">{{item.rider_name_zh || item.rider_name}}</text>
@@ -99,7 +99,11 @@
 
       <!-- 加载更多 -->
       <view wx:if="{{hasMore}}" class="load-more" bindtap="loadMore">
-        <text>加载更多</text>
+        <text wx:if="{{loadingMore}}">加载中...</text>
+        <text wx:else>加载更多</text>
+      </view>
+      <view wx:elif="{{results.length > 0}}" class="load-more">
+        <text style="color:#999;">已加载全部 {{results.length}} 条数据</text>
       </view>
     </view>
   </view>

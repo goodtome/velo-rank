@@ -30,6 +30,8 @@
     "include": []
   },
   "appid": "wx95718854a33556dd",
+  "projectname": "velo-rank",
+  "__usePrivacyCheck__": true,
   "editorSetting": {},
   "libVersion": "3.16.0"
 }

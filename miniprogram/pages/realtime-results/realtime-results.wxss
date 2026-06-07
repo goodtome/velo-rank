@@ -5,7 +5,96 @@
   padding-bottom: 120rpx;
 }
 
-/* 赛事信息栏 */
+/* ========== 加载状态 ========== */
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding-top: 200rpx;
+}
+
+.loading-spinner {
+  width: 60rpx;
+  height: 60rpx;
+  border: 6rpx solid #e0e0e0;
+  border-top-color: #1aad19;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.loading-text {
+  margin-top: 24rpx;
+  font-size: 28rpx;
+  color: #999;
+}
+
+/* ========== 错误状态 ========== */
+.error-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding-top: 200rpx;
+}
+
+.error-icon {
+  font-size: 80rpx;
+  margin-bottom: 20rpx;
+}
+
+.error-text {
+  font-size: 28rpx;
+  color: #666;
+  margin-bottom: 30rpx;
+  text-align: center;
+  padding: 0 60rpx;
+}
+
+.retry-btn {
+  background: #1aad19;
+  color: #fff;
+  font-size: 28rpx;
+  padding: 16rpx 60rpx;
+  border-radius: 40rpx;
+  border: none;
+  line-height: 1.6;
+}
+
+.retry-btn::after {
+  border: none;
+}
+
+/* ========== 空状态 ========== */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 120rpx 40rpx;
+}
+
+.empty-icon {
+  font-size: 80rpx;
+  margin-bottom: 20rpx;
+}
+
+.empty-text {
+  font-size: 30rpx;
+  color: #666;
+  margin-bottom: 10rpx;
+}
+
+.empty-hint {
+  font-size: 24rpx;
+  color: #bbb;
+}
+
+/* ========== 赛事信息栏 ========== */
 .race-info-bar {
   background: linear-gradient(135deg, #1aad19, #12b365);
   color: #fff;
@@ -128,15 +217,27 @@
   border-radius: 3rpx;
 }
 
-.tab-english {
+.tab-english, .tab-sub {
   display: block;
   font-size: 20rpx;
   color: #999;
   margin-top: 4rpx;
 }
 
-.tab-item.active .tab-english {
+.tab-item.active .tab-english,
+.tab-item.active .tab-sub {
   color: #1aad19;
+}
+
+/* 更新时间栏 */
+.update-bar {
+  display: flex;
+  justify-content: flex-end;
+  padding: 10rpx 30rpx;
+  background: #fff;
+  border-bottom: 1rpx solid #f0f0f0;
+  font-size: 22rpx;
+  color: #bbb;
 }
 
 /* 排名列表 */
@@ -198,6 +299,26 @@
   text-align: center;
 }
 
+.rank.gold {
+  font-size: 44rpx;
+  color: transparent;
+}
+
+.rank.silver {
+  font-size: 44rpx;
+  color: transparent;
+}
+
+.rank.bronze {
+  font-size: 44rpx;
+  color: transparent;
+}
+
+.rider-card.top3 {
+  background: linear-gradient(135deg, #fafff8, #f0fae8);
+  border-left: 6rpx solid #1aad19;
+}
+
 .rider-card.leader .rank {
   color: #ffd700;
 }
@@ -228,6 +349,13 @@
 .time-info, .points-info {
   text-align: right;
   min-width: 150rpx;
+}
+
+.time-main {
+  font-size: 28rpx;
+  font-weight: bold;
+  color: #333;
+  display: block;
 }
 
 .time-gap {
@@ -309,6 +437,33 @@
 }
 
 /* 连接状态指示器 */
+.connection-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 15rpx;
+  text-align: center;
+  font-size: 24rpx;
+  z-index: 101;
+}
+
+.connection-bar.connected {
+  background: rgba(26, 173, 25, 0.9);
+  color: #fff;
+}
+
+.connection-bar.connecting {
+  background: rgba(255, 170, 0, 0.9);
+  color: #fff;
+}
+
+.connection-bar.disconnected {
+  background: rgba(153, 153, 153, 0.9);
+  color: #fff;
+}
+
+/* 兼容旧类名 */
 .connection-status {
   position: fixed;
   bottom: 0;

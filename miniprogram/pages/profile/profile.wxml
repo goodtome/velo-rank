@@ -11,7 +11,7 @@
   </view>
 
   <!-- 应用统计 -->
-  <view class="card-base stats-card">
+  <view class="card-base stats-card" bindtap="{{loadError ? 'retryLoad' : ''}}">
     <view class="stats-row">
       <view class="stats-item">
         <text class="stats-value text-primary">{{raceCount}}</text>
@@ -25,6 +25,9 @@
         <text class="stats-value text-primary">{{teamCount}}</text>
         <text class="stats-label">车队</text>
       </view>
+    </view>
+    <view wx:if="{{loadError}}" class="stats-error-hint">
+      <text>{{errorMessage || '数据加载失败'}} · 点击重试</text>
     </view>
   </view>
 
@@ -74,6 +77,30 @@
       <view class="menu-left">
         <text class="menu-icon">🗑️</text>
         <text class="menu-text">清除缓存</text>
+      </view>
+      <text class="arrow">›</text>
+    </view>
+    <view class="menu-divider"></view>
+    <view class="menu-item" bindtap="goToPrivacyPolicy">
+      <view class="menu-left">
+        <text class="menu-icon">🔒</text>
+        <text class="menu-text">隐私政策</text>
+      </view>
+      <text class="arrow">›</text>
+    </view>
+    <view class="menu-divider"></view>
+    <view class="menu-item" bindtap="goToUserAgreement">
+      <view class="menu-left">
+        <text class="menu-icon">📄</text>
+        <text class="menu-text">用户协议</text>
+      </view>
+      <text class="arrow">›</text>
+    </view>
+    <view class="menu-divider"></view>
+    <view class="menu-item menu-item-danger" bindtap="deleteAccount">
+      <view class="menu-left">
+        <text class="menu-icon">🗙</text>
+        <text class="menu-text">注销账号</text>
       </view>
       <text class="arrow">›</text>
     </view>

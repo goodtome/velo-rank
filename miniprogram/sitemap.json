@@ -1,0 +1,36 @@
+{
+  "rules": [
+    {
+      "action": "allow",
+      "page": "pages/index/index"
+    },
+    {
+      "action": "allow",
+      "page": "pages/race-detail/race-detail"
+    },
+    {
+      "action": "allow",
+      "page": "pages/rider-detail/rider-detail"
+    },
+    {
+      "action": "allow",
+      "page": "pages/team-detail/team-detail"
+    },
+    {
+      "action": "allow",
+      "page": "pages/stage-results/stage-results"
+    },
+    {
+      "action": "allow",
+      "page": "pages/encyclopedia/encyclopedia"
+    },
+    {
+      "action": "allow",
+      "page": "pages/race-calendar/race-calendar"
+    },
+    {
+      "action": "disallow",
+      "page": "*"
+    }
+  ]
+}

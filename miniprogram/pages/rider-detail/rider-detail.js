@@ -3,11 +3,12 @@
  * 新增：统计卡片、奖牌高亮、车队信息
  */
 
-const { get } = require('../../utils/request');
-const { showError } = require('../../utils/util');
+const { get, formatErrorMessage } = require('../../utils/request');
+const { showError, navigateTo } = require('../../utils/util');
 const { t, getLocale } = require('../../utils/i18n');
 const { getCountryName } = require('../../utils/country-map');
 const { formatRiderName, toTitleCase } = require('../../utils/string-format');
+const { jerseyNameShort } = require('../../utils/jersey-config');
 
 // 奖牌映射
 const MEDAL_MAP = { 1: '🥇', 2: '🥈', 3: '🥉' };
@@ -81,8 +82,9 @@ Page({
       }
     } catch (err) {
       console.error('加载车手详情失败:', err);
-      this.setData({ loading: false, loadError: true });
-      showError(this.t('errorNetwork'));
+      const msg = formatErrorMessage(err);
+      this.setData({ loading: false, loadError: true, errorMessage: msg });
+      showError(msg);
     }
   },
 
@@ -94,10 +96,18 @@ Page({
       const res = await get(`/riders/${this.data.riderId}/stats`);
       
       if (res && res.code === 200 && res.data) {
-        this.setData({ stats: res.data });
+        const stats = res.data;
+        // 将领骑衫类型转为中文名
+        if (stats.jerseys && Array.isArray(stats.jerseys)) {
+          stats.jerseys = stats.jerseys.map(j => ({
+            ...j,
+            _jersey_name_zh: jerseyNameShort(j.jersey_type)
+          }));
+        }
+        this.setData({ stats });
       }
     } catch (err) {
-      console.error('加载车手统计失败:', err);
+      console.error('加载车手统计数据:', err);
     }
   },
 
@@ -143,7 +153,7 @@ Page({
   goToTeam(e) {
     const { id } = e.currentTarget.dataset;
     if (!id) return;
-    wx.navigateTo({ url: `/pages/team-detail/team-detail?id=${id}` });
+    navigateTo({ url: `/pages/team-detail/team-detail?id=${id}` });
   },
 
   onPullDownRefresh() {

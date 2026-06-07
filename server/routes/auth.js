@@ -10,6 +10,8 @@ const pool = require('../config/db-pool');
 const { code2Session } = require('../utils/wechat');
 const { AppError, asyncHandler } = require('../middleware/errorHandler');
 const { authMiddleware } = require('../middleware/auth');
+const { routeLog } = require('../middleware/requestLogger');
+const log = routeLog('auth');
 
 /**
  * POST /api/v1/auth/login
@@ -38,7 +40,7 @@ router.post('/login', asyncHandler(async (req, res) => {
     [token, openid, expiresAt]
   );
 
-  console.log(`用户登录成功: openid=${openid}, token=${token.substring(0, 8)}...`);
+  log.info('用户登录成功');
 
   res.json({
     code: 200,
@@ -70,6 +72,44 @@ router.get('/check', authMiddleware, asyncHandler(async (req, res) => {
     code: 200,
     data: { openid: req.openid }
   });
+}));
+
+/**
+ * DELETE /api/v1/auth/account
+ * 注销账号：删除该用户的所有数据（token、设置、收藏）
+ * 需要登录态
+ */
+router.delete('/account', authMiddleware, asyncHandler(async (req, res) => {
+  const openid = req.openid;
+  const conn = await pool.getConnection();
+
+  try {
+    await conn.beginTransaction();
+
+    // 删除当前 token
+    const authHeader = req.headers.authorization;
+    const token = authHeader.slice(7);
+    await conn.query('DELETE FROM user_tokens WHERE token = ?', [token]);
+
+    // 删除该 openid 的所有 token（多设备）
+    await conn.query('DELETE FROM user_tokens WHERE openid = ?', [openid]);
+
+    // 删除用户收藏
+    await conn.query('DELETE FROM riders_favorites WHERE user_id = ?', [openid]);
+
+    // 删除用户设置
+    await conn.query('DELETE FROM users_settings WHERE user_id = ?', [openid]);
+
+    await conn.commit();
+    log.info('用户注销账号成功');
+
+    res.json({ code: 200, message: '账号已注销，所有数据已删除' });
+  } catch (err) {
+    await conn.rollback();
+    throw err;
+  } finally {
+    conn.release();
+  }
 }));
 
 module.exports = router;

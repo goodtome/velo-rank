@@ -136,11 +136,6 @@
   border: 2rpx solid rgba(255, 255, 255, 0.15);
 }
 
-.jersey-pink { background: linear-gradient(135deg, #ff69b4, #ff1493); }
-.jersey-purple { background: linear-gradient(135deg, #9b59b6, #8e44ad); }
-.jersey-blue { background: linear-gradient(135deg, #3498db, #2980b9); }
-.jersey-white { background: linear-gradient(135deg, #ecf0f1, #bdc3c7); }
-
 .jersey-info {
   display: flex;
   flex-direction: column;
