@@ -291,10 +291,34 @@
 
 /* 加载更多 */
 .load-more {
+  width: 520rpx;
+  height: 96rpx;
+  margin: 32rpx auto;
+  padding: 0;
+  border-radius: 48rpx;
+  background: #2196F3;
+  color: #fff;
+  font-size: 32rpx;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
   text-align: center;
-  padding: 24rpx;
-  color: #2196F3;
+  box-sizing: border-box;
+}
+
+.load-complete {
+  color: #999;
   font-size: 26rpx;
+  font-weight: 400;
+}
+
+.load-more-done {
+  width: auto;
+  height: auto;
+  margin: 24rpx auto;
+  background: transparent;
 }
 
 /* 赛段类型标签 */

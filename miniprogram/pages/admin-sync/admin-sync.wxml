@@ -1,0 +1,105 @@
+<view class="page">
+  <view class="hero card-base">
+    <text class="title">管理员同步</text>
+    <text class="subtitle">搜索赛事后选择目标，一键触发后台同步任务</text>
+  </view>
+
+  <view class="card-base section">
+    <text class="section-title">管理员密钥</text>
+    <input
+      class="input"
+      type="text"
+      password="true"
+      value="{{adminKey}}"
+      placeholder="请输入 x-admin-key"
+      placeholder-class="input-placeholder"
+      bindinput="onAdminKeyInput"
+    />
+    <text class="hint">密钥仅保存在本地设备，用于调用管理员接口。</text>
+  </view>
+
+  <view class="card-base section">
+    <text class="section-title">搜索赛事</text>
+    <input
+      class="input search-input"
+      type="text"
+      value="{{keyword}}"
+      placeholder="输入赛事名、代码或国家"
+      placeholder-class="input-placeholder"
+      bindinput="onKeywordInput"
+    />
+    <view wx:if="{{searching}}" class="state-line">正在搜索赛事...</view>
+    <view wx:if="{{loadError && errorMessage}}" class="state-error">{{errorMessage}}</view>
+
+    <view wx:if="{{raceResults.length}}" class="race-list">
+      <view
+        wx:for="{{raceResults}}"
+        wx:key="id"
+        class="race-item {{selectedRace && selectedRace.id === item.id ? 'active' : ''}}"
+        data-index="{{index}}"
+        bindtap="selectRace"
+      >
+        <view class="race-main">
+          <view class="race-texts">
+            <text class="race-name">{{item.displayName || item.race_name}}</text>
+            <text class="race-meta">{{item.displaySub || item.race_code}}</text>
+          </view>
+          <text class="race-code">{{item.race_code}}</text>
+        </view>
+      </view>
+    </view>
+
+    <view wx:else class="empty-state">输入关键词后会显示可同步的赛事列表</view>
+  </view>
+
+  <view class="card-base section" wx:if="{{selectedRace}}">
+    <text class="section-title">当前选择</text>
+    <view class="selected-box">
+      <text class="selected-name">{{selectedRace.displayName || selectedRace.race_name}}</text>
+      <text class="selected-meta">{{selectedRace.race_code}} · {{selectedRace.country || '未知国家'}}</text>
+      <text class="selected-meta">赛季 {{selectedRace.season || '--'}} · {{selectedRace.category || '--'}}</text>
+    </view>
+
+    <view class="switch-row">
+      <text class="switch-label">强制刷新</text>
+      <switch checked="{{forceRefresh}}" bindchange="toggleForceRefresh" color="#1aad19" />
+    </view>
+
+    <button class="primary-btn" loading="{{submitting}}" bindtap="submitSync">提交同步任务</button>
+  </view>
+
+  <view class="card-base section">
+    <view class="section-head">
+      <text class="section-title">最近同步日志</text>
+      <text class="link" bindtap="refreshLogs">刷新</text>
+    </view>
+
+    <view class="refresh-status" wx:if="{{adminKey}}">
+      <view class="refresh-row">
+        <text class="refresh-badge {{autoRefreshEnabled ? 'on' : 'off'}}">
+          <text wx:if="{{autoRefreshEnabled}}">自动刷新中</text>
+          <text wx:else>自动刷新已暂停</text>
+        </text>
+        <view class="refresh-switch">
+          <text class="refresh-switch-label">停止自动刷新</text>
+          <switch checked="{{autoRefreshEnabled}}" bindchange="toggleAutoRefresh" color="#1aad19" />
+        </view>
+      </view>
+      <text class="refresh-meta">上次刷新：{{lastRefreshedAt || '暂无'}}</text>
+    </view>
+
+    <view wx:if="{{loadingLogs}}" class="state-line">正在加载日志...</view>
+    <view wx:elif="{{recentLogs.length}}" class="log-list">
+      <view wx:for="{{recentLogs}}" wx:key="id" class="log-item">
+        <view class="log-top">
+          <text class="log-title">{{item.race_name || item.race_code || '未知赛事'}}</text>
+          <text class="status status-{{item.status}}">{{item.status}}</text>
+        </view>
+        <text class="log-meta">{{item.race_code || ''}} · {{item.requested_by || 'unknown'}}</text>
+        <text class="log-meta">开始 {{item.startedAt || '未开始'}} · 完成 {{item.completedAt || '未完成'}}</text>
+        <text wx:if="{{item.error_message}}" class="log-error">{{item.error_message}}</text>
+      </view>
+    </view>
+    <view wx:else class="empty-state">暂无同步日志</view>
+  </view>
+</view>

@@ -1,24 +1,52 @@
 /**
- * 搜索页面 - Week 6 优化版本
- * 新增：结果计数显示
+ * Search page
+ * Supports riders, teams, and races.
  */
 
 const { get } = require('../../utils/request');
-const { debounce, showError, navigateTo } = require('../../utils/util');
+const { debounce, navigateTo } = require('../../utils/util');
 const { t, getLocale } = require('../../utils/i18n');
-const { DEBOUNCE, STORAGE, PAGINATION } = require('../../utils/constants');
+const { DEBOUNCE, STORAGE } = require('../../utils/constants');
 const { getCountryName } = require('../../utils/country-map');
-const { formatRiderName, formatTeamName } = require('../../utils/string-format');
+const { formatRiderName, formatTeamName, formatRaceName } = require('../../utils/string-format');
+
+const INITIAL_LIMIT = 50;
+const LOAD_MORE_LIMIT = 100;
+
+const SEARCH_LABELS = {
+  riders: '车手',
+  teams: '车队',
+  races: '赛事'
+};
+
+function formatDate(value) {
+  if (!value) return '';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${month}-${day}`;
+}
+
+function formatDateRange(startDate, endDate) {
+  const start = formatDate(startDate);
+  const end = formatDate(endDate);
+  if (start && end) return `${start} - ${end}`;
+  return start || end || '';
+}
 
 Page({
   data: {
     keyword: '',
     searchType: 'riders',
+    searchTypeLabel: SEARCH_LABELS.riders,
     results: [],
-    totalCount: 0,       // 搜索结果总数
+    totalCount: 0,
     loading: false,
+    loadingMore: false,
     searched: false,
     loadError: false,
+    hasMore: false,
     searchHistory: []
   },
 
@@ -37,7 +65,10 @@ Page({
   initI18n() {
     const locale = getLocale();
     this.t = (key) => t(key, locale);
-    this.setData({ t: this.t });
+    this.setData({
+      t: this.t,
+      searchTypeLabel: SEARCH_LABELS[this.data.searchType] || SEARCH_LABELS.riders
+    });
   },
 
   loadSearchHistory() {
@@ -55,7 +86,9 @@ Page({
         totalCount: 0,
         searched: false,
         loadError: false,
-        loading: false
+        loading: false,
+        loadingMore: false,
+        hasMore: false
       });
       return;
     }
@@ -64,10 +97,7 @@ Page({
   },
 
   clearInput() {
-    this.setData({
-      keyword: ''
-    });
-    // 清空输入→重新加载当前Tab的全部列表
+    this.setData({ keyword: '' });
     this.doSearch();
   },
 
@@ -77,68 +107,104 @@ Page({
 
     this.setData({
       searchType: type,
+      searchTypeLabel: SEARCH_LABELS[type] || SEARCH_LABELS.riders,
       results: [],
       totalCount: 0,
       searched: false,
-      loadError: false
+      loadError: false,
+      loadingMore: false,
+      hasMore: false
     });
 
     this.doSearch();
   },
 
-  async doSearch() {
+  getSearchPath() {
+    return this.data.searchType === 'riders'
+      ? '/search/riders'
+      : this.data.searchType === 'teams'
+        ? '/search/teams'
+        : '/search/races';
+  },
+
+  formatResults(data) {
+    if (this.data.searchType === 'riders' && data.riders) {
+      return data.riders.map(rider => {
+        const name = formatRiderName(rider);
+        return {
+          ...rider,
+          nationalityZh: getCountryName(rider.nationality),
+          displayName: name.zh || name.en,
+          displaySub: name.zh ? name.en : ''
+        };
+      });
+    }
+
+    if (this.data.searchType === 'teams' && data.teams) {
+      return data.teams.map(team => {
+        const name = formatTeamName(team);
+        return {
+          ...team,
+          displayName: name.zh || name.en,
+          displaySub: name.zh ? name.en : ''
+        };
+      });
+    }
+
+    if (this.data.searchType === 'races' && data.races) {
+      return data.races.map(race => {
+        const name = formatRaceName(race);
+        return {
+          ...race,
+          displayName: name.zh || name.en,
+          displaySub: [
+            race.season ? `${race.season} 赛季` : '',
+            race.country || '',
+            formatDateRange(race.start_date, race.end_date)
+          ].filter(Boolean).join(' · '),
+          typeLabel: race.category || '',
+          genderLabel: race.gender === 'MEN' ? '男子' : race.gender === 'WOMEN' ? '女子' : ''
+        };
+      });
+    }
+
+    return [];
+  },
+
+  async fetchSearchResults({ append = false } = {}) {
     if (this._isLoading) return;
 
     const keyword = this.data.keyword.trim();
+    const offset = append ? this.data.results.length : 0;
 
     this._isLoading = true;
-    this.setData({ loading: true, loadError: false, searched: false });
-
-    const path = this.data.searchType === 'riders'
-      ? '/search/riders'
-      : '/search/teams';
+    this.setData(append
+      ? { loadingMore: true, loadError: false }
+      : { loading: true, loadingMore: false, loadError: false, searched: false, hasMore: false }
+    );
 
     try {
-      const params = { limit: keyword ? PAGINATION.DEFAULT_LIMIT : 50 };
+      const params = {
+        limit: append ? LOAD_MORE_LIMIT : INITIAL_LIMIT,
+        offset
+      };
       if (keyword) {
         params.q = keyword;
       }
 
-      const res = await get(path, params);
-
-      let results = [];
-      let totalCount = 0;
-
-      if (res && res.code === 200) {
-        if (this.data.searchType === 'riders' && res.data.riders) {
-          results = res.data.riders.map(rider => {
-            const name = formatRiderName(rider);
-            return {
-              ...rider,
-              nationalityZh: getCountryName(rider.nationality),
-              displayName: name.zh || name.en,
-              displaySub: name.zh ? name.en : ''
-            };
-          });
-          totalCount = res.data.total || results.length;
-        } else if (this.data.searchType === 'teams' && res.data.teams) {
-          results = res.data.teams.map(team => {
-            const name = formatTeamName(team);
-            return {
-              ...team,
-              displayName: name.zh || name.en,
-              displaySub: name.zh ? name.en : ''
-            };
-          });
-          totalCount = res.data.total || results.length;
-        }
-      }
+      const res = await get(this.getSearchPath(), params);
+      const data = res && res.code === 200 && res.data ? res.data : {};
+      const nextResults = this.formatResults(data);
+      const results = append ? this.data.results.concat(nextResults) : nextResults;
+      const totalCount = data.total !== undefined ? data.total : results.length;
 
       this.setData({
         results,
         totalCount,
         loading: false,
-        searched: true
+        loadingMore: false,
+        searched: true,
+        hasMore: results.length < totalCount
       });
 
       this.saveHistory(keyword);
@@ -146,12 +212,25 @@ Page({
       console.error('搜索失败:', err);
       this.setData({
         loading: false,
-        loadError: true,
+        loadingMore: false,
+        loadError: !append,
         searched: true
       });
+      if (append) {
+        wx.showToast({ title: '加载失败', icon: 'none' });
+      }
     } finally {
       this._isLoading = false;
     }
+  },
+
+  doSearch() {
+    return this.fetchSearchResults({ append: false });
+  },
+
+  loadMore() {
+    if (!this.data.hasMore || this.data.loadingMore) return;
+    this.fetchSearchResults({ append: true });
   },
 
   saveHistory(keyword) {
@@ -175,7 +254,7 @@ Page({
       } catch (err) {
         console.error('保存搜索历史失败:', err);
       }
-    }, 300);
+    }, DEBOUNCE.SAVE_HISTORY_DELAY || 300);
   },
 
   clearHistory() {
@@ -204,7 +283,9 @@ Page({
 
     const url = this.data.searchType === 'riders'
       ? `/pages/rider-detail/rider-detail?id=${id}`
-      : `/pages/team-detail/team-detail?id=${id}`;
+      : this.data.searchType === 'teams'
+        ? `/pages/team-detail/team-detail?id=${id}`
+        : `/pages/race-detail/race-detail?id=${id}`;
 
     navigateTo(url);
   },

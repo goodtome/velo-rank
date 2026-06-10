@@ -85,11 +85,38 @@ Page({
   },
 
   /**
+   * 跳转到赛事归档页
+   */
+  goToRaceArchive() {
+    navigateTo({
+      url: '/pages/race-archive/race-archive'
+    });
+  },
+
+  /**
    * 跳转到推送设置页
    */
   goToPushSettings() {
     navigateTo({
       url: '/pages/push-settings/push-settings'
+    });
+  },
+
+  /**
+   * 跳转到帮助和反馈页
+   */
+  goToFeedback() {
+    navigateTo({
+      url: '/pages/help-feedback/help-feedback'
+    });
+  },
+
+  /**
+   * 跳转到管理员同步页
+   */
+  goToAdminSync() {
+    navigateTo({
+      url: '/pages/admin-sync/admin-sync'
     });
   },
 

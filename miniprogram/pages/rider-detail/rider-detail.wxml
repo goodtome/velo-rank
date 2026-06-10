@@ -159,7 +159,7 @@
           </view>
           <view class="result-right">
             <text class="result-gap">{{item.timeStr}}</text>
-            <text wx:if="{{item.stage_type}}" class="tag tag-{{item.typeColor}}">{{item.stage_type}}</text>
+            <text wx:if="{{item.stageTypeLabel}}" class="tag tag-{{item.typeColor}}">{{item.stageTypeLabel}}</text>
           </view>
         </view>
       </view>

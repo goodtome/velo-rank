@@ -1,0 +1,58 @@
+<view class="feedback-page">
+  <view class="hero">
+    <text class="hero-title">意见反馈</text>
+    <text class="hero-desc">提交 BUG、建议或体验问题，我们会根据反馈持续优化</text>
+    <view class="hero-badge">
+      <text>飞书表格收集</text>
+    </view>
+  </view>
+
+  <view class="card-base section">
+    <view class="section-head">
+      <text class="section-title">反馈入口</text>
+      <text class="section-note" wx:if="{{hasSheetUrl}}">已接入</text>
+      <text class="section-note section-note-warn" wx:else>待配置</text>
+    </view>
+
+    <view class="sheet-card">
+      <text class="sheet-name">{{sheetName}}</text>
+      <text class="sheet-desc" wx:if="{{hasSheetUrl}}">
+        点击下方按钮复制飞书表格链接，提交 BUG、建议或其他问题
+      </text>
+      <text class="sheet-desc" wx:else>
+        当前还没有配置正式的飞书表格链接，请在 <text class="inline-code">miniprogram/config/feedback.js</text> 中填写
+      </text>
+    </view>
+
+    <button class="primary-btn" bindtap="copySheetUrl" disabled="{{!hasSheetUrl}}">
+      {{copied ? '已复制链接' : '复制飞书表格链接'}}
+    </button>
+
+    <view class="hint-box" wx:if="{{!hasSheetUrl}}">
+      <text>配置完成后，这里会变成一键复制正式反馈链接。</text>
+    </view>
+  </view>
+
+  <view class="card-base section">
+    <text class="section-title">建议填写这些内容</text>
+    <view class="tip-list">
+      <view class="tip-item" wx:for="{{tips}}" wx:key="index">
+        <view class="tip-dot"></view>
+        <text class="tip-text">{{item}}</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="card-base section">
+    <text class="section-title">提交说明</text>
+    <view class="notice-box">
+      <text>1. 先复制飞书表格链接并打开。</text>
+      <text>2. 按照提示填写 BUG、建议或其他问题。</text>
+      <text>3. 如果问题紧急，建议补充截图、录屏和设备信息。</text>
+    </view>
+  </view>
+
+  <view class="bottom-actions">
+    <button class="secondary-btn" bindtap="goBack">返回我的</button>
+  </view>
+</view>

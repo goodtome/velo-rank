@@ -6,6 +6,7 @@
 const { get, formatErrorMessage } = require('../../utils/request');
 const { showError, navigateTo } = require('../../utils/util');
 const { jerseyTypeName, detectRaceType } = require('../../utils/jersey-config');
+const { stageTypeFullName } = require('../../utils/stage-type');
 
 Page({
   data: {
@@ -25,6 +26,14 @@ Page({
     hasMore: false,
     raceCode: '',
     gcHeaderClass: '',
+    stageResultKind: '',
+    gcTrend: {
+      chartWidth: 0,
+      chartHeight: 240,
+      maxGapLabel: '',
+      points: [],
+      segments: []
+    },
     tabs: [
       { id: 'stage', name: '赛段' },
       { id: 'gc', name: '总成绩' },
@@ -99,7 +108,8 @@ Page({
       results: [],
       loading: true,
       currentPage: 1,
-      hasMore: false
+      hasMore: false,
+      stageResultKind: ''
     });
     this.updateTitle();
 
@@ -135,10 +145,11 @@ Page({
    * 加载车队成绩排名
    */
   async loadTeamResults() {
-    const { stageId, pageSize } = this.data;
+    const { stageId, raceId, pageSize } = this.data;
     this.setData({ loading: true, loadError: false, currentPage: 1, errorMessage: '' });
     try {
-      const res = await get(`/stages/${stageId}/team-classification`, { page: 1, limit: pageSize });
+      const url = raceId ? `/races/${raceId}/team-classification` : `/stages/${stageId}/team-classification`;
+      const res = await get(url, { page: 1, limit: pageSize });
       if (res && res.code === 200) {
         const pagination = res.pagination || {};
         this.setData({
@@ -256,14 +267,131 @@ Page({
    * 赛段类型中文名
    */
   stageTypeName(type) {
-    const map = {
-      'Flat': '平路赛段',
-      'Hills': '丘陵赛段',
-      'Mountain': '山地赛段',
-      'TTT': '团队计时赛',
-      'ITT': '个人计时赛'
+    return stageTypeFullName(type);
+  },
+
+  /**
+   * 将 GC 时间差转为秒
+   */
+  parseTimeGapToSeconds(value) {
+    if (value === null || value === undefined) return null;
+    const str = String(value).trim();
+    if (!str) return null;
+
+    const normalized = str.replace(/^\+/, '').trim();
+    const specialTokens = ['S.T.', 'ST', 'DNF', 'DNS', 'OTL', 'DSQ', 'LAP', 'NC'];
+    if (specialTokens.includes(normalized.toUpperCase())) return null;
+
+    const parts = normalized.split(':').map(part => part.trim()).filter(Boolean);
+    if (parts.length === 0 || parts.length > 3) return null;
+    if (!parts.every(part => /^\d+(?:\.\d+)?$/.test(part))) return null;
+
+    let seconds = 0;
+    if (parts.length === 3) {
+      seconds = (parseFloat(parts[0]) * 3600) + (parseFloat(parts[1]) * 60) + parseFloat(parts[2]);
+    } else if (parts.length === 2) {
+      seconds = (parseFloat(parts[0]) * 60) + parseFloat(parts[1]);
+    } else {
+      seconds = parseFloat(parts[0]);
+    }
+
+    return Number.isFinite(seconds) ? seconds : null;
+  },
+
+  /**
+   * 格式化 GC 时间差文本
+   */
+  formatGapText(seconds) {
+    if (!Number.isFinite(seconds)) return '';
+    if (seconds <= 0) return '+0:00';
+
+    const totalSeconds = Math.round(seconds);
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const secs = totalSeconds % 60;
+
+    if (hours > 0) {
+      return `+${hours}:${String(minutes).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+    }
+
+    return `+${minutes}:${String(secs).padStart(2, '0')}`;
+  },
+
+  /**
+   * 构建 GC 时间差走势图
+   */
+  buildGcTrend(results) {
+    const list = Array.isArray(results) ? results.slice() : [];
+    const pointsData = list.map((item, index) => {
+      const gapSeconds = index === 0 ? 0 : this.parseTimeGapToSeconds(item.time_gap);
+      const safeGap = Number.isFinite(gapSeconds) ? Math.max(0, gapSeconds) : 0;
+      return {
+        rank: item.rank || index + 1,
+        riderName: item.rider_name_zh || item.rider_name || '',
+        gapSeconds: safeGap,
+        gapLabel: index === 0 ? '+0:00' : (item.time_gap || this.formatGapText(safeGap)),
+        isLeader: index === 0 || safeGap === 0,
+        isMissing: index !== 0 && !Number.isFinite(gapSeconds)
+      };
+    }).filter(item => item.rank);
+
+    const chartHeight = 240;
+    const chartPointsData = pointsData.filter((item, index) => {
+      if (index === 0) return true;
+      return !item.isMissing && item.gapSeconds > 0;
+    });
+
+    if (chartPointsData.length <= 1) {
+      return {
+        chartWidth: 0,
+        chartHeight,
+        maxGapLabel: '',
+        leaderGap: pointsData[0] ? pointsData[0].gapLabel : '',
+        points: [],
+        segments: []
+      };
+    }
+
+    const chartWidth = Math.max(520, chartPointsData.length * 96 + 56);
+    const maxGap = chartPointsData.reduce((max, item) => Math.max(max, item.gapSeconds), 0);
+    const minY = 34;
+    const maxY = chartHeight - 42;
+
+    const points = chartPointsData.map((item, index) => {
+      const x = 28 + index * 96;
+      const ratio = maxGap > 0 ? item.gapSeconds / maxGap : 0;
+      const y = maxGap > 0 ? (maxY - (ratio * (maxY - minY))) : maxY;
+      return {
+        ...item,
+        x,
+        y,
+        pointStyle: `left:${x}rpx;top:${y}rpx;`,
+        labelStyle: `left:${x}rpx;top:${Math.max(0, y - 16)}rpx;`,
+        rankLabel: `#${item.rank}`
+      };
+    });
+
+    const segments = [];
+    for (let i = 1; i < points.length; i += 1) {
+      const prev = points[i - 1];
+      const curr = points[i];
+      const dx = curr.x - prev.x;
+      const dy = curr.y - prev.y;
+      const length = Math.sqrt((dx * dx) + (dy * dy));
+      const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+      segments.push({
+        style: `left:${prev.x}rpx;top:${prev.y}rpx;width:${length}rpx;transform:rotate(${angle}deg);`
+      });
+    }
+
+    return {
+      chartWidth,
+      chartHeight,
+      maxGapLabel: maxGap > 0 ? `最大落后 ${this.formatGapText(maxGap)}` : '全部同时间',
+      leaderGap: pointsData[0] ? pointsData[0].gapLabel : '',
+      points,
+      segments
     };
-    return map[type] || type;
   },
 
   /**
@@ -345,6 +473,21 @@ Page({
         stage._route_zh = this.stageRouteNameZh(stage);
         stage._route_combined = this.combineRoute(stage);
         this.setData({ stage });
+      }
+
+      const isTeamTimeTrial = String((stageRes && stageRes.data && stageRes.data.stage_type) || '').trim().toLowerCase() === 'ttt';
+      if (isTeamTimeTrial) {
+        const teamUrl = this.data.raceId ? `/races/${this.data.raceId}/team-classification` : `/stages/${stageId}/team-classification`;
+        const teamRes = await get(teamUrl, { page: 1, limit: pageSize });
+        const teamResults = teamRes && teamRes.code === 200 && Array.isArray(teamRes.data) ? teamRes.data : [];
+        const pagination = (teamRes && teamRes.pagination) || {};
+        this.setData({
+          results: teamResults,
+          hasMore: pagination.pages ? pagination.page < pagination.pages : false,
+          loading: false,
+          stageResultKind: 'team'
+        });
+        return;
       }
 
       // 处理成绩数据
@@ -449,7 +592,8 @@ Page({
         hasMore = pagination.pages ? pagination.page < pagination.pages : results.length >= pageSize;
       }
 
-      this.setData({ results, hasMore, loading: false });
+      const gcTrend = this.buildGcTrend(results);
+      this.setData({ results, hasMore, loading: false, gcTrend });
 
       // GC页面也显示领骑衫（独立 try/catch，失败不影响已加载的成绩）
       try {
@@ -487,7 +631,7 @@ Page({
           url = raceId ? `/races/${raceId}/gc` : `/stages/${stageId}/general-classification`;
           break;
         case 'team':
-          url = `/stages/${stageId}/team-classification`;
+          url = raceId ? `/races/${raceId}/team-classification` : `/stages/${stageId}/team-classification`;
           break;
         case 'points':
           url = raceId ? `/races/${raceId}/points` : `/stages/${stageId}/points`;
@@ -508,11 +652,13 @@ Page({
         const newResults = [...results, ...res.data];
         const pagination = res.pagination || {};
         const hasMore = pagination.pages ? pagination.page < pagination.pages : res.data.length >= pageSize;
+        const gcTrend = type === 'gc' ? this.buildGcTrend(newResults) : this.data.gcTrend;
 
         this.setData({
           results: newResults,
           currentPage: nextPage,
-          hasMore
+          hasMore,
+          gcTrend
         });
       }
     } catch (err) {

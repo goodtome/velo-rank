@@ -1,0 +1,11 @@
+* text=auto
+
+*.js text
+*.json text
+*.wxml text
+*.wxss text
+*.html text
+*.md text
+*.sql text
+*.csv text
+*.txt text

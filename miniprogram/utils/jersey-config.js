@@ -69,6 +69,12 @@ const RACE_JERSEY_MAP = {
   }
 };
 
+const CLASSIFICATION_SUBTITLES = {
+  points: '按冲刺积分排名',
+  mountains: '按爬坡积分排名',
+  youth: '青年车手总成绩排名'
+};
+
 // ============================================================
 // 工具函数
 // ============================================================
@@ -143,7 +149,7 @@ function getClassificationConfig(classificationType, raceType) {
   if (config) {
     return {
       typeName: `${config.nameZh}${config.sub}`,
-      typeSub: classificationType.charAt(0).toUpperCase() + classificationType.slice(1) + ' Classification',
+      typeSub: CLASSIFICATION_SUBTITLES[classificationType] || '分类排名',
       typeIcon: config.emoji,
       headerClass: `class-${classificationType} class-race-${raceKey}`
     };
@@ -151,9 +157,9 @@ function getClassificationConfig(classificationType, raceType) {
 
   // fallback
   const defaults = {
-    points:    { typeName: '冲刺积分榜', typeSub: 'Points Classification', typeIcon: '🟣' },
-    mountains: { typeName: '爬坡积分榜', typeSub: 'Mountains Classification', typeIcon: '🔵' },
-    youth:     { typeName: '青年车手榜', typeSub: 'Youth Classification', typeIcon: '⚪' }
+    points:    { typeName: '冲刺积分榜', typeSub: '按冲刺积分排名', typeIcon: '🟣' },
+    mountains: { typeName: '爬坡积分榜', typeSub: '按爬坡积分排名', typeIcon: '🔵' },
+    youth:     { typeName: '青年车手榜', typeSub: '青年车手总成绩排名', typeIcon: '⚪' }
   };
   return { ...defaults[classificationType], headerClass: `class-${classificationType}` };
 }

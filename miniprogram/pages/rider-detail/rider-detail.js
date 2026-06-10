@@ -9,19 +9,12 @@ const { t, getLocale } = require('../../utils/i18n');
 const { getCountryName } = require('../../utils/country-map');
 const { formatRiderName, toTitleCase } = require('../../utils/string-format');
 const { jerseyNameShort } = require('../../utils/jersey-config');
+const { stageTypeName, stageTypeColor } = require('../../utils/stage-type');
 
 // 奖牌映射
 const MEDAL_MAP = { 1: '🥇', 2: '🥈', 3: '🥉' };
 
 // 赛段类型颜色映射
-const STAGE_COLOR = {
-  'Flat': 'green',
-  'Hills': 'orange',
-  'Mountain': 'red',
-  'ITT': 'purple',
-  'TTT': 'blue'
-};
-
 Page({
   data: {
     riderId: '',
@@ -125,7 +118,8 @@ Page({
           ...item,
           isPodium: item.stage_rank <= 3,
           medal: MEDAL_MAP[item.stage_rank] || '',
-          typeColor: STAGE_COLOR[item.stage_type] || 'green',
+          typeColor: stageTypeColor(item.stage_type),
+          stageTypeLabel: stageTypeName(item.stage_type),
           // 格式化时间差
           timeStr: item.time_gap 
             ? (item.stage_rank === 1 ? item.time_gap : `+${item.time_gap}`)
