@@ -43,7 +43,7 @@ async function initDatabase() {
         end_date DATE,
         total_stages INT,
         total_distance DECIMAL(8,1),
-        logo_url VARCHAR(500),
+        logo_url MEDIUMTEXT,
         official_url VARCHAR(500),
         is_active BOOLEAN DEFAULT true,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -110,7 +110,7 @@ async function initDatabase() {
         team_name_en VARCHAR(200),
         category VARCHAR(50),
         country VARCHAR(100),
-        logo_url VARCHAR(500),
+        logo_url MEDIUMTEXT,
         bike_brand VARCHAR(100),
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

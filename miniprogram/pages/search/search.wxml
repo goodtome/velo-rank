@@ -81,7 +81,8 @@
 
   <view wx:if="{{searchType === 'teams' && results.length > 0}}">
     <view class="result-card" wx:for="{{results}}" wx:key="id" data-id="{{item.id}}" bindtap="goToDetail">
-      <view class="tag tag-blue">{{item.uci_code || '车队'}}</view>
+      <image wx:if="{{item.logo_url}}" class="team-logo" src="{{item.logo_url}}" mode="aspectFit" lazy-load></image>
+      <view wx:else class="team-logo team-logo-placeholder">{{item.uci_code || '车队'}}</view>
       <view class="result-info">
         <text class="result-name">{{item.displayName}}</text>
         <text class="result-sub" wx:if="{{item.displaySub}}">{{item.displaySub}}</text>

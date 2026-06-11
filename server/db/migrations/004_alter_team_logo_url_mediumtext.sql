@@ -1,0 +1,1 @@
+ALTER TABLE teams MODIFY logo_url MEDIUMTEXT NULL;

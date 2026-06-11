@@ -1,51 +1,56 @@
-const mysql = require('mysql2/promise');
 const fs = require('fs');
 const path = require('path');
-require('dotenv').config({ path: `${__dirname}/../config/.env` });
+const mysql = require('mysql2/promise');
+require('dotenv').config({ path: path.join(__dirname, '../../.env') });
 
-const dbConfig = {
-  host: process.env.DB_HOST || 'localhost',
-  port: process.env.DB_PORT || 13306,
-  user: process.env.DB_USER || 'root',
-  password: process.env.DB_PASSWORD || '',
-  database: process.env.DB_NAME || 'jersey_db',
-  multipleStatements: true // 允许执行多条SQL语句
-};
+const isProd = process.env.NODE_ENV === 'production';
+
+const dbConfig = isProd
+  ? {
+      host: process.env.DB_HOST_PROD || process.env.DB_HOST,
+      port: Number(process.env.DB_PORT_PROD || process.env.DB_PORT || 4000),
+      user: process.env.DB_USER_PROD || process.env.DB_USER,
+      password: process.env.DB_PASSWORD_PROD || process.env.DB_PASSWORD || '',
+      database: process.env.DB_NAME_PROD || process.env.DB_NAME || 'jersey_db',
+      ssl: { rejectUnauthorized: true },
+      multipleStatements: true
+    }
+  : {
+      host: process.env.DB_HOST || 'localhost',
+      port: Number(process.env.DB_PORT || 13306),
+      user: process.env.DB_USER || 'root',
+      password: process.env.DB_PASSWORD || '',
+      database: process.env.DB_NAME || 'jersey_db',
+      multipleStatements: true
+    };
 
 async function runMigration() {
   let conn;
   try {
-    console.log('开始执行数据库迁移...');
-    
-    // 连接到数据库
+    console.log(`Running database migrations [${isProd ? 'production' : 'development'}]...`);
     conn = await mysql.createConnection(dbConfig);
-    console.log('✅ 数据库连接成功');
-    
-    // 读取SQL迁移文件
-    const migrationFile = path.join(__dirname, '../db/migrations/003_create_push_tables.sql');
-    const sql = fs.readFileSync(migrationFile, 'utf8');
-    
-    console.log('📄 读取迁移文件:', migrationFile);
-    
-    // 执行SQL语句
-    console.log('⏳ 执行SQL语句...');
-    await conn.query(sql);
-    
-    console.log('✅ 数据库迁移执行成功！');
-    console.log('🎉 推送相关表创建完成：');
-    console.log('   - user_push_settings (用户推送设置表)');
-    console.log('   - user_push_subscriptions (用户推送订阅记录表)');
-    console.log('   - push_history (推送历史记录表)');
-    
+
+    const migrationsDir = path.join(__dirname, '../db/migrations');
+    const migrationFiles = fs.readdirSync(migrationsDir)
+      .filter(file => file.endsWith('.sql'))
+      .sort();
+
+    for (const file of migrationFiles) {
+      const migrationFile = path.join(migrationsDir, file);
+      const sql = fs.readFileSync(migrationFile, 'utf8').trim();
+      if (!sql) continue;
+
+      console.log(`Executing ${file}`);
+      await conn.query(sql);
+    }
+
+    console.log(`Migrations complete (${migrationFiles.length} file(s)).`);
   } catch (err) {
-    console.error('❌ 数据库迁移失败:', err.message);
-    console.error('详细错误:', err);
+    console.error('Migration failed:', err.message);
+    console.error(err);
     process.exit(1);
   } finally {
-    if (conn) {
-      await conn.end();
-      console.log('数据库连接已关闭');
-    }
+    if (conn) await conn.end();
   }
 }
 

@@ -11,7 +11,7 @@ function parseCorsOrigins(value) {
 }
 
 const isProd = process.env.NODE_ENV === 'production';
-const configuredOrigins = parseCorsOrigins(process.env.CORS_ORIGINS);
+const configuredOrigins = parseCorsOrigins(process.env.CORS_ORIGINS || process.env.ALLOWED_ORIGINS);
 
 // API限流配置
 const apiLimiter = {

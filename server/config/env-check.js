@@ -66,7 +66,7 @@ function validateEnv() {
     }
   }
 
-  const cors = process.env.CORS_ORIGINS;
+  const cors = process.env.CORS_ORIGINS || process.env.ALLOWED_ORIGINS;
   if (isProd && (!cors || cors === '*')) {
     errors.push('CORS_ORIGINS 未配置为明确白名单，生产环境必须限制来源');
   }
@@ -95,7 +95,8 @@ function validateEnv() {
     if (!process.env.WECHAT_APPID || process.env.WECHAT_APPID === 'your_appid') {
       errors.push('WECHAT_APPID 未配置，微信登录和推送功能不可用');
     }
-    if (!process.env.WECHAT_APPSECRET || process.env.WECHAT_APPSECRET === 'your_appsecret') {
+    const wechatSecret = process.env.WECHAT_APPSECRET || process.env.WECHAT_SECRET;
+    if (!wechatSecret || wechatSecret === 'your_appsecret') {
       errors.push('WECHAT_APPSECRET 未配置，微信登录和推送功能不可用');
     }
   }

@@ -2,7 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const http = require('http');
 const rateLimit = require('express-rate-limit');
-require('dotenv').config({ path: `${__dirname}/config/.env` });
+require('dotenv').config({ path: `${__dirname}/../.env` });
 
 const { validateEnv } = require('./config/env-check');
 validateEnv();
