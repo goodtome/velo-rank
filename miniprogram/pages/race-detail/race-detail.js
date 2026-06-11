@@ -1,11 +1,18 @@
 /**
- * 赛事详情页 - 优化版本
- * 使用 ES6+ 语法、统一请求封装、Async/Await
+ * 赛事详情页。
+ * 展示赛事概览、赛程节奏、领骑衫、总成绩和分类榜入口。
  */
 
 const { get, formatErrorMessage } = require('../../utils/request');
 const { showError, navigateTo } = require('../../utils/util');
 const { jerseyTypeName, detectRaceType, getClassificationConfig } = require('../../utils/jersey-config');
+const {
+  normalizeStageType,
+  stageTypeName: getStageTypeName,
+  stageTypeWeight,
+  isTerrainHeavyStageType,
+  compareStageTypes
+} = require('../../utils/stage-type');
 
 Page({
   data: {
@@ -15,13 +22,29 @@ Page({
     race: {},
     stages: [],
     jerseys: [],
+    visualization: {
+      totalStages: 0,
+      totalDistance: 0,
+      avgDistance: 0,
+      maxDistance: 0,
+      minDistance: 0,
+      raceSpanText: '',
+      stageDensityText: '',
+      restDays: 0,
+      longStageCount: 0,
+      expandedBreakdownKey: 'distance',
+      distanceBars: [],
+      typeBreakdown: [],
+      timelineItems: []
+    },
     loading: true,
     loadError: false,
-    // 分类榜入口配置（根据赛事类型动态生成）
+    errorMessage: '',
+    genderLabel: '',
     clfEntries: [
-      { type: 'points',    icon: '🟣', title: '冲刺积分榜', sub: 'Points Classification' },
-      { type: 'mountains', icon: '🔵', title: '爬坡积分榜', sub: 'Mountains Classification' },
-      { type: 'youth',     icon: '⚪', title: '青年车手榜',  sub: 'Youth Classification' }
+      { type: 'points', icon: '🏁', title: '冲刺积分榜', sub: '按冲刺积分排名' },
+      { type: 'mountains', icon: '⛰️', title: '爬坡积分榜', sub: '按爬坡积分排名' },
+      { type: 'youth', icon: '⭐', title: '青年车手榜', sub: '青年车手总成绩排名' }
     ]
   },
 
@@ -31,19 +54,15 @@ Page({
       showError('缺少赛事ID');
       return;
     }
-    
+
     this.setData({ raceId: id });
     this.loadData();
   },
 
-  /**
-   * 加载赛事数据 — 并行请求
-   */
   async loadData() {
-    this.setData({ loading: true, loadError: false });
+    this.setData({ loading: true, loadError: false, errorMessage: '' });
 
     try {
-      // 并行请求赛事详情、赛段列表、领骑衫
       const [raceRes, stagesRes, jerseysRes] = await Promise.all([
         get(`/races/${this.data.raceId}`),
         get(`/races/${this.data.raceId}/stages`),
@@ -56,100 +75,382 @@ Page({
 
       if (raceRes && raceRes.code === 200 && raceRes.data) {
         race = raceRes.data;
-        // 预处理：WXML 中不支持调用 JS 函数，需要提前计算
         race._category_zh = this.categoryName(race.category);
         race._start_date_fmt = this.formatDate(race.start_date);
         race._end_date_fmt = this.formatDate(race.end_date);
       }
+
       if (stagesRes && stagesRes.code === 200 && Array.isArray(stagesRes.data)) {
-        stages = stagesRes.data.map(s => ({
-          ...s,
-          _date_fmt: this.formatDate(s.date)
-        }));
-      }
-      if (jerseysRes && jerseysRes.code === 200 && Array.isArray(jerseysRes.data)) {
-        jerseys = jerseysRes.data.map(j => ({
-          ...j,
-          _jersey_type_zh: jerseyTypeName(j.jersey_type)
+        stages = stagesRes.data.map(stage => ({
+          ...stage,
+          _date_fmt: this.formatDate(stage.date)
         }));
       }
 
-      // 设置导航栏标题
+      if (jerseysRes && jerseysRes.code === 200 && Array.isArray(jerseysRes.data)) {
+        jerseys = jerseysRes.data.map(jersey => ({
+          ...jersey,
+          _jersey_type_zh: jerseyTypeName(jersey.jersey_type)
+        }));
+      }
+
       const title = race.race_name_zh || race.race_name || '赛事详情';
       wx.setNavigationBarTitle({ title });
+
+      const visualization = this.buildVisualization(stages, race);
 
       this.setData({
         race,
         raceCode: race.race_code || '',
         stages,
         jerseys,
+        visualization,
         loading: false,
-        genderLabel: race.gender === 'MEN' ? '男子' : race.gender === 'WOMEN' ? '女子' : ''
+        genderLabel: this.genderName(race.gender)
       });
 
-      // 根据赛事类型动态更新分类榜入口配置
       this._updateClfEntries();
     } catch (err) {
       console.error('加载赛事失败:', err);
-      this.setData({ loading: false, loadError: true, errorMessage: formatErrorMessage(err) });
-      showError(formatErrorMessage(err));
+      const message = formatErrorMessage(err);
+      this.setData({
+        loading: false,
+        loadError: true,
+        errorMessage: message
+      });
+      showError(message);
     }
   },
 
-  /**
-   * 格式化日期
-   */
   formatDate(dateStr) {
     if (!dateStr) return '';
     const d = new Date(dateStr);
-    if (isNaN(d.getTime())) return dateStr;
+    if (Number.isNaN(d.getTime())) return dateStr;
     const month = String(d.getMonth() + 1).padStart(2, '0');
     const day = String(d.getDate()).padStart(2, '0');
     return `${month}-${day}`;
   },
 
-  /**
-   * 领骑衫类型中文名（使用统一配置模块）
-   */
   jerseyTypeName(type) {
     return jerseyTypeName(type);
   },
 
-  /**
-   * 赛事类别中文名
-   */
   categoryName(cat) {
     const map = {
       'Grand Tour': '大环赛',
-      'GRAND_TOUR': '大环赛',
-      'WorldTour': '世巡赛',
-      'ProSeries': '职业系列赛',
-      'Continental': '洲际赛',
+      GRAND_TOUR: '大环赛',
+      WorldTour: '世巡赛',
+      ProSeries: '职业系列赛',
+      Continental: '洲际赛',
       'Women-WorldTour': '女子世巡赛',
       'Women-ProSeries': '女子职业系列赛'
     };
     return map[cat] || cat;
   },
 
-  /**
-   * 性别显示名称
-   */
   genderName(gender) {
     if (!gender) return '';
     const g = String(gender).toUpperCase();
     return g === 'MEN' ? '男子' : g === 'WOMEN' ? '女子' : gender;
   },
 
-  /**
-   * 重试加载
-   */
+  stageTypeName(type) {
+    return getStageTypeName(type);
+  },
+
+  getStageRouteLabel(stage) {
+    if (!stage) return '';
+
+    const zhStart = stage.start_city_zh || '';
+    const zhFinish = stage.finish_city_zh || '';
+    const enStart = stage.start_city || '';
+    const enFinish = stage.finish_city || '';
+
+    if (zhStart && zhFinish) {
+      return `${zhStart} -> ${zhFinish}`;
+    }
+    if (enStart && enFinish) {
+      return `${enStart} -> ${enFinish}`;
+    }
+
+    return stage.stage_name_zh || stage.stage_name || '';
+  },
+
+  formatDistance(value) {
+    const num = Number(value);
+    if (!Number.isFinite(num) || num < 0) return '0 km';
+    const fixed = Number.isInteger(num) ? String(num) : num.toFixed(1);
+    return `${fixed} km`;
+  },
+
+  formatCompactDistance(value) {
+    const num = Number(value);
+    if (!Number.isFinite(num) || num < 0) return '0Km';
+    return `${num.toFixed(1)}Km`;
+  },
+
+  getStageDistance(stage) {
+    const value = Number(stage && stage.distance_km);
+    return Number.isFinite(value) && value >= 0 ? value : 0;
+  },
+
+  getStageDifficultyWeight(type) {
+    return stageTypeWeight(type);
+  },
+
+  getDateValue(dateStr) {
+    if (!dateStr) return null;
+    const value = new Date(`${dateStr}T00:00:00`);
+    return Number.isNaN(value.getTime()) ? null : value;
+  },
+
+  buildVisualization(stages, race) {
+    const list = Array.isArray(stages)
+      ? stages
+          .map(stage => ({
+            ...stage,
+            _distance_value: this.getStageDistance(stage)
+          }))
+          .filter(stage => stage._distance_value >= 0)
+      : [];
+
+    const totalStages = list.length;
+    const distances = list.map(stage => stage._distance_value);
+    const totalDistance = distances.reduce((sum, value) => sum + value, 0);
+    const avgDistance = totalStages > 0 ? totalDistance / totalStages : 0;
+    const maxDistance = distances.length ? Math.max(...distances) : 0;
+    const minDistance = distances.length ? Math.min(...distances) : 0;
+
+    const distanceBars = list
+      .slice()
+      .sort((a, b) => Number(a.stage_number || 0) - Number(b.stage_number || 0))
+      .map(stage => {
+        const distance = stage._distance_value;
+        const barHeight = maxDistance > 0
+          ? Math.max(32, Math.round((distance / maxDistance) * 180))
+          : 32;
+
+        return {
+          id: stage.id,
+          stageNumber: stage.stage_number || '',
+          route: stage.stage_name || '',
+          stageType: stage.stage_type || '',
+          stageTypeLabel: this.stageTypeName(stage.stage_type),
+          distanceLabel: this.formatDistance(distance),
+          labelText: `${stage.stage_number || ''}${stage.stage_name ? ` · ${stage.stage_name}` : ''}`,
+          barHeight
+        };
+      });
+
+    const typeCounts = {};
+
+    list.forEach(stage => {
+      const key = normalizeStageType(stage.stage_type);
+      typeCounts[key] = (typeCounts[key] || 0) + 1;
+    });
+
+    const sortedTypeKeys = Object.keys(typeCounts).sort(compareStageTypes);
+
+    const typeBreakdown = sortedTypeKeys.map(type => {
+      const count = typeCounts[type];
+      const percent = totalStages > 0 ? Math.round((count / totalStages) * 100) : 0;
+      return {
+        type,
+        label: this.stageTypeName(type),
+        count,
+        percent,
+        width: percent
+      };
+    });
+
+    const timelineSource = list
+      .slice()
+      .sort((a, b) => {
+        const aDate = this.getDateValue(a.date);
+        const bDate = this.getDateValue(b.date);
+        const aTime = aDate ? aDate.getTime() : 0;
+        const bTime = bDate ? bDate.getTime() : 0;
+        if (aTime !== bTime) return aTime - bTime;
+        return Number(a.stage_number || 0) - Number(b.stage_number || 0);
+      });
+
+    const timelineItems = timelineSource.map((stage, index) => {
+      const currentDate = this.getDateValue(stage.date);
+      const prevDate = index > 0 ? this.getDateValue(timelineSource[index - 1].date) : null;
+      const gapDays = currentDate && prevDate
+        ? Math.max(0, Math.round((currentDate.getTime() - prevDate.getTime()) / 86400000))
+        : 0;
+      const isOpeningStage = index === 0;
+
+      return {
+        id: stage.id,
+        stageNumber: stage.stage_number || '',
+        stageLabel: `S${stage.stage_number || index + 1}`,
+        dateLabel: this.formatDate(stage.date),
+        routeLabel: this.getStageRouteLabel(stage),
+        distanceLabel: this.formatDistance(stage._distance_value),
+        stageType: stage.stage_type || 'Unknown',
+        stageTypeLabel: this.stageTypeName(stage.stage_type),
+        gapLabel: isOpeningStage ? '开幕赛段' : gapDays > 1 ? `休息 ${gapDays - 1} 天` : gapDays === 1 ? '连续赛程' : '同日赛段',
+        isRestDay: gapDays > 1,
+        isLeader: isOpeningStage,
+        isLast: index === timelineSource.length - 1
+      };
+    });
+
+    let restDays = 0;
+    for (let i = 1; i < timelineSource.length; i += 1) {
+      const currentDate = this.getDateValue(timelineSource[i].date);
+      const prevDate = this.getDateValue(timelineSource[i - 1].date);
+      if (currentDate && prevDate) {
+        const gap = Math.max(0, Math.round((currentDate.getTime() - prevDate.getTime()) / 86400000));
+        if (gap > 1) {
+          restDays += gap - 1;
+        }
+      }
+    }
+
+    const longStageCount = list.filter(stage => stage._distance_value >= 200).length;
+    const avgTypeDifficulty = totalStages > 0
+      ? list.reduce((sum, stage) => sum + this.getStageDifficultyWeight(stage.stage_type), 0) / totalStages
+      : 0;
+    const uniqueStageDates = new Set(timelineSource.map(stage => stage.date).filter(Boolean));
+    const raceStart = this.getDateValue(race && race.start_date);
+    const raceEnd = this.getDateValue(race && race.end_date);
+    const spanDays = raceStart && raceEnd
+      ? Math.max(1, Math.round((raceEnd.getTime() - raceStart.getTime()) / 86400000) + 1)
+      : uniqueStageDates.size || totalStages;
+    const stageDensity = spanDays > 0 ? Math.round((totalStages / spanDays) * 100) : 0;
+    const raceSpanText = race && race.start_date && race.end_date
+      ? `${this.formatDate(race.start_date)} - ${this.formatDate(race.end_date)}`
+      : '';
+    const terrainHeavyCount = list.filter(stage => {
+      return isTerrainHeavyStageType(stage.stage_type);
+    }).length;
+
+    const difficultyRaw =
+      (avgDistance / 4.5) +
+      avgTypeDifficulty +
+      Math.min(15, stageDensity / 4) +
+      Math.min(12, longStageCount * 2.5) -
+      Math.min(10, restDays * 0.8);
+
+    const difficultyScore = Math.max(0, Math.min(100, Math.round(difficultyRaw)));
+    const difficultyLabel = difficultyScore >= 85
+      ? '极限'
+      : difficultyScore >= 65
+        ? '高强度'
+        : difficultyScore >= 45
+          ? '偏高'
+          : difficultyScore >= 25
+            ? '中等'
+            : '轻松';
+    const difficultyReason = [
+      `平均赛段 ${this.formatDistance(avgDistance)}`,
+      `长赛段 ${longStageCount} 个`,
+      `山地/丘陵 ${terrainHeavyCount} 个`
+    ].join(' · ');
+
+    const distanceDifficulty = Math.max(
+      0,
+      Math.min(100, Math.round((avgDistance / 3.8) + (longStageCount * 6)))
+    );
+    const terrainDifficulty = Math.max(
+      0,
+      Math.min(100, Math.round((avgTypeDifficulty * 7) + (terrainHeavyCount * 4)))
+    );
+    const densityDifficulty = Math.max(
+      0,
+      Math.min(100, Math.round((stageDensity / 1.8) - (restDays * 3)))
+    );
+    const difficultyBreakdown = [
+      {
+        key: 'distance',
+        label: '距离',
+        score: distanceDifficulty,
+        icon: '📏',
+        levelKey: distanceDifficulty >= 85 ? 'extreme' : distanceDifficulty >= 65 ? 'high' : distanceDifficulty >= 45 ? 'medium' : 'easy',
+        text: `平均 ${this.formatDistance(avgDistance)} · 长赛段 ${longStageCount} 个`,
+        details: [
+          `平均赛段越长，比赛对体能和补给的要求越高。`,
+          `超过 200 km 的长赛段会明显推高这一项。`,
+          `当前平均赛段为 ${this.formatDistance(avgDistance)}，长赛段共 ${longStageCount} 个。`
+        ]
+      },
+      {
+        key: 'terrain',
+        label: '地形',
+        score: terrainDifficulty,
+        icon: '⛰️',
+        levelKey: terrainDifficulty >= 85 ? 'extreme' : terrainDifficulty >= 65 ? 'high' : terrainDifficulty >= 45 ? 'medium' : 'easy',
+        text: `山地/丘陵 ${terrainHeavyCount} 个 · 地形权重 ${avgTypeDifficulty.toFixed(1)}`,
+        details: [
+          `山地、丘陵和计时赛等赛段会让路线更难。`,
+          `地形权重越高，说明赛段中包含更多起伏或技术路段。`,
+          `当前山地/丘陵赛段共 ${terrainHeavyCount} 个，平均权重 ${avgTypeDifficulty.toFixed(1)}。`
+        ]
+      },
+      {
+        key: 'density',
+        label: '密度',
+        score: densityDifficulty,
+        icon: '🧭',
+        levelKey: densityDifficulty >= 85 ? 'extreme' : densityDifficulty >= 65 ? 'high' : densityDifficulty >= 45 ? 'medium' : 'easy',
+        text: `赛程密度 ${stageDensity}% · 休息日 ${restDays} 天`,
+        details: [
+          `赛程越紧凑，恢复时间越少，整体难度通常越高。`,
+          `休息日越多，密度项会适度下降。`,
+          `当前赛程密度为 ${stageDensity}%，休息日共 ${restDays} 天。`
+        ]
+      }
+    ];
+
+    const totalDistanceValue = race && race.total_distance ? Number(race.total_distance) || totalDistance : totalDistance;
+
+    return {
+      totalStages,
+      totalDistance: totalDistanceValue,
+      totalDistanceText: this.formatDistance(totalDistanceValue),
+      totalDistanceCompactText: this.formatCompactDistance(totalDistanceValue),
+      avgDistance,
+      avgDistanceText: this.formatDistance(avgDistance),
+      avgDistanceCompactText: this.formatCompactDistance(avgDistance),
+      maxDistance,
+      maxDistanceText: this.formatDistance(maxDistance),
+      maxDistanceCompactText: this.formatCompactDistance(maxDistance),
+      minDistance,
+      minDistanceText: this.formatDistance(minDistance),
+      minDistanceCompactText: this.formatCompactDistance(minDistance),
+      raceSpanText,
+      stageDensityText: `${stageDensity}%`,
+      restDays,
+      longStageCount,
+      expandedBreakdownKey: 'distance',
+      difficultyScore,
+      difficultyLabel,
+      difficultyReason,
+      difficultyBreakdown,
+      longestStage: distanceBars[0] || null,
+      shortestStage: distanceBars.slice().sort((a, b) => a.barHeight - b.barHeight)[0] || null,
+      distanceBars,
+      typeBreakdown,
+      timelineItems
+    };
+  },
+
   retryLoad() {
     this.loadData();
   },
 
-  /**
-   * 点击赛段卡片
-   */
+  toggleDifficultyBreakdown(e) {
+    const { key } = e.currentTarget.dataset;
+    const current = this.data.visualization && this.data.visualization.expandedBreakdownKey;
+    const nextKey = current === key ? '' : key;
+    this.setData({
+      'visualization.expandedBreakdownKey': nextKey
+    });
+  },
+
   onStageTap(e) {
     const { stageId, stageNumber } = e.currentTarget.dataset;
     const { raceId, raceCode } = this.data;
@@ -166,9 +467,6 @@ Page({
     navigateTo(url);
   },
 
-  /**
-   * 获取最新赛段ID
-   */
   getLatestStageId() {
     const { stages } = this.data;
     if (!stages || stages.length === 0) {
@@ -178,9 +476,6 @@ Page({
     return stages[stages.length - 1].id;
   },
 
-  /**
-   * 点击总成绩榜(GC)
-   */
   onGCTap() {
     const { raceId, raceCode } = this.data;
     const stageId = this.getLatestStageId();
@@ -193,16 +488,13 @@ Page({
     navigateTo(url);
   },
 
-  /**
-   * 根据赛事类型更新分类榜入口配置
-   */
   _updateClfEntries() {
     const raceType = detectRaceType(this.data.raceCode);
     const types = ['points', 'mountains', 'youth'];
-    const clfEntries = types.map(t => {
-      const config = getClassificationConfig(t, raceType);
+    const clfEntries = types.map(type => {
+      const config = getClassificationConfig(type, raceType);
       return {
-        type: t,
+        type,
         icon: config.typeIcon,
         title: config.typeName,
         sub: config.typeSub
@@ -211,10 +503,6 @@ Page({
     this.setData({ clfEntries, raceType });
   },
 
-  /**
-   * 点击分类榜入口（积分/爬坡/青年）
-   * 显示赛事累计排名，不传 stageId
-   */
   onClassTap(e) {
     const { type } = e.currentTarget.dataset;
     const { raceId, raceCode } = this.data;
@@ -226,9 +514,6 @@ Page({
     navigateTo(url);
   },
 
-  /**
-   * 下拉刷新
-   */
   onPullDownRefresh() {
     this.loadData().then(() => {
       wx.stopPullDownRefresh();

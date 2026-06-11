@@ -78,7 +78,8 @@ async function requestWithRetry(options, retries = REQUEST.MAX_RETRIES, delay = 
     // 自动注入 auth token
     const token = getAuthToken();
     const headers = {
-      'Content-Type': 'application/json',
+      'Content-Type': 'application/json; charset=utf-8',
+      'Accept': 'application/json',
       ...options.header
     };
     if (token) {

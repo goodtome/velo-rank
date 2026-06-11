@@ -1,7 +1,4 @@
-<!--pages/race-detail/race-detail.wxml-->
 <view class="container">
-
-  <!-- 骨架屏加载状态 -->
   <view wx:if="{{loading}}" class="skeleton-container">
     <view class="skeleton-card">
       <view class="skeleton-item skeleton-title"></view>
@@ -19,40 +16,239 @@
     </view>
   </view>
 
-  <!-- 错误状态 -->
   <view wx:elif="{{loadError}}" class="error-state">
-    <text class="error-state-icon">😵</text>
+    <text class="error-state-icon">⚠️</text>
     <text class="error-state-text">{{errorMessage || '加载失败，请检查网络'}}</text>
     <button class="retry-btn" bindtap="retryLoad">重新加载</button>
   </view>
 
   <view wx:else>
-    <!-- 赛事信息头部卡片 -->
     <view class="race-card card">
       <view class="race-name">{{race.race_name_zh || race.race_name}}</view>
       <view class="race-name-en" wx:if="{{race.race_name_en && race.race_name_zh}}">{{race.race_name_en}}</view>
       <view class="race-meta-row">
         <text class="tag tag-blue" wx:if="{{race.category}}">{{race._category_zh}}</text>
         <text class="tag tag-green" wx:if="{{genderLabel}}">{{genderLabel}}</text>
-        <text class="race-date">{{race._start_date_fmt}} — {{race._end_date_fmt}}</text>
+        <text class="race-date">{{race._start_date_fmt}} - {{race._end_date_fmt}}</text>
       </view>
       <view class="race-stats">
-        <view class="stat">
-          <view class="stat-val">{{race.total_stages || '-'}}</view>
-          <view class="stat-label">赛段</view>
+        <view class="stat stat-stages">
+          <view class="stat-icon">🏁</view>
+          <view class="stat-content">
+            <text class="stat-label">总赛段</text>
+            <text class="stat-value">{{race.total_stages || '-'}}</text>
+          </view>
         </view>
-        <view class="stat">
-          <view class="stat-val">{{race.total_distance || '-'}}</view>
-          <view class="stat-label">公里</view>
+        <view class="stat stat-distance">
+          <view class="stat-icon">📏</view>
+          <view class="stat-content">
+            <text class="stat-label">总距离</text>
+            <text class="stat-value">{{visualization.totalDistanceCompactText || '-'}}</text>
+          </view>
         </view>
-        <view class="stat">
-          <view class="stat-val">{{stages.length}}</view>
-          <view class="stat-label">已录入</view>
+        <view class="stat stat-recorded">
+          <view class="stat-icon">✅</view>
+          <view class="stat-content">
+            <text class="stat-label">已记录</text>
+            <text class="stat-value">{{stages.length}}</text>
+          </view>
+        </view>
+        <view class="stat stat-category">
+          <view class="stat-icon">🏆</view>
+          <view class="stat-content">
+            <text class="stat-label">赛事类型</text>
+            <text class="stat-value">{{race._category_zh || '-'}}</text>
+          </view>
         </view>
       </view>
     </view>
 
-    <!-- 领骑衫展示 -->
+    <view wx:if="{{visualization.distanceBars.length > 0}}" class="viz-card card">
+      <view class="viz-header">
+        <view>
+          <view class="section-label">赛事数据可视化</view>
+          <view class="viz-sub">赛段距离分布和类型占比</view>
+        </view>
+        <view class="viz-badge">{{visualization.totalStages}} 个赛段</view>
+      </view>
+
+      <view class="viz-difficulty">
+        <view class="viz-difficulty-score viz-difficulty-score-{{visualization.difficultyScore >= 85 ? 'extreme' : visualization.difficultyScore >= 65 ? 'high' : visualization.difficultyScore >= 45 ? 'medium' : 'easy'}}">{{visualization.difficultyScore}}</view>
+        <view class="viz-difficulty-body">
+          <view class="viz-difficulty-title">赛段难度评分</view>
+          <view class="viz-difficulty-level viz-difficulty-level-{{visualization.difficultyScore >= 85 ? 'extreme' : visualization.difficultyScore >= 65 ? 'high' : visualization.difficultyScore >= 45 ? 'medium' : 'easy'}}">{{visualization.difficultyLabel}}</view>
+          <view class="viz-difficulty-reason">{{visualization.difficultyReason}}</view>
+        </view>
+      </view>
+
+      <view class="viz-breakdown">
+        <view
+          wx:for="{{visualization.difficultyBreakdown}}"
+          wx:key="key"
+          class="viz-breakdown-item viz-breakdown-item-{{item.levelKey}}"
+          bindtap="toggleDifficultyBreakdown"
+          data-key="{{item.key}}"
+        >
+          <view class="viz-breakdown-head">
+            <view class="viz-breakdown-label-wrap">
+              <text class="viz-breakdown-icon">{{item.icon}}</text>
+              <text class="viz-breakdown-label">{{item.label}}</text>
+            </view>
+            <view class="viz-breakdown-score-wrap">
+              <text class="viz-breakdown-score">{{item.score}} / 100</text>
+              <text class="viz-breakdown-toggle">{{visualization.expandedBreakdownKey === item.key ? '收起' : '展开'}}</text>
+            </view>
+          </view>
+          <view class="viz-breakdown-track">
+            <view
+              class="viz-breakdown-fill viz-breakdown-fill-{{item.levelKey}}"
+              style="width: {{item.score}}%;"
+            ></view>
+          </view>
+          <view class="viz-breakdown-text">{{item.text}}</view>
+          <view wx:if="{{visualization.expandedBreakdownKey === item.key}}" class="viz-breakdown-detail">
+            <view wx:for="{{item.details}}" wx:for-item="detail" wx:for-index="index" wx:key="index" class="viz-breakdown-detail-line">
+              <view class="viz-breakdown-detail-dot"></view>
+              <text class="viz-breakdown-detail-text">{{detail}}</text>
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <view class="viz-stats">
+        <view class="viz-stat">
+          <view class="viz-stat-line">总距离：{{visualization.totalDistanceCompactText}}</view>
+        </view>
+        <view class="viz-stat">
+          <view class="viz-stat-line">平均赛段：{{visualization.avgDistanceCompactText}}</view>
+        </view>
+        <view class="viz-stat">
+          <view class="viz-stat-line">最长赛段：{{visualization.maxDistanceCompactText}}</view>
+        </view>
+        <view class="viz-stat">
+          <view class="viz-stat-line">最短赛段：{{visualization.minDistanceCompactText}}</view>
+        </view>
+      </view>
+
+      <view class="viz-chart-title">赛段距离分布</view>
+      <scroll-view scroll-x="true" class="viz-scroll" show-scrollbar="false">
+        <view class="viz-bars">
+          <view
+            wx:for="{{visualization.distanceBars}}"
+            wx:key="id"
+            class="viz-bar-item"
+            bindtap="onStageTap"
+            data-stage-id="{{item.id}}"
+            data-stage-number="{{item.stageNumber}}"
+            hover-class="viz-bar-item-hover"
+          >
+            <view class="viz-bar-track">
+              <view class="viz-bar-fill" style="height: {{item.barHeight}}rpx;"></view>
+            </view>
+            <view class="viz-bar-label-top">{{item.distanceLabel}}</view>
+            <view class="viz-bar-label">{{item.labelText}}</view>
+            <view class="viz-bar-type">{{item.stageTypeLabel}}</view>
+          </view>
+        </view>
+      </scroll-view>
+
+      <view class="viz-chart-title">赛段类型占比</view>
+      <view class="viz-type-list">
+        <view
+          wx:for="{{visualization.typeBreakdown}}"
+          wx:key="type"
+          class="viz-type-item"
+        >
+          <view class="viz-type-head">
+            <text class="viz-type-name">{{item.label}}</text>
+            <text class="viz-type-count">{{item.count}} 场 · {{item.percent}}%</text>
+          </view>
+          <view class="viz-type-track">
+            <view class="viz-type-fill viz-type-{{item.type}}" style="width: {{item.width}}%;"></view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <view class="viz-card card viz-timeline-card">
+      <view class="viz-header">
+        <view>
+          <view class="section-label">赛程节奏</view>
+          <view class="viz-sub">按时间顺序查看赛段推进、休息日和赛程密度</view>
+        </view>
+        <view class="viz-badge">{{visualization.raceSpanText || '赛程视图'}}</view>
+      </view>
+
+      <view class="viz-stats">
+        <view class="viz-stat viz-stat-rest">
+          <view class="viz-stat-icon">🛌</view>
+          <view class="viz-stat-content">
+            <view class="viz-stat-val">{{visualization.restDays}}</view>
+            <view class="viz-stat-label">休息日</view>
+          </view>
+        </view>
+        <view class="viz-stat viz-stat-density">
+          <view class="viz-stat-icon">📆</view>
+          <view class="viz-stat-content">
+            <view class="viz-stat-val">{{visualization.stageDensityText}}</view>
+            <view class="viz-stat-label">赛程密度</view>
+          </view>
+        </view>
+        <view class="viz-stat viz-stat-long">
+          <view class="viz-stat-icon">⛰️</view>
+          <view class="viz-stat-content">
+            <view class="viz-stat-val">{{visualization.longStageCount}}</view>
+            <view class="viz-stat-label">超长赛段</view>
+          </view>
+        </view>
+        <view class="viz-stat viz-stat-total">
+          <view class="viz-stat-icon">🏁</view>
+          <view class="viz-stat-content">
+            <view class="viz-stat-val">{{visualization.totalStages}}</view>
+            <view class="viz-stat-label">总赛段数</view>
+          </view>
+        </view>
+      </view>
+
+      <view wx:if="{{visualization.timelineItems.length > 0}}" class="viz-timeline">
+        <view
+          wx:for="{{visualization.timelineItems}}"
+          wx:key="id"
+          class="viz-timeline-item"
+          bindtap="onStageTap"
+          data-stage-id="{{item.id}}"
+          data-stage-number="{{item.stageNumber}}"
+          hover-class="viz-timeline-item-hover"
+        >
+          <view class="viz-timeline-marker">
+            <view class="viz-timeline-dot viz-type-{{item.stageType}}"></view>
+            <view wx:if="{{!item.isLast}}" class="viz-timeline-line"></view>
+          </view>
+          <view class="viz-timeline-body viz-type-{{item.stageType}}">
+            <view class="viz-timeline-head">
+              <view class="viz-timeline-head-left">
+                <text class="viz-timeline-stage">{{item.stageLabel}} | {{item.dateLabel}}</text>
+              </view>
+              <view class="viz-timeline-head-right">
+                <text class="viz-timeline-kind">{{item.stageTypeLabel}}</text>
+                <text class="viz-timeline-arrow">></text>
+              </view>
+            </view>
+            <text class="viz-timeline-route">{{item.routeLabel}}</text>
+            <view class="viz-timeline-meta">
+              <text class="viz-timeline-distance">{{item.distanceLabel}}</text>
+              <text class="viz-timeline-gap">{{item.gapLabel}}</text>
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <view wx:else class="empty-state viz-timeline-empty">
+        <text class="empty-state-icon">📭</text>
+        <text class="empty-state-text">暂无赛段数据</text>
+      </view>
+    </view>
+
     <view wx:if="{{jerseys.length > 0}}" class="jerseys-section card">
       <view class="section-label">领骑衫</view>
       <view class="jerseys-grid">
@@ -64,7 +260,7 @@
             <text class="jersey-team">{{item.team_name_zh || item.team_name}}</text>
           </view>
           <view class="jersey-extra" wx:if="{{item.points}}">
-            <text class="jersey-points">{{item.points}}分</text>
+            <text class="jersey-points">{{item.points}} 分</text>
           </view>
           <view class="jersey-extra" wx:elif="{{item.time_gap}}">
             <text class="jersey-points">{{item.time_gap}}</text>
@@ -73,74 +269,51 @@
       </view>
     </view>
 
-    <!-- 赛段列表 -->
-    <view class="section-label" style="margin-top:8rpx;">赛段列表 ({{stages.length}})</view>
-
-    <!-- 空赛段列表提示 -->
-    <view wx:if="{{stages.length === 0}}" class="empty-state">
-      <text class="empty-state-icon">📋</text>
-      <text class="empty-state-text">暂无赛段数据</text>
-    </view>
-
-    <view class="stage-list" wx:if="{{stages.length > 0}}">
-      <view 
-        wx:for="{{stages}}" 
-        wx:key="id"
-        class="stage-item"
-        hover-class="stage-item-hover"
-        bindtap="onStageTap"
-        data-stage-id="{{item.id}}"
-        data-stage-number="{{item.stage_number}}"
-      >
-        <view class="stage-left">
-          <view class="num-badge">{{item.stage_number}}</view>
-          <view class="stage-info">
-            <view class="stage-route">{{item.stage_name}}</view>
-            <view class="stage-meta-row">
-              <text>{{item._date_fmt}}</text>
-              <text wx:if="{{item.distance_km}}"> · {{item.distance_km}}km</text>
-              <text class="stage-type-tag tag-{{item.stage_type}}" wx:if="{{item.stage_type}}">{{item.stage_type}}</text>
-            </view>
-          </view>
-        </view>
-        <view class="arrow">></view>
-      </view>
-    </view>
-
-    <!-- GC入口 -->
     <view class="gc-card" hover-class="gc-card-hover" bindtap="onGCTap">
       <view class="gc-left">
         <view class="gc-icon">🏆</view>
         <view class="gc-text">
-          <view class="gc-title">总成绩榜 (GC)</view>
-          <view class="gc-sub">General Classification</view>
+          <view class="gc-title">总成绩榜（GC）</view>
+          <view class="gc-sub">赛事总排名</view>
         </view>
       </view>
       <view class="arrow-white">></view>
     </view>
 
-    <!-- 分类榜入口 -->
-    <view class="section-label" style="margin-top:24rpx;">分类排名</view>
-
-    <view class="clf-section clf-race-{{raceType || 'default'}}">
-    <view 
-      wx:for="{{clfEntries}}" 
-      wx:key="type"
-      class="clf-card clf-{{item.type}}" 
-      hover-class="clf-card-hover" 
-      bindtap="onClassTap" 
-      data-type="{{item.type}}"
-    >
-      <view class="clf-left">
-        <view class="clf-icon">{{item.icon}}</view>
-        <view class="clf-text">
-          <view class="clf-title">{{item.title}}</view>
-          <view class="clf-sub">{{item.sub}}</view>
+    <view class="team-classification-card" bindtap="onClassTap" data-type="team" hover-class="team-classification-card-hover">
+      <view class="team-classification-left">
+        <view class="team-classification-icon">🏆</view>
+        <view class="team-classification-text">
+          <view class="team-classification-title">车队成绩榜</view>
+          <view class="team-classification-sub">查看本赛事车队总排名</view>
         </view>
       </view>
-      <view class="arrow">></view>
-    </view>
+      <view class="team-classification-right">
+        <text class="team-classification-badge">车队榜</text>
+        <view class="arrow-white">></view>
+      </view>
     </view>
 
+    <view class="section-label" style="margin-top:24rpx;">分类榜</view>
+
+    <view class="clf-section clf-race-{{raceType || 'default'}}">
+      <view
+        wx:for="{{clfEntries}}"
+        wx:key="type"
+        class="clf-card clf-{{item.type}}"
+        hover-class="clf-card-hover"
+        bindtap="onClassTap"
+        data-type="{{item.type}}"
+      >
+        <view class="clf-left">
+          <view class="clf-icon">{{item.icon}}</view>
+          <view class="clf-text">
+            <view class="clf-title">{{item.title}}</view>
+            <view class="clf-sub">{{item.sub}}</view>
+          </view>
+        </view>
+        <view class="arrow">></view>
+      </view>
+    </view>
   </view>
 </view>

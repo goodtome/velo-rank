@@ -59,17 +59,6 @@
           <text class="hero-stages">{{item.total_stages || 1}}个赛段</text>
         </view>
 
-        <!-- 领骑衫展示 -->
-        <view wx:if="{{item.jerseys && item.jerseys.length > 0}}" class="jerseys-row">
-          <view wx:for="{{item.jerseys}}" wx:for-item="jersey" wx:key="jersey_type" class="jersey-item">
-            <view class="jersey-circle jersey-{{jersey.jersey_type}}"></view>
-            <view class="jersey-info">
-              <text class="jersey-rider-name">{{jersey.rider_name_zh || jersey.rider_name}}</text>
-              <text class="jersey-team-name">{{jersey.team_name_zh || jersey.team_name}}</text>
-            </view>
-          </view>
-        </view>
-
         <!-- 查看详情提示 -->
         <view class="hero-footer">
           <text class="hero-link">查看详情 ›</text>

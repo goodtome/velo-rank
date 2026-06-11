@@ -27,7 +27,7 @@ async function getAccessToken() {
   }
   
   const appId = process.env.WECHAT_APPID;
-  const appSecret = process.env.WECHAT_APPSECRET;
+  const appSecret = process.env.WECHAT_APPSECRET || process.env.WECHAT_SECRET;
   
   if (!appId || !appSecret) {
     throw new Error('缺少微信配置: WECHAT_APPID 或 WECHAT_APPSECRET');
@@ -176,7 +176,7 @@ async function batchSendSubscribeMessage(messages) {
  */
 async function code2Session(code) {
   const appId = process.env.WECHAT_APPID;
-  const appSecret = process.env.WECHAT_APPSECRET;
+  const appSecret = process.env.WECHAT_APPSECRET || process.env.WECHAT_SECRET;
 
   if (!appId || !appSecret) {
     throw new Error('缺少微信配置: WECHAT_APPID 或 WECHAT_APPSECRET');

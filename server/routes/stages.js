@@ -421,8 +421,7 @@ router.get('/:id/general-classification', asyncHandler(async (req, res) => {
            t.team_name, t.team_name_zh, t.uci_code
     FROM general_classification gc
     JOIN riders r ON gc.rider_id = r.id
-    LEFT JOIN stage_results sr ON gc.stage_id = sr.stage_id AND gc.rider_id = sr.rider_id
-    LEFT JOIN teams t ON sr.team_id = t.id
+    LEFT JOIN teams t ON gc.team_id = t.id
     WHERE gc.stage_id = ?
     ORDER BY gc.\`rank\`
     LIMIT ? OFFSET ?
@@ -470,8 +469,8 @@ router.get('/:id/points', asyncHandler(async (req, res) => {
       WHERE stage_id = ?
     ) sub
     JOIN riders r ON sub.rider_id = r.id
-    LEFT JOIN stage_results sr ON sub.stage_id = sr.stage_id AND sub.rider_id = sr.rider_id
-    LEFT JOIN teams t ON sr.team_id = t.id
+    LEFT JOIN general_classification gc ON sub.stage_id = gc.stage_id AND sub.rider_id = gc.rider_id
+    LEFT JOIN teams t ON gc.team_id = t.id
     ORDER BY sub.\`rank\`, sub.points DESC, sub.rider_id
     LIMIT ? OFFSET ?
   `;
@@ -517,8 +516,8 @@ router.get('/:id/mountains', asyncHandler(async (req, res) => {
       WHERE stage_id = ?
     ) sub
     JOIN riders r ON sub.rider_id = r.id
-    LEFT JOIN stage_results sr ON sub.stage_id = sr.stage_id AND sub.rider_id = sr.rider_id
-    LEFT JOIN teams t ON sr.team_id = t.id
+    LEFT JOIN general_classification gc ON sub.stage_id = gc.stage_id AND sub.rider_id = gc.rider_id
+    LEFT JOIN teams t ON gc.team_id = t.id
     ORDER BY sub.\`rank\`, sub.points DESC, sub.rider_id
     LIMIT ? OFFSET ?
   `;
@@ -559,8 +558,8 @@ router.get('/:id/youth', asyncHandler(async (req, res) => {
            t.team_name, t.team_name_zh, t.uci_code
     FROM youth_classification y
     JOIN riders r ON y.rider_id = r.id
-    LEFT JOIN stage_results sr ON y.stage_id = sr.stage_id AND y.rider_id = sr.rider_id
-    LEFT JOIN teams t ON sr.team_id = t.id
+    LEFT JOIN general_classification gc ON y.stage_id = gc.stage_id AND y.rider_id = gc.rider_id
+    LEFT JOIN teams t ON gc.team_id = t.id
     WHERE y.stage_id = ?
     ORDER BY y.\`rank\`
     LIMIT ? OFFSET ?

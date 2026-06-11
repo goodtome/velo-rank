@@ -31,7 +31,7 @@
       <view class="stage-title-row">
         <view class="num-badge">{{stage.stage_number}}</view>
         <view class="stage-title-text">第 {{stage.stage_number}} 赛段</view>
-        <text class="stage-type-tag tag-{{stage.stage_type}}" wx:if="{{stage.stage_type}}">{{stage.stage_type}}</text>
+        <text class="stage-type-tag tag-{{stage.stage_type}}" wx:if="{{stage._stage_type_zh}}">{{stage._stage_type_zh}}</text>
       </view>
       <view class="stage-route">{{stage.stage_name}}</view>
       <view class="stage-meta-row">
@@ -102,8 +102,8 @@
         <text wx:if="{{loadingMore}}">加载中...</text>
         <text wx:else>加载更多</text>
       </view>
-      <view wx:elif="{{results.length > 0}}" class="load-more">
-        <text style="color:#999;">已加载全部 {{results.length}} 条数据</text>
+      <view wx:elif="{{results.length > 0}}" class="load-more load-more-done">
+        <text class="load-complete">已加载全部 {{results.length}} 条数据</text>
       </view>
     </view>
   </view>

@@ -130,7 +130,7 @@ CREATE TABLE IF NOT EXISTS sync_logs (
   completed_at TIMESTAMP NULL,
   error_message TEXT,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (race_id) REFERENCES stages(id) ON DELETE CASCADE,
+  FOREIGN KEY (race_id) REFERENCES races(id) ON DELETE CASCADE,
   INDEX idx_race_id (race_id),
   INDEX idx_requested_by (requested_by),
   INDEX idx_status (status),

@@ -1,0 +1,161 @@
+<view class="page">
+  <view class="hero card-base">
+    <text class="title">赛事归档</text>
+    <text class="subtitle">按年份回看历届赛事，快速进入赛事详情</text>
+  </view>
+
+  <view class="card-base section">
+    <view class="section-head">
+      <text class="section-title">快速过滤</text>
+      <view class="section-actions">
+        <text class="link" wx:if="{{searchKeyword}}" bindtap="clearKeyword">清除</text>
+        <text class="reset-link" bindtap="resetFilters">重置全部</text>
+      </view>
+    </view>
+    <view class="keyword-row">
+      <input
+        class="keyword-input"
+        type="text"
+        value="{{searchKeyword}}"
+        placeholder="输入赛事名、代码或国家"
+        bindinput="onKeywordInput"
+      />
+    </view>
+  </view>
+
+  <view class="card-base section">
+    <text class="section-title">排序方式</text>
+    <scroll-view scroll-x="true" class="sort-scroll" show-scrollbar="false">
+      <view class="sort-list">
+        <view
+          wx:for="{{sortOptions}}"
+          wx:key="value"
+          class="sort-chip {{selectedSort === item.value ? 'active' : ''}}"
+          data-sort="{{item.value}}"
+          bindtap="onSortTap"
+        >
+          {{item.label}}
+        </view>
+      </view>
+    </scroll-view>
+  </view>
+
+  <view class="card-base section">
+    <text class="section-title">年份</text>
+    <scroll-view scroll-x="true" class="year-scroll" show-scrollbar="false">
+      <view class="year-list">
+        <view
+          wx:for="{{yearOptions}}"
+          wx:key="*this"
+          class="year-chip {{selectedYear === item ? 'active' : ''}}"
+          data-year="{{item}}"
+          bindtap="onYearTap"
+        >
+          {{item}} 赛季
+        </view>
+      </view>
+    </scroll-view>
+  </view>
+
+  <view class="card-base section">
+    <text class="section-title">赛季类型</text>
+    <scroll-view scroll-x="true" class="category-scroll" show-scrollbar="false">
+      <view class="category-list">
+        <view
+          wx:for="{{categoryOptions}}"
+          wx:key="value"
+          class="category-chip {{selectedCategory === item.value ? 'active' : ''}}"
+          data-category="{{item.value}}"
+          bindtap="onCategoryTap"
+        >
+          {{item.label}}
+        </view>
+      </view>
+    </scroll-view>
+  </view>
+
+  <view class="card-base section">
+    <text class="section-title">状态筛选</text>
+    <scroll-view scroll-x="true" class="status-scroll" show-scrollbar="false">
+      <view class="status-list">
+        <view
+          wx:for="{{statusOptions}}"
+          wx:key="value"
+          class="status-chip {{selectedStatus === item.value ? 'active' : ''}}"
+          data-status="{{item.value}}"
+          bindtap="onStatusTap"
+        >
+          {{item.label}}
+        </view>
+      </view>
+    </scroll-view>
+  </view>
+
+  <view class="card-base stats-card">
+    <view class="stat-item {{selectedStatus === 'ALL' ? 'active' : ''}}" data-status="ALL" bindtap="onStatTap">
+      <text class="stat-value">{{stats.total}}</text>
+      <text class="stat-label">总赛事</text>
+    </view>
+    <view class="stat-item {{selectedStatus === 'ongoing' ? 'active' : ''}}" data-status="ongoing" bindtap="onStatTap">
+      <text class="stat-value">{{stats.ongoing}}</text>
+      <text class="stat-label">进行中</text>
+    </view>
+    <view class="stat-item {{selectedStatus === 'finished' ? 'active' : ''}}" data-status="finished" bindtap="onStatTap">
+      <text class="stat-value">{{stats.finished}}</text>
+      <text class="stat-label">已结束</text>
+    </view>
+    <view class="stat-item {{selectedStatus === 'upcoming' ? 'active' : ''}}" data-status="upcoming" bindtap="onStatTap">
+      <text class="stat-value">{{stats.upcoming}}</text>
+      <text class="stat-label">未开始</text>
+    </view>
+  </view>
+
+  <view class="card-base section">
+    <view class="section-head">
+      <view class="section-title-wrap">
+        <text class="section-title">{{selectedYear}} 年赛事</text>
+        <view class="match-badge">
+          <text class="match-badge-icon">●</text>
+          <text class="match-badge-label">当前匹配</text>
+          <text class="match-badge-value">{{races.length}} 场</text>
+        </view>
+        <view class="filter-note">
+          <text class="filter-note-icon">◉</text>
+          <text class="filter-note-text">已应用筛选条件</text>
+        </view>
+      </view>
+      <text class="link" bindtap="retryLoad">刷新</text>
+    </view>
+
+    <view wx:if="{{loading}}" class="state-line">正在加载赛事归档...</view>
+    <view wx:if="{{loadError && errorMessage}}" class="state-error">{{errorMessage}}</view>
+
+    <view wx:if="{{races.length}}" class="race-list">
+      <view
+        wx:for="{{races}}"
+        wx:key="id"
+        class="race-item"
+        data-race-id="{{item.id}}"
+        bindtap="onRaceTap"
+      >
+        <view class="race-main">
+          <view class="race-texts">
+            <text class="race-name">{{item.displayName || item.race_name}}</text>
+            <text class="race-meta">{{item.dateRange || item.race_code}}</text>
+          </view>
+          <text class="status status-{{item.status}}">{{item.status}}</text>
+        </view>
+        <view class="race-footer">
+          <text class="race-footer-text">{{item.categoryLabel || item.category || '分类未知'}}</text>
+          <text class="race-footer-text">{{item.country || '国家未知'}}</text>
+          <text class="race-footer-text">{{item.total_stages || 0}} 赛段</text>
+        </view>
+      </view>
+    </view>
+
+    <view wx:else class="empty-state">
+      <text wx:if="{{searchKeyword}}">没有找到匹配的赛事</text>
+      <text wx:else>这个赛季暂无赛事归档数据</text>
+    </view>
+  </view>
+</view>

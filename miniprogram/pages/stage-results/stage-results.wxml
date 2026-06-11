@@ -62,7 +62,7 @@
       <view class="gc-icon">🏆</view>
       <view>
         <view class="gc-title">总成绩榜 (GC)</view>
-        <view class="gc-sub">General Classification</view>
+        <view class="gc-sub">赛事总排名</view>
       </view>
     </view>
 
@@ -81,10 +81,42 @@
       </view>
     </view>
 
+    <view wx:if="{{type === 'gc' && gcTrend.points.length > 0}}" class="gc-trend-card card">
+      <view class="gc-trend-header">
+        <view>
+          <view class="section-label">GC 时间差走势图</view>
+          <view class="gc-trend-sub">相对第一名的累计时间差变化</view>
+        </view>
+        <view class="gc-trend-badge">{{gcTrend.maxGapLabel}}</view>
+      </view>
+
+      <scroll-view scroll-x="true" class="gc-trend-scroll" show-scrollbar="false">
+        <view class="gc-trend-chart" style="width: {{gcTrend.chartWidth}}rpx; height: {{gcTrend.chartHeight}}rpx;">
+          <view
+            wx:for="{{gcTrend.segments}}"
+            wx:key="index"
+            class="gc-trend-segment"
+            style="{{item.style}}"
+          ></view>
+          <view
+            wx:for="{{gcTrend.points}}"
+            wx:key="rank"
+            class="gc-trend-point"
+            style="{{item.pointStyle}}"
+          >
+            <view class="gc-trend-gap">{{item.gapLabel}}</view>
+            <view class="gc-trend-dot {{item.isLeader ? 'gc-trend-dot-leader' : ''}} {{item.isMissing ? 'gc-trend-dot-missing' : ''}}"></view>
+            <view class="gc-trend-rank">{{item.rankLabel}}</view>
+          </view>
+        </view>
+      </scroll-view>
+    </view>
+
     <!-- 成绩列表 -->
     <view class="results-section card">
       <view class="section-label">
-        <text wx:if="{{type === 'stage'}}">赛段排名</text>
+        <text wx:if="{{type === 'stage' && stageResultKind === 'team'}}">车队赛段排名</text>
+        <text wx:elif="{{type === 'stage'}}">赛段排名</text>
         <text wx:elif="{{type === 'gc'}}">总成绩排名 (GC)</text>
         <text wx:elif="{{type === 'team'}}">车队成绩排名</text>
         <text wx:elif="{{type === 'points'}}">冲刺积分排名</text>
@@ -95,9 +127,9 @@
       <!-- 表头 -->
       <view class="result-header">
         <text class="rh-rank">排名</text>
-        <text class="rh-rider">{{type === 'team' ? '车队' : '车手'}}</text>
-        <text class="rh-team">{{type === 'team' ? '代号' : '车队'}}</text>
-        <text class="rh-time">{{(type === 'points' || type === 'mountains') ? '积分' : (type === 'team' || type === 'gc' || type === 'youth') ? '总时间' : '差距'}}</text>
+        <text class="rh-rider">{{(type === 'team' || stageResultKind === 'team') ? '车队' : '车手'}}</text>
+        <text class="rh-team">{{(type === 'team' || stageResultKind === 'team') ? '代号' : '车队'}}</text>
+        <text class="rh-time">{{(type === 'points' || type === 'mountains') ? '积分' : ((type === 'team' || stageResultKind === 'team' || type === 'gc' || type === 'youth') ? '总时间' : '差距')}}</text>
       </view>
 
       <!-- 空成绩提示 -->
@@ -112,7 +144,7 @@
         wx:key="rank"
         class="result-row {{index < 3 ? 'result-top3' : ''}} {{index === 0 ? 'result-gold' : index === 1 ? 'result-silver' : index === 2 ? 'result-bronze' : ''}}"
         hover-class="result-row-hover"
-        bindtap="{{type === 'team' ? '' : 'goToRider'}}"
+        bindtap="{{(type === 'team' || stageResultKind === 'team') ? '' : 'goToRider'}}"
         data-id="{{item.rider_id}}"
       >
         <view class="rr-rank {{index < 3 ? 'rr-rank-medal' : ''}}">
@@ -123,7 +155,7 @@
         </view>
 
         <!-- 车手/车队显示逻辑 -->
-        <block wx:if="{{type === 'team'}}">
+        <block wx:if="{{type === 'team' || stageResultKind === 'team'}}">
           <view class="rr-rider">
             <text class="rider-name">{{item.team_name_zh || item.team_name}}</text>
           </view>
@@ -141,11 +173,10 @@
           <!-- 积分显示 -->
           <text wx:if="{{type === 'points' || type === 'mountains'}}" class="time-main">{{item.points}} Pts</text>
           <!-- 时间显示 -->
-          <text wx:elif="{{type === 'team' || type === 'gc' || type === 'youth'}}" class="time-main">{{item.total_time || item.time}}</text>
+          <text wx:elif="{{type === 'team' || stageResultKind === 'team' || type === 'gc' || type === 'youth'}}" class="time-main">{{item.total_time || item.time}}</text>
           <!-- 赛段差距显示 -->
-          <text wx:else class="time-main">{{item.time_gap || '—'}}</text>
-          
-          <text wx:if="{{(type === 'gc' || type === 'youth' || type === 'team') && item.time_gap}}" class="time-gap">({{item.time_gap}})</text>
+          <text wx:else class="time-main">{{item.time_gap || '-'}}</text>
+          <text wx:if="{{(type === 'gc' || type === 'youth' || type === 'team' || stageResultKind === 'team') && item.time_gap}}" class="time-gap">({{item.time_gap}})</text>
         </view>
       </view>
 
@@ -154,8 +185,8 @@
         <text wx:if="{{loadingMore}}">加载中...</text>
         <text wx:else>加载更多</text>
       </view>
-      <view wx:elif="{{results.length > 0}}" class="load-more">
-        <text style="color:#999;">已加载全部 {{results.length}} 条数据</text>
+      <view wx:elif="{{results.length > 0}}" class="load-more load-more-done">
+        <text class="load-complete">已加载全部 {{results.length}} 条数据</text>
       </view>
     </view>
   </view>

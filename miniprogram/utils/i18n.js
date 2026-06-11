@@ -131,7 +131,7 @@ const locales = {
     stageList: '赛段列表（共 {count} 个）',
     noStageData: '暂无赛段数据',
     gcTitle: '总成绩榜',
-    gcSub: 'General Classification',
+    gcSub: '赛事总排名',
     
     // 错误信息
     missingRaceId: '缺少赛事ID',
@@ -349,7 +349,7 @@ const locales = {
     stageList: '賽段列表（共 {count} 個）',
     noStageData: '暫無賽段數據',
     gcTitle: '總成績榜',
-    gcSub: 'General Classification',
+    gcSub: '賽事總排名',
     
     // 錯誤信息
     missingRaceId: '缺少賽事ID',

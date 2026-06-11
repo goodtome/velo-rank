@@ -2,7 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const http = require('http');
 const rateLimit = require('express-rate-limit');
-require('dotenv').config({ path: `${__dirname}/config/.env` });
+require('dotenv').config({ path: `${__dirname}/../.env` });
 
 const { validateEnv } = require('./config/env-check');
 validateEnv();
@@ -21,6 +21,11 @@ const adminLimiterMiddleware = rateLimit(adminLimiter);
 const syncLimiterMiddleware = rateLimit(syncLimiter);
 
 app.use(cors(corsOptions));
+app.use((req, res, next) => {
+  res.charset = 'utf-8';
+  res.setHeader('Content-Language', 'zh-CN');
+  next();
+});
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
@@ -66,7 +71,17 @@ app.get('/api/v1/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-app.use('/admin', express.static(`${__dirname}/admin`));
+app.use('/admin', express.static(`${__dirname}/admin`, {
+  setHeaders(res, filePath) {
+    if (filePath.endsWith('.html')) {
+      res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    } else if (filePath.endsWith('.js')) {
+      res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
+    } else if (filePath.endsWith('.css')) {
+      res.setHeader('Content-Type', 'text/css; charset=utf-8');
+    }
+  }
+}));
 
 app.get('/user', (req, res) => {
   res.sendFile(`${__dirname}/admin/user-view.html`);

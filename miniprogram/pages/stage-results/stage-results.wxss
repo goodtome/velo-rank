@@ -144,6 +144,99 @@
   opacity: 0.85;
 }
 
+/* ====== GC 时间差走势图 ====== */
+.gc-trend-card {
+  background: #fff;
+  border-radius: 24rpx;
+  padding: 28rpx;
+  margin-bottom: 24rpx;
+  box-shadow: 0 2rpx 16rpx rgba(0,0,0,0.05);
+}
+
+.gc-trend-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16rpx;
+  margin-bottom: 20rpx;
+}
+
+.gc-trend-sub {
+  margin-top: 6rpx;
+  font-size: 22rpx;
+  color: #7f8c8d;
+}
+
+.gc-trend-badge {
+  flex-shrink: 0;
+  padding: 10rpx 18rpx;
+  border-radius: 999rpx;
+  background: rgba(33, 150, 243, 0.12);
+  color: #1565c0;
+  font-size: 22rpx;
+  font-weight: 600;
+}
+
+.gc-trend-scroll {
+  width: 100%;
+  overflow: hidden;
+}
+
+.gc-trend-chart {
+  position: relative;
+  min-height: 240rpx;
+  padding: 12rpx 8rpx 18rpx;
+}
+
+.gc-trend-segment {
+  position: absolute;
+  height: 4rpx;
+  border-radius: 999rpx;
+  background: linear-gradient(90deg, rgba(33,150,243,0.25), rgba(21,101,192,0.75));
+  transform-origin: 0 50%;
+}
+
+.gc-trend-point {
+  position: absolute;
+  width: 90rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transform: translate(-50%, -50%);
+}
+
+.gc-trend-gap {
+  font-size: 18rpx;
+  color: #1565c0;
+  font-weight: 600;
+  margin-bottom: 8rpx;
+  white-space: nowrap;
+}
+
+.gc-trend-dot {
+  width: 18rpx;
+  height: 18rpx;
+  border-radius: 50%;
+  background: #1565c0;
+  box-shadow: 0 0 0 6rpx rgba(33, 150, 243, 0.10);
+}
+
+.gc-trend-dot-leader {
+  background: #ff9800;
+  box-shadow: 0 0 0 6rpx rgba(255, 152, 0, 0.16);
+}
+
+.gc-trend-dot-missing {
+  background: #90a4ae;
+  box-shadow: 0 0 0 6rpx rgba(144, 164, 174, 0.14);
+}
+
+.gc-trend-rank {
+  margin-top: 8rpx;
+  font-size: 18rpx;
+  color: #34495e;
+}
+
 /* ====== 领骑衫 ====== */
 .jerseys-section {
   background: #fff;
@@ -336,8 +429,32 @@
 
 /* 加载更多 */
 .load-more {
+  width: 520rpx;
+  height: 96rpx;
+  margin: 32rpx auto;
+  padding: 0;
+  border-radius: 48rpx;
+  background: #2196F3;
+  color: #fff;
+  font-size: 32rpx;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
   text-align: center;
-  padding: 24rpx;
-  color: #2196F3;
+  box-sizing: border-box;
+}
+
+.load-complete {
+  color: #999;
   font-size: 26rpx;
+  font-weight: 400;
+}
+
+.load-more-done {
+  width: auto;
+  height: auto;
+  margin: 24rpx auto;
+  background: transparent;
 }

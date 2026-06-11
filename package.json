@@ -1,7 +1,7 @@
 {
   "name": "zhengyi-lingqi",
   "version": "1.0.0",
-  "description": "正一领骑 - 自行车比赛成绩查询小程序后端API",
+  "description": "正一领骑 - 自行车比赛成绩查询小程序后端 API",
   "main": "server/app.js",
   "scripts": {
     "start": "node server/app.js",
@@ -11,7 +11,8 @@
     "sync-pcs": "node server/scripts/sync-pcs.js",
     "backup": "node server/scripts/backup-db.js",
     "backup-once": "node server/scripts/schedule-backup.js --once",
-    "test": "node scripts/validate-syntax.js && node scripts/test-auth-middleware.js && node scripts/test-jersey-service.js && node scripts/test-security-config.js && node scripts/test-favorites-transaction.js && node scripts/test-favorites-route.js",
+    "check-encoding": "node scripts/check-encoding.js",
+    "test": "node scripts/check-encoding.js && node scripts/validate-syntax.js && node scripts/test-auth-middleware.js && node scripts/test-jersey-service.js && node scripts/test-security-config.js && node scripts/test-favorites-transaction.js && node scripts/test-favorites-route.js",
     "install-all": "npm install",
     "monitor": "node server/scripts/schedule-backup.js"
   },

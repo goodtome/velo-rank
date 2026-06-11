@@ -4,78 +4,167 @@ const pool = require('../config/db-pool');
 const { PAGINATION, ERROR_CODE } = require('../constants');
 const { AppError, asyncHandler } = require('../middleware/errorHandler');
 
-const MAX_LIMIT = 50;
+const MAX_LIMIT = PAGINATION.MAX_LIMIT;
 
-// GET /api/v1/search/riders - 搜索车手 / 获取全部车手列表
+function normalizeKeyword(value) {
+  return typeof value === 'string' ? value.trim() : '';
+}
+
+function parsePaging(query, defaultLimit = 20) {
+  const limitNum = Math.min(MAX_LIMIT, Math.max(1, parseInt(query.limit) || defaultLimit));
+  const pageNum = Math.max(1, parseInt(query.page) || 1);
+  const rawOffset = query.offset !== undefined ? parseInt(query.offset) : NaN;
+  const offset = Number.isNaN(rawOffset)
+    ? (pageNum - 1) * limitNum
+    : Math.max(0, rawOffset);
+
+  return { pageNum, limitNum, offset };
+}
+
+function buildRaceSearchLabel(race) {
+  const zh = race.race_name_zh || '';
+  const en = race.race_name_en || race.race_name || '';
+  return { zh, en };
+}
+
+// GET /api/v1/search/riders
 router.get('/riders', asyncHandler(async (req, res) => {
-  const { q, page = 1, limit = 20 } = req.query;
-  const pageNum = Math.max(1, parseInt(page) || 1);
-  const limitNum = Math.min(MAX_LIMIT, Math.max(1, parseInt(limit) || 20));
+  const q = normalizeKeyword(req.query.q);
+  const { pageNum, limitNum, offset } = parsePaging(req.query);
 
-  // 有搜索关键词 → 模糊搜索
-  if (q && q.trim().length > 0) {
-    if (q.length > 50) {
-      throw new AppError('搜索关键词过长', ERROR_CODE.BAD_REQUEST);
-    }
-
-    const [rows] = await pool.query(
-      `SELECT id, rider_name, rider_name_zh, nationality, photo_url
-       FROM riders
-       WHERE rider_name LIKE ? OR rider_name_zh LIKE ?
-       ORDER BY rider_name ASC
-       LIMIT ?`,
-      [`%${q}%`, `%${q}%`, limitNum]
-    );
-    return res.json({ code: 200, data: { riders: rows, total: rows.length } });
+  if (q.length > 50) {
+    throw new AppError('Search keyword is too long', ERROR_CODE.BAD_REQUEST);
   }
 
-  // 无搜索关键词 → 返回全部车手（按名称排序 + 分页）
-  const offset = (pageNum - 1) * limitNum;
-  const [[{ total }]] = await pool.query('SELECT COUNT(*) AS total FROM riders');
+  const whereSql = q ? 'WHERE rider_name LIKE ? OR rider_name_zh LIKE ?' : '';
+  const params = q ? [`%${q}%`, `%${q}%`] : [];
+
+  const [[{ total }]] = await pool.query(
+    `SELECT COUNT(*) AS total FROM riders ${whereSql}`,
+    params
+  );
   const [rows] = await pool.query(
     `SELECT id, rider_name, rider_name_zh, nationality, photo_url
      FROM riders
+     ${whereSql}
      ORDER BY rider_name ASC
      LIMIT ? OFFSET ?`,
-    [limitNum, offset]
+    [...params, limitNum, offset]
   );
-  res.json({ code: 200, data: { riders: rows, total, page: pageNum, limit: limitNum } });
+
+  res.json({ code: 200, data: { riders: rows, total, page: pageNum, limit: limitNum, offset } });
 }));
 
-// GET /api/v1/search/teams - 搜索车队 / 获取全部车队列表
+// GET /api/v1/search/teams
 router.get('/teams', asyncHandler(async (req, res) => {
-  const { q, page = 1, limit = 20 } = req.query;
-  const pageNum = Math.max(1, parseInt(page) || 1);
-  const limitNum = Math.min(MAX_LIMIT, Math.max(1, parseInt(limit) || 20));
+  const q = normalizeKeyword(req.query.q);
+  const { pageNum, limitNum, offset } = parsePaging(req.query);
 
-  // 有搜索关键词 → 模糊搜索
-  if (q && q.trim().length > 0) {
-    if (q.length > 50) {
-      throw new AppError('搜索关键词过长', ERROR_CODE.BAD_REQUEST);
-    }
-
-    const [rows] = await pool.query(
-      `SELECT id, uci_code, team_name, team_name_zh, logo_url
-       FROM teams
-       WHERE team_name LIKE ? OR team_name_zh LIKE ? OR uci_code LIKE ?
-       ORDER BY team_name ASC
-       LIMIT ?`,
-      [`%${q}%`, `%${q}%`, `%${q}%`, limitNum]
-    );
-    return res.json({ code: 200, data: { teams: rows, total: rows.length } });
+  if (q.length > 50) {
+    throw new AppError('Search keyword is too long', ERROR_CODE.BAD_REQUEST);
   }
 
-  // 无搜索关键词 → 返回全部车队（按名称排序 + 分页）
-  const offset = (pageNum - 1) * limitNum;
-  const [[{ total }]] = await pool.query('SELECT COUNT(*) AS total FROM teams');
+  const whereSql = q ? 'WHERE team_name LIKE ? OR team_name_zh LIKE ? OR uci_code LIKE ?' : '';
+  const params = q ? [`%${q}%`, `%${q}%`, `%${q}%`] : [];
+
+  const [[{ total }]] = await pool.query(
+    `SELECT COUNT(*) AS total FROM teams ${whereSql}`,
+    params
+  );
   const [rows] = await pool.query(
     `SELECT id, uci_code, team_name, team_name_zh, logo_url
      FROM teams
+     ${whereSql}
      ORDER BY team_name ASC
      LIMIT ? OFFSET ?`,
-    [limitNum, offset]
+    [...params, limitNum, offset]
   );
-  res.json({ code: 200, data: { teams: rows, total, page: pageNum, limit: limitNum } });
+
+  res.json({ code: 200, data: { teams: rows, total, page: pageNum, limit: limitNum, offset } });
+}));
+
+// GET /api/v1/search/races
+router.get('/races', asyncHandler(async (req, res) => {
+  const q = normalizeKeyword(req.query.q);
+  const { season } = req.query;
+  const { pageNum, limitNum, offset } = parsePaging(req.query);
+
+  if (q.length > 50) {
+    throw new AppError('Search keyword is too long', ERROR_CODE.BAD_REQUEST);
+  }
+
+  const where = ['1=1'];
+  const params = [];
+
+  if (q) {
+    where.push(`(
+      race_name LIKE ?
+      OR race_name_zh LIKE ?
+      OR race_name_en LIKE ?
+      OR race_code LIKE ?
+      OR country LIKE ?
+      OR CAST(season AS CHAR) LIKE ?
+    )`);
+    const like = `%${q}%`;
+    params.push(like, like, like, like, like, like);
+  }
+
+  if (season !== undefined && season !== null && String(season).trim() !== '') {
+    const seasonNum = parseInt(season);
+    if (Number.isNaN(seasonNum)) {
+      throw new AppError('Invalid season parameter', ERROR_CODE.BAD_REQUEST);
+    }
+    where.push('season = ?');
+    params.push(seasonNum);
+  }
+
+  const whereSql = `WHERE ${where.join(' AND ')}`;
+
+  const [[{ total }]] = await pool.query(
+    `SELECT COUNT(*) AS total FROM races ${whereSql}`,
+    params
+  );
+
+  const [rows] = await pool.query(
+    `
+      SELECT
+        id,
+        race_name,
+        race_name_zh,
+        race_name_en,
+        race_code,
+        category,
+        gender,
+        season,
+        country,
+        start_date,
+        end_date,
+        total_stages,
+        total_distance,
+        logo_url
+      FROM races
+      ${whereSql}
+      ORDER BY season DESC, start_date DESC, race_name ASC
+      LIMIT ? OFFSET ?
+    `,
+    [...params, limitNum, offset]
+  );
+
+  const races = rows.map(race => {
+    const label = buildRaceSearchLabel(race);
+    return {
+      ...race,
+      displayName: label.zh || label.en,
+      displaySub: label.zh && label.en ? label.en : '',
+      searchSeason: race.season,
+      searchCountry: race.country
+    };
+  });
+
+  res.json({
+    code: 200,
+    data: { races, total, page: pageNum, limit: limitNum, offset }
+  });
 }));
 
 module.exports = router;

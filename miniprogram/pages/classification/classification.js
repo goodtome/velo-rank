@@ -7,6 +7,7 @@
 const { get, formatErrorMessage } = require('../../utils/request');
 const { showError, navigateTo } = require('../../utils/util');
 const { detectRaceType, getClassificationConfig } = require('../../utils/jersey-config');
+const { stageTypeName } = require('../../utils/stage-type');
 
 Page({
   data: {
@@ -31,9 +32,9 @@ Page({
       youth: '青年车手榜'
     },
     typeSub: {
-      points: 'Points Classification',
-      mountains: 'Mountains Classification',
-      youth: 'Youth Classification'
+      points: '按冲刺积分排名',
+      mountains: '按爬坡积分排名',
+      youth: '青年车手总成绩排名'
     },
     typeIcon: {
       points: '🟣',
@@ -94,6 +95,10 @@ Page({
     return `${month}-${day}`;
   },
 
+  stageTypeName(type) {
+    return stageTypeName(type);
+  },
+
   /**
    * 加载分类数据（首页）
    */
@@ -119,6 +124,7 @@ Page({
       if (stageRes && stageRes.code === 200 && stageRes.data) {
         const stage = stageRes.data;
         stage._date_fmt = this.formatDate(stage.date);
+        stage._stage_type_zh = this.stageTypeName(stage.stage_type);
         this.setData({ stage });
       }
 
