@@ -6,6 +6,97 @@ const { adminMiddleware } = require('../middleware/auth');
 const { routeLog } = require('../middleware/requestLogger');
 const log = routeLog('admin');
 
+function formatPercentage(translated, total) {
+  const totalNum = Number(total) || 0;
+  if (totalNum <= 0) {
+    return '0.00';
+  }
+
+  const translatedNum = Number(translated) || 0;
+  return ((translatedNum / totalNum) * 100).toFixed(2);
+}
+
+function parseAdminPaging(query) {
+  const rawLimit = Number.parseInt(query.limit, 10);
+  const rawOffset = Number.parseInt(query.offset, 10);
+
+  return {
+    limit: Math.min(100, Math.max(1, Number.isNaN(rawLimit) ? 50 : rawLimit)),
+    offset: Math.max(0, Number.isNaN(rawOffset) ? 0 : rawOffset)
+  };
+}
+
+function sqlLiteral(value) {
+  if (value === undefined || value === null || value === '') {
+    return 'NULL';
+  }
+
+  return `'${String(value).replace(/'/g, "''")}'`;
+}
+
+function parsePositiveInteger(value) {
+  if (typeof value === 'number' && Number.isInteger(value) && value > 0) {
+    return value;
+  }
+
+  if (typeof value === 'string' && /^[1-9]\d*$/.test(value.trim())) {
+    return Number.parseInt(value, 10);
+  }
+
+  return null;
+}
+
+function normalizeImportStagePayload(stageInfo, results) {
+  if (!stageInfo || !results || !Array.isArray(results)) {
+    return { error: 'missing required fields: stage_info and results' };
+  }
+
+  const raceCode = typeof stageInfo.race_code === 'string' ? stageInfo.race_code.trim() : stageInfo.race_code;
+  const stageNum = parsePositiveInteger(stageInfo.stage_number);
+
+  if (!raceCode || !stageNum) {
+    return { error: 'stage_info must include race_code and a positive integer stage_number' };
+  }
+
+  if (results.length === 0) {
+    return { error: 'results must contain at least one row' };
+  }
+
+  const normalizedResults = [];
+  for (let i = 0; i < results.length; i++) {
+    const result = results[i] || {};
+    const rank = parsePositiveInteger(result.rank);
+    const riderName = typeof result.rider_name === 'string' ? result.rider_name.trim() : '';
+    const teamName = typeof result.team_name === 'string' ? result.team_name.trim() : '';
+
+    if (!rank || !riderName || !teamName) {
+      return { error: `invalid result row at index ${i}: rank, rider_name and team_name are required` };
+    }
+
+    normalizedResults.push({
+      ...result,
+      rank,
+      rider_name: riderName,
+      team_name: teamName
+    });
+  }
+
+  return {
+    raceCode,
+    stageNum,
+    results: normalizedResults
+  };
+}
+
+function normalizeRequiredStringField(body, fieldName) {
+  if (!body || typeof body[fieldName] !== 'string') {
+    return null;
+  }
+
+  const value = body[fieldName].trim();
+  return value === '' ? null : value;
+}
+
 router.use(adminMiddleware);
 
 // POST /api/v1/admin/generate-sql - 生成SQL导入脚本
@@ -21,7 +112,6 @@ router.post('/generate-sql', async (req, res) => {
     }
     
     const { race_code, stage_number, stage_name, date, distance_km, stage_type } = stage_info;
-    
     if (!race_code || !stage_number) {
       return res.status(400).json({ 
         code: 400, 
@@ -31,13 +121,30 @@ router.post('/generate-sql', async (req, res) => {
     
     // SQL生成逻辑（同generate-import-script.js）
     const lines = [];
-    const raceCode = race_code;
-    const stageNum = stage_number;
-    const stageName = stage_name ? `'${stage_name.replace(/'/g, "\\'")}'` : `'Stage ${stageNum}'`;
-    const stageDate = date ? `'${date}'` : `'2026-01-01'`;
-    const distanceKm = distance_km || 0;
-    const stageType = stage_type ? `'${stage_type.replace(/'/g, "\\'")}'` : `'Unknown'`;
-    const stageCode = `'${raceCode}-s${stageNum}'`;
+    const raceCode = typeof race_code === 'string' ? race_code.trim() : race_code;
+    const stageNum = parsePositiveInteger(stage_number);
+    if (!stageNum) {
+      return res.status(400).json({
+        code: 400,
+        message: 'stage_number 必须是正整数'
+      });
+    }
+
+    const normalizedPayload = normalizeImportStagePayload(stage_info, results);
+    if (normalizedPayload.error) {
+      return res.status(400).json({
+        code: 400,
+        message: normalizedPayload.error
+      });
+    }
+    const sqlResults = normalizedPayload.results;
+
+    const stageName = sqlLiteral(stage_name || `Stage ${stageNum}`);
+    const stageDate = sqlLiteral(date || '2026-01-01');
+    const distanceKm = Number.isFinite(Number(distance_km)) ? Number(distance_km) : 0;
+    const stageType = sqlLiteral(stage_type || 'Unknown');
+    const raceCodeSql = sqlLiteral(raceCode);
+    const stageCode = sqlLiteral(`${raceCode}-s${stageNum}`);
     
     // 头部注释
     lines.push(`-- ============================================
@@ -66,11 +173,11 @@ SELECT
   UUID() AS id,
   'Giro d''Italia' AS race_name,
   'Giro d''Italia' AS race_name_en,
-  '${raceCode}' AS race_code,
+  ${raceCodeSql} AS race_code,
   'GRAND_TOUR' AS category,
   'MEN' AS gender,
   2026 AS season
-WHERE NOT EXISTS (SELECT 1 FROM races WHERE race_code = '${raceCode}');
+WHERE NOT EXISTS (SELECT 1 FROM races WHERE race_code = ${raceCodeSql});
 
 -- ============================================
 -- 2. 处理赛段信息
@@ -86,7 +193,7 @@ SELECT
   ${stageType} AS stage_type,
   ${stageCode} AS stage_code
 FROM races r
-WHERE r.race_code = '${raceCode}'
+WHERE r.race_code = ${raceCodeSql}
   AND NOT EXISTS (
     SELECT 1 FROM stages s 
     WHERE s.race_id = r.id AND s.stage_number = ${stageNum}
@@ -98,21 +205,30 @@ WHERE r.race_code = '${raceCode}'
 `);
     
     // 车手数据
-    const uniqueRiders = [...new Set(results.map(r => r.rider_name))];
+    const uniqueRiders = [...new Set(sqlResults.map(r => r.rider_name))];
     lines.push(`-- 车手数据 (${uniqueRiders.length} 条)`);
     uniqueRiders.forEach(name => {
-      const safeName = name.replace(/'/g, "\\'");
-      lines.push(`INSERT IGNORE INTO riders (rider_name, nationality) VALUES ('${safeName}', 'UNK');`);
+      const safeName = sqlLiteral(name);
+      lines.push(`INSERT INTO riders (id, rider_name, nationality)
+SELECT UUID(), ${safeName}, 'UNK'
+WHERE NOT EXISTS (SELECT 1 FROM riders WHERE rider_name = ${safeName});`);
     });
     
     // 车队数据
     lines.push(`
 -- 车队数据`);
-    const uniqueTeams = [...new Set(results.map(r => r.team_name))];
+    const uniqueTeams = [...new Set(sqlResults.map(r => r.team_name))];
     uniqueTeams.forEach(name => {
-      const safeName = name.replace(/'/g, "\\'");
-      lines.push(`INSERT IGNORE INTO teams (team_name) VALUES ('${safeName}');`);
+      const safeName = sqlLiteral(name);
+      lines.push(`INSERT INTO teams (id, team_name)
+SELECT UUID(), ${safeName}
+WHERE NOT EXISTS (SELECT 1 FROM teams WHERE team_name = ${safeName});`);
     });
+
+    const resultRowsSql = sqlResults.map(r => {
+      const rank = r.rank;
+      return `  SELECT ${rank} AS \`rank\`, ${sqlLiteral(r.rider_name)} AS rider_name, ${sqlLiteral(r.team_name)} AS team_name, ${sqlLiteral(r.time_gap)} AS time_gap`;
+    }).join('\n  UNION ALL\n');
     
     // 成绩数据
     lines.push(`
@@ -129,11 +245,9 @@ SELECT
   tr.time_gap,
   'UNK' AS nationality
 FROM (
-  SELECT * FROM (VALUES
-${results.map(r => `    (${r.rank}, '${r.rider_name.replace(/'/g, "\\'")}', '${r.team_name.replace(/'/g, "\\'")}', '${r.time_gap.replace(/'/g, "\\'")}')`).join(',\n')}
-  ) AS tr(\`rank\`, rider_name, team_name, time_gap)
+${resultRowsSql}
 ) tr
-JOIN stages s ON s.race_id = (SELECT id FROM races WHERE race_code = '${raceCode}') AND s.stage_number = ${stageNum}
+JOIN stages s ON s.race_id = (SELECT id FROM races WHERE race_code = ${raceCodeSql}) AND s.stage_number = ${stageNum}
 JOIN riders r ON r.rider_name = tr.rider_name
 JOIN teams t ON t.team_name = tr.team_name
 ON DUPLICATE KEY UPDATE
@@ -154,13 +268,13 @@ INSERT INTO jerseys (id, stage_id, jersey_type, rider_id, team_id)
 SELECT 
   UUID(),
   s.id,
-  '${j.jersey_type}',
+  ${sqlLiteral(j.jersey_type)},
   r.id,
   t.id
 FROM stages s
-JOIN riders r ON r.rider_name = '${j.rider_name.replace(/'/g, "\\'")}'
-JOIN teams t ON t.team_name = '${j.team_name.replace(/'/g, "\\'")}'
-WHERE s.race_id = (SELECT id FROM races WHERE race_code = '${raceCode}')
+JOIN riders r ON r.rider_name = ${sqlLiteral(j.rider_name)}
+JOIN teams t ON t.team_name = ${sqlLiteral(j.team_name)}
+WHERE s.race_id = (SELECT id FROM races WHERE race_code = ${raceCodeSql})
   AND s.stage_number = ${stageNum}
 ON DUPLICATE KEY UPDATE rider_id = VALUES(rider_id), team_id = VALUES(team_id);`);
       });
@@ -174,7 +288,13 @@ ON DUPLICATE KEY UPDATE rider_id = VALUES(rider_id), team_id = VALUES(team_id);`
 SET FOREIGN_KEY_CHECKS = 1;
 
 SELECT 
-  CONCAT('✅ Stage ${stageNum} 导入完成: ', (SELECT COUNT(*) FROM stage_results WHERE stage_id = (SELECT id FROM stages WHERE race_code = '${raceCode}' AND stage_number = ${stageNum})), ' 条成绩') AS status;`);
+  CONCAT('✅ Stage ${stageNum} 导入完成: ', (
+    SELECT COUNT(*)
+    FROM stage_results sr
+    JOIN stages s ON sr.stage_id = s.id
+    JOIN races r ON s.race_id = r.id
+    WHERE r.race_code = ${raceCodeSql} AND s.stage_number = ${stageNum}
+  ), ' 条成绩') AS status;`);
     
     const sqlScript = lines.join('\n');
     
@@ -183,7 +303,7 @@ SELECT
       data: { 
         sql: sqlScript,
         stage: `${raceCode} - Stage ${stageNum}`,
-        results_count: results.length,
+        results_count: sqlResults.length,
         jerseys_count: jerseys?.length || 0
       } 
     });
@@ -198,6 +318,16 @@ SELECT
 router.post('/import-stage', async (req, res) => {
   try {
     const { stage_info, results, jerseys } = req.body;
+    const normalized = normalizeImportStagePayload(stage_info, results);
+    if (normalized.error) {
+      return res.status(400).json({
+        code: 400,
+        message: normalized.error
+      });
+    }
+    const raceCode = normalized.raceCode;
+    const stageNum = normalized.stageNum;
+    const normalizedResults = normalized.results;
     
     if (!stage_info || !results || !Array.isArray(results)) {
       return res.status(400).json({ 
@@ -208,10 +338,10 @@ router.post('/import-stage', async (req, res) => {
     
     const { race_code, stage_number, stage_name, date, distance_km, stage_type } = stage_info;
     
-    log.info('开始导入', { race_code, stage_number });
+    log.info('开始导入', { race_code: raceCode, stage_number: stageNum });
     
     // 1. 获取或创建赛事
-    const [races] = await pool.query('SELECT * FROM races WHERE race_code = ?', [race_code]);
+    const [races] = await pool.query('SELECT * FROM races WHERE race_code = ?', [raceCode]);
     let raceId;
     if (races.length > 0) {
       raceId = races[0].id;
@@ -221,14 +351,14 @@ router.post('/import-stage', async (req, res) => {
       await pool.query(`
         INSERT INTO races (id, race_name, race_name_en, race_code, category, gender, season)
         VALUES (?, ?, ?, ?, ?, ?, ?)
-      `, [raceId, "Giro d'Italia", "Giro d'Italia", race_code, 'GRAND_TOUR', 'MEN', 2026]);
+      `, [raceId, "Giro d'Italia", "Giro d'Italia", raceCode, 'GRAND_TOUR', 'MEN', 2026]);
       log.info('创建赛事', { raceId });
     }
     
     // 2. 获取或创建赛段
     const [stages] = await pool.query(
       'SELECT * FROM stages WHERE race_id = ? AND stage_number = ?',
-      [raceId, stage_number]
+      [raceId, stageNum]
     );
     let stageId;
     if (stages.length > 0) {
@@ -239,7 +369,7 @@ router.post('/import-stage', async (req, res) => {
       await pool.query(`
         INSERT INTO stages (id, race_id, stage_number, stage_name, date, distance_km, stage_type, stage_code)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-      `, [stageId, raceId, stage_number, stage_name || `Stage ${stage_number}`, date || '2026-01-01', distance_km || 0, stage_type || 'Unknown', `${race_code}-s${stage_number}`]);
+      `, [stageId, raceId, stageNum, stage_name || `Stage ${stageNum}`, date || '2026-01-01', distance_km || 0, stage_type || 'Unknown', `${raceCode}-s${stageNum}`]);
       log.info('创建赛段', { stageId });
     }
     
@@ -247,7 +377,7 @@ router.post('/import-stage', async (req, res) => {
     let imported = 0;
     let skipped = 0;
     
-    for (const result of results) {
+    for (const result of normalizedResults) {
       try {
         // 获取或创建车手
         const [riders] = await pool.query('SELECT * FROM riders WHERE rider_name = ?', [result.rider_name]);
@@ -289,6 +419,19 @@ router.post('/import-stage', async (req, res) => {
     log.info('成绩导入完成', { imported, skipped });
     
     // 4. 导入领骑衫
+    if (normalizedResults.length > 0 && imported === 0) {
+      return res.status(500).json({
+        code: 500,
+        message: 'import failed: no result rows were imported',
+        data: {
+          race_code: raceCode,
+          stage_number: stageNum,
+          results_imported: imported,
+          results_skipped: skipped
+        }
+      });
+    }
+
     let jerseyImported = 0;
     if (jerseys && jerseys.length > 0) {
       for (const jersey of jerseys) {
@@ -328,8 +471,8 @@ router.post('/import-stage', async (req, res) => {
       code: 200, 
       message,
       data: {
-        race_code,
-        stage_number,
+        race_code: raceCode,
+        stage_number: stageNum,
         results_imported: imported,
         results_skipped: skipped,
         jerseys_imported: jerseyImported,
@@ -350,7 +493,8 @@ router.post('/import-stage', async (req, res) => {
 // GET /api/v1/admin/riders-without-zh - 获取没有中文名的车手列表
 router.get('/riders-without-zh', async (req, res) => {
   try {
-    const { limit = 50, offset = 0, search = '' } = req.query;
+    const { search = '' } = req.query;
+    const { limit, offset } = parseAdminPaging(req.query);
     
     let query = 'SELECT id, rider_name, rider_name_zh FROM riders WHERE rider_name_zh IS NULL OR rider_name_zh = ""';
     let params = [];
@@ -361,7 +505,7 @@ router.get('/riders-without-zh', async (req, res) => {
     }
     
     query += ' ORDER BY rider_name LIMIT ? OFFSET ?';
-    params.push(parseInt(limit), parseInt(offset));
+    params.push(limit, offset);
     
     const [riders] = await pool.query(query, params);
     
@@ -379,8 +523,8 @@ router.get('/riders-without-zh', async (req, res) => {
       data: {
         riders,
         total: countResult[0].total,
-        limit: parseInt(limit),
-        offset: parseInt(offset)
+        limit,
+        offset
       }
     });
   } catch (err) {
@@ -393,15 +537,15 @@ router.get('/riders-without-zh', async (req, res) => {
 router.put('/rider/:id/chinese-name', async (req, res) => {
   try {
     const { id } = req.params;
-    const { rider_name_zh } = req.body;
+    const riderNameZh = normalizeRequiredStringField(req.body, 'rider_name_zh');
     
-    if (!rider_name_zh || rider_name_zh.trim() === '') {
+    if (!riderNameZh) {
       return res.status(400).json({ code: 400, message: 'rider_name_zh 不能为空' });
     }
     
     const [result] = await pool.query(
       'UPDATE riders SET rider_name_zh = ?, updated_at = NOW() WHERE id = ?',
-      [rider_name_zh.trim(), id]
+      [riderNameZh, id]
     );
     
     if (result.affectedRows === 0) {
@@ -418,7 +562,8 @@ router.put('/rider/:id/chinese-name', async (req, res) => {
 // GET /api/v1/admin/teams-without-zh - 获取没有中文名的车队列表
 router.get('/teams-without-zh', async (req, res) => {
   try {
-    const { limit = 50, offset = 0, search = '' } = req.query;
+    const { search = '' } = req.query;
+    const { limit, offset } = parseAdminPaging(req.query);
     
     let query = 'SELECT id, team_name, team_name_zh FROM teams WHERE team_name_zh IS NULL OR team_name_zh = ""';
     let params = [];
@@ -429,7 +574,7 @@ router.get('/teams-without-zh', async (req, res) => {
     }
     
     query += ' ORDER BY team_name LIMIT ? OFFSET ?';
-    params.push(parseInt(limit), parseInt(offset));
+    params.push(limit, offset);
     
     const [teams] = await pool.query(query, params);
     
@@ -447,8 +592,8 @@ router.get('/teams-without-zh', async (req, res) => {
       data: {
         teams,
         total: countResult[0].total,
-        limit: parseInt(limit),
-        offset: parseInt(offset)
+        limit,
+        offset
       }
     });
   } catch (err) {
@@ -461,15 +606,15 @@ router.get('/teams-without-zh', async (req, res) => {
 router.put('/team/:id/chinese-name', async (req, res) => {
   try {
     const { id } = req.params;
-    const { team_name_zh } = req.body;
+    const teamNameZh = normalizeRequiredStringField(req.body, 'team_name_zh');
     
-    if (!team_name_zh || team_name_zh.trim() === '') {
+    if (!teamNameZh) {
       return res.status(400).json({ code: 400, message: 'team_name_zh 不能为空' });
     }
     
     const [result] = await pool.query(
       'UPDATE teams SET team_name_zh = ? WHERE id = ?',
-      [team_name_zh.trim(), id]
+      [teamNameZh, id]
     );
     
     if (result.affectedRows === 0) {
@@ -487,15 +632,15 @@ router.put('/team/:id/chinese-name', async (req, res) => {
 router.put('/race/:id/chinese-name', async (req, res) => {
   try {
     const { id } = req.params;
-    const { race_name_zh } = req.body;
+    const raceNameZh = normalizeRequiredStringField(req.body, 'race_name_zh');
     
-    if (!race_name_zh || race_name_zh.trim() === '') {
+    if (!raceNameZh) {
       return res.status(400).json({ code: 400, message: 'race_name_zh 不能为空' });
     }
     
     const [result] = await pool.query(
       'UPDATE races SET race_name_zh = ?, updated_at = NOW() WHERE id = ?',
-      [race_name_zh.trim(), id]
+      [raceNameZh, id]
     );
     
     if (result.affectedRows === 0) {
@@ -513,15 +658,15 @@ router.put('/race/:id/chinese-name', async (req, res) => {
 router.put('/stage/:id/chinese-name', async (req, res) => {
   try {
     const { id } = req.params;
-    const { stage_name_zh } = req.body;
+    const stageNameZh = normalizeRequiredStringField(req.body, 'stage_name_zh');
     
-    if (!stage_name_zh || stage_name_zh.trim() === '') {
+    if (!stageNameZh) {
       return res.status(400).json({ code: 400, message: 'stage_name_zh 不能为空' });
     }
     
     const [result] = await pool.query(
       'UPDATE stages SET stage_name_zh = ?, updated_at = NOW() WHERE id = ?',
-      [stage_name_zh.trim(), id]
+      [stageNameZh, id]
     );
     
     if (result.affectedRows === 0) {
@@ -548,7 +693,7 @@ router.get('/translation-stats', async (req, res) => {
       FROM teams
     `);
     stats.teams = teamStats[0];
-    stats.teams.percentage = ((stats.teams.translated / stats.teams.total) * 100).toFixed(2);
+    stats.teams.percentage = formatPercentage(stats.teams.translated, stats.teams.total);
     
     // 车手翻译统计
     const [riderStats] = await pool.query(`
@@ -558,7 +703,7 @@ router.get('/translation-stats', async (req, res) => {
       FROM riders
     `);
     stats.riders = riderStats[0];
-    stats.riders.percentage = ((stats.riders.translated / stats.riders.total) * 100).toFixed(2);
+    stats.riders.percentage = formatPercentage(stats.riders.translated, stats.riders.total);
     
     // 比赛翻译统计
     const [raceStats] = await pool.query(`
@@ -568,7 +713,7 @@ router.get('/translation-stats', async (req, res) => {
       FROM races
     `);
     stats.races = raceStats[0];
-    stats.races.percentage = ((stats.races.translated / stats.races.total) * 100).toFixed(2);
+    stats.races.percentage = formatPercentage(stats.races.translated, stats.races.total);
     
     // 赛段翻译统计
     const [stageStats] = await pool.query(`
@@ -578,7 +723,7 @@ router.get('/translation-stats', async (req, res) => {
       FROM stages
     `);
     stats.stages = stageStats[0];
-    stats.stages.percentage = ((stats.stages.translated / stats.stages.total) * 100).toFixed(2);
+    stats.stages.percentage = formatPercentage(stats.stages.translated, stats.stages.total);
     
     res.json({ code: 200, data: stats });
   } catch (err) {

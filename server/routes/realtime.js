@@ -1,16 +1,22 @@
 /**
- * 实时成绩API路由
- * 提供GC排名、赛段成绩、冲刺/爬坡积分、青年排名的实时数据
- * 支持WebSocket推送和HTTP轮询两种模式
+ * 实时成绩 API 路由
+ * 提供 GC 排名、赛段成绩、冲刺积分、爬坡积分、青年排名的实时数据
  */
 
 const express = require('express');
 const router = express.Router();
 const pool = require('../config/db-pool');
 const { routeLog } = require('../middleware/requestLogger');
+
 const log = routeLog('realtime');
-// 暂时禁用认证，先让服务器启动
-// const { authenticate } = require('./auth');
+
+function isBlank(value) {
+  return value === undefined || value === null || String(value).trim() === '';
+}
+
+function parseRankValue(row, fallbackIndex) {
+  return Number.isFinite(Number(row.rank)) ? Number(row.rank) : fallbackIndex + 1;
+}
 
 /**
  * GET /api/v1/realtime/gc
@@ -19,47 +25,45 @@ const log = routeLog('realtime');
 router.get('/gc', async (req, res) => {
   try {
     const { raceId, stageId } = req.query;
-    
-    if (!raceId || !stageId) {
+
+    if (isBlank(raceId) || isBlank(stageId)) {
       return res.status(400).json({
         success: false,
         error: '缺少必要参数: raceId, stageId'
       });
     }
-    
-    // 查询GC排名
+
     const [rows] = await pool.query(`
-      SELECT 
-        r.id as riderId,
-        r.rider_name as riderName,
-        t.team_name as teamName,
+      SELECT
+        r.id AS riderId,
+        r.rider_name AS riderName,
+        t.team_name AS teamName,
         gc.rank,
         gc.total_time,
-        gc.time_gap as timeGap,
-        gc.is_leader as isLeader
+        gc.time_gap AS timeGap
       FROM general_classification gc
+      JOIN stages s ON gc.stage_id = s.id
       JOIN riders r ON gc.rider_id = r.id
-      JOIN teams t ON r.team_id = t.id
-      WHERE gc.race_id = ? AND gc.stage_id = ?
-      ORDER BY gc.rank ASC
+      JOIN teams t ON gc.team_id = t.id
+      WHERE gc.stage_id = ? AND s.race_id = ?
+      ORDER BY gc.\`rank\` ASC
       LIMIT 50
-    `, [raceId, stageId]);
-    
-    // 格式化数据
-    const gcRankings = rows.map(row => ({
+    `, [stageId, raceId]);
+
+    const gcRankings = rows.map((row, index) => ({
       riderId: row.riderId,
-      rank: row.rank,
+      rank: parseRankValue(row, index),
       riderName: row.riderName,
       teamName: row.teamName,
       timeGap: row.timeGap || '-',
-      isLeader: row.isLeader === 1
+      isLeader: Number(row.rank) === 1 || index === 0
     }));
-    
+
     res.json({
       success: true,
       data: {
-        raceId: parseInt(raceId),
-        stageId: parseInt(stageId),
+        raceId,
+        stageId,
         lastUpdate: new Date().toISOString(),
         rankings: gcRankings
       }
@@ -80,35 +84,35 @@ router.get('/gc', async (req, res) => {
 router.get('/stage', async (req, res) => {
   try {
     const { raceId, stageId } = req.query;
-    
-    if (!raceId || !stageId) {
+
+    if (isBlank(raceId) || isBlank(stageId)) {
       return res.status(400).json({
         success: false,
         error: '缺少必要参数: raceId, stageId'
       });
     }
-    
-    // 查询赛段成绩
+
     const [rows] = await pool.query(`
-      SELECT 
-        sr.rank,
-        r.id as riderId,
-        r.rider_name as riderName,
-        t.name as teamName,
-        sr.time
+      SELECT
+        sr.\`rank\`,
+        r.id AS riderId,
+        r.rider_name AS riderName,
+        t.team_name AS teamName,
+        sr.time_gap AS timeGap
       FROM stage_results sr
+      JOIN stages s ON sr.stage_id = s.id
       JOIN riders r ON sr.rider_id = r.id
-      JOIN teams t ON r.team_id = t.id
-      WHERE sr.race_id = ? AND sr.stage_id = ?
-      ORDER BY sr.rank_pos ASC
+      JOIN teams t ON sr.team_id = t.id
+      WHERE sr.stage_id = ? AND s.race_id = ?
+      ORDER BY sr.\`rank\` ASC
       LIMIT 50
-    `, [raceId, stageId]);
-    
+    `, [stageId, raceId]);
+
     res.json({
       success: true,
       data: {
-        raceId: parseInt(raceId),
-        stageId: parseInt(stageId),
+        raceId,
+        stageId,
         lastUpdate: new Date().toISOString(),
         results: rows
       }
@@ -129,37 +133,45 @@ router.get('/stage', async (req, res) => {
 router.get('/points', async (req, res) => {
   try {
     const { raceId, stageId } = req.query;
-    
-    // 查询冲刺积分排名（从jerseys表获取积分数据）
+
+    if (isBlank(raceId) || isBlank(stageId)) {
+      return res.status(400).json({
+        success: false,
+        error: '缺少必要参数: raceId, stageId'
+      });
+    }
+
     const [rows] = await pool.query(`
-      SELECT 
-        r.id as riderId,
-        r.rider_name as riderName,
-        t.name as teamName,
-        SUM(j.points) as points
-      FROM jerseys j
-      JOIN riders r ON j.rider_id = r.id
-      JOIN teams t ON r.team_id = t.id
-      WHERE j.race_id = ? AND j.type = 'PURPLE'
-      GROUP BY j.rider_id
-      ORDER BY points DESC
+      SELECT
+        r.id AS riderId,
+        r.rider_name AS riderName,
+        t.team_name AS teamName,
+        pc.points,
+        pc.\`rank\`
+      FROM points_classification pc
+      JOIN stages s ON pc.stage_id = s.id
+      JOIN riders r ON pc.rider_id = r.id
+      LEFT JOIN general_classification gc ON pc.stage_id = gc.stage_id AND pc.rider_id = gc.rider_id
+      LEFT JOIN teams t ON gc.team_id = t.id
+      WHERE pc.stage_id = ? AND s.race_id = ?
+      ORDER BY pc.points DESC, pc.\`rank\` ASC
       LIMIT 20
-    `, [raceId]);
-    
+    `, [stageId, raceId]);
+
     const pointsRankings = rows.map((row, index) => ({
-      rank: index + 1,
+      rank: parseRankValue(row, index),
       riderId: row.riderId,
       riderName: row.riderName,
       teamName: row.teamName,
-      points: row.points || 0,
-      isLeader: index === 0
+      points: Number(row.points) || 0,
+      isLeader: Number(row.rank) === 1 || index === 0
     }));
-    
+
     res.json({
       success: true,
       data: {
-        raceId: parseInt(raceId),
-        stageId: parseInt(stageId),
+        raceId,
+        stageId,
         lastUpdate: new Date().toISOString(),
         rankings: pointsRankings
       }
@@ -179,37 +191,46 @@ router.get('/points', async (req, res) => {
  */
 router.get('/mountains', async (req, res) => {
   try {
-    const { raceId } = req.query;
-    
-    // 查询爬坡积分排名（从jerseys表获取蓝衫数据）
+    const { raceId, stageId } = req.query;
+
+    if (isBlank(raceId) || isBlank(stageId)) {
+      return res.status(400).json({
+        success: false,
+        error: '缺少必要参数: raceId, stageId'
+      });
+    }
+
     const [rows] = await pool.query(`
-      SELECT 
-        r.id as riderId,
-        r.rider_name as riderName,
-        t.name as teamName,
-        SUM(j.points) as points
-      FROM jerseys j
-      JOIN riders r ON j.rider_id = r.id
-      JOIN teams t ON r.team_id = t.id
-      WHERE j.race_id = ? AND j.type = 'BLUE_SPRINT'
-      GROUP BY j.rider_id
-      ORDER BY points DESC
+      SELECT
+        r.id AS riderId,
+        r.rider_name AS riderName,
+        t.team_name AS teamName,
+        mc.points,
+        mc.\`rank\`
+      FROM mountains_classification mc
+      JOIN stages s ON mc.stage_id = s.id
+      JOIN riders r ON mc.rider_id = r.id
+      LEFT JOIN general_classification gc ON mc.stage_id = gc.stage_id AND mc.rider_id = gc.rider_id
+      LEFT JOIN teams t ON gc.team_id = t.id
+      WHERE mc.stage_id = ? AND s.race_id = ?
+      ORDER BY mc.points DESC, mc.\`rank\` ASC
       LIMIT 20
-    `, [raceId]);
-    
+    `, [stageId, raceId]);
+
     const mountainsRankings = rows.map((row, index) => ({
-      rank: index + 1,
+      rank: parseRankValue(row, index),
       riderId: row.riderId,
       riderName: row.riderName,
       teamName: row.teamName,
-      points: row.points || 0,
-      isLeader: index === 0
+      points: Number(row.points) || 0,
+      isLeader: Number(row.rank) === 1 || index === 0
     }));
-    
+
     res.json({
       success: true,
       data: {
-        raceId: parseInt(raceId),
+        raceId,
+        stageId,
         lastUpdate: new Date().toISOString(),
         rankings: mountainsRankings
       }
@@ -230,39 +251,47 @@ router.get('/mountains', async (req, res) => {
 router.get('/youth', async (req, res) => {
   try {
     const { raceId, stageId } = req.query;
-    
-    // 查询青年排名（25岁以下车手的GC排名）
+
+    if (isBlank(raceId) || isBlank(stageId)) {
+      return res.status(400).json({
+        success: false,
+        error: '缺少必要参数: raceId, stageId'
+      });
+    }
+
     const [rows] = await pool.query(`
-      SELECT 
-        r.id as riderId,
-        r.rider_name as riderName,
-        t.name as teamName,
-        r.age,
-        gc.rank,
-        gc.time_gap as timeGap
-      FROM general_classification gc
-      JOIN riders r ON gc.rider_id = r.id
-      JOIN teams t ON r.team_id = t.id
-      WHERE gc.race_id = ? AND gc.stage_id = ? AND r.age <= 25
-      ORDER BY gc.rank ASC
+      SELECT
+        r.id AS riderId,
+        r.rider_name AS riderName,
+        t.team_name AS teamName,
+        TIMESTAMPDIFF(YEAR, r.birth_date, CURDATE()) AS age,
+        yc.\`rank\`,
+        yc.time_gap AS timeGap
+      FROM youth_classification yc
+      JOIN stages s ON yc.stage_id = s.id
+      JOIN riders r ON yc.rider_id = r.id
+      LEFT JOIN general_classification gc ON yc.stage_id = gc.stage_id AND yc.rider_id = gc.rider_id
+      LEFT JOIN teams t ON gc.team_id = t.id
+      WHERE yc.stage_id = ? AND s.race_id = ?
+      ORDER BY yc.\`rank\` ASC
       LIMIT 20
-    `, [raceId, stageId]);
-    
-    const youthRankings = rows.map(row => ({
-      rank: row.rank,
+    `, [stageId, raceId]);
+
+    const youthRankings = rows.map((row, index) => ({
+      rank: parseRankValue(row, index),
       riderId: row.riderId,
       riderName: row.riderName,
       teamName: row.teamName,
       age: row.age,
       timeGap: row.timeGap || '-',
-      isLeader: row.rank === 1
+      isLeader: Number(row.rank) === 1 || index === 0
     }));
-    
+
     res.json({
       success: true,
       data: {
-        raceId: parseInt(raceId),
-        stageId: parseInt(stageId),
+        raceId,
+        stageId,
         lastUpdate: new Date().toISOString(),
         rankings: youthRankings
       }
@@ -278,26 +307,30 @@ router.get('/youth', async (req, res) => {
 
 /**
  * GET /api/v1/realtime/race-status
- * 获取赛事实时状态（已用时间、剩余距离、领先者等）
+ * 获取赛事实时状态
  */
 router.get('/race-status', async (req, res) => {
   try {
     const { raceId, stageId } = req.query;
-    
-    // 模拟数据（实际应该从实时数据源获取）
-    const raceStatus = {
-      raceId: parseInt(raceId),
-      stageId: parseInt(stageId),
-      status: 'live', // live, finished, upcoming
-      elapsedTime: '3:45:20',
-      remainingDistance: 45.2,
-      leaderName: 'Giulio CICCONE',
-      lastUpdate: new Date().toISOString()
-    };
-    
+
+    if (isBlank(raceId) || isBlank(stageId)) {
+      return res.status(400).json({
+        success: false,
+        error: '缺少必要参数: raceId, stageId'
+      });
+    }
+
     res.json({
       success: true,
-      data: raceStatus
+      data: {
+        raceId,
+        stageId,
+        status: 'live',
+        elapsedTime: '3:45:20',
+        remainingDistance: 45.2,
+        leaderName: 'Giulio CICCONE',
+        lastUpdate: new Date().toISOString()
+      }
     });
   } catch (error) {
     log.error('获取赛事状态失败', { error: error.message });

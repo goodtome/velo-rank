@@ -58,6 +58,7 @@ function errorHandler(err, req, res, next) {
   let statusCode = err.statusCode || 500;
   let message = err.message || '服务器内部错误';
   let details = err.details || null;
+  const isProd = process.env.NODE_ENV === 'production';
 
   // MySQL错误处理
   if (err.code === 'ER_DUP_ENTRY') {
@@ -92,6 +93,11 @@ function errorHandler(err, req, res, next) {
     statusCode = 400;
     message = '请求参数验证失败';
     details = err.array();
+  }
+
+  if (isProd && statusCode >= 500 && !err.isOperational) {
+    message = '服务器内部错误';
+    details = null;
   }
 
   // 发送错误响应

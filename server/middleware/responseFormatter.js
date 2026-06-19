@@ -26,6 +26,10 @@ function responseFormatter(req, res, next) {
       return originalJson(data);
     }
 
+    if (data && typeof data === 'object' && typeof data.success === 'boolean') {
+      return originalJson(data);
+    }
+
     // 如果有code字段但没有message字段，添加message
     if (data && typeof data === 'object' && 'code' in data && !('message' in data)) {
       data.message = 'success';

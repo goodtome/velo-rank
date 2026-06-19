@@ -23,7 +23,14 @@ const { authMiddleware } = require('../middleware/auth');
 router.post('/send', asyncHandler(async (req, res) => {
   const { adminKey, type, raceId, stageId, title, content } = req.body;
   
-  if (adminKey !== process.env.ADMIN_KEY && adminKey !== 'velo-rank-admin-2026') {
+  const configuredAdminKey = process.env.ADMIN_API_KEY || process.env.ADMIN_KEY;
+  const providedAdminKey = adminKey || req.headers['x-admin-key'];
+
+  if (!configuredAdminKey) {
+    throw new AppError('管理密钥未配置', 503);
+  }
+
+  if (providedAdminKey !== configuredAdminKey) {
     throw new AppError('管理员验证失败', ERROR_CODE.FORBIDDEN);
   }
   
@@ -38,7 +45,7 @@ router.post('/send', asyncHandler(async (req, res) => {
   if (users.length === 0) {
     return res.json({
       code: 200,
-      data: { totalUsers: 0, sentCount: 0, skippedCount: 0 }
+      data: { totalUsers: 0, sentCount: 0, failedCount: 0, skippedCount: 0 }
     });
   }
   
@@ -60,17 +67,20 @@ router.post('/send', asyncHandler(async (req, res) => {
     }
   });
   
-  let sentCount = 0;
-  let failedCount = 0;
-  
   const { sendSubscribeMessage } = require('../utils/wechat');
   const templateId = getTemplateIdByType(type);
-  
+
+  const deliveryResults = validUsers.map(user => ({
+    user,
+    status: templateId ? 'pending' : 'skipped',
+    errorMsg: null
+  }));
+
   if (templateId) {
-    for (const user of validUsers) {
+    for (const result of deliveryResults) {
       try {
         await sendSubscribeMessage({
-          touser: user.openid,
+          touser: result.user.openid,
           templateId,
           data: {
             thing1: { value: title || '赛事通知' },
@@ -79,25 +89,27 @@ router.post('/send', asyncHandler(async (req, res) => {
           },
           page: raceId ? `/pages/race-detail/race-detail?id=${raceId}` : 'pages/index/index'
         });
-        sentCount++;
+        result.status = 'sent';
       } catch (err) {
-        console.error(`推送失败: ${user.openid}`, err.message);
-        failedCount++;
+        console.error(`推送失败: ${result.user.openid}`, err.message);
+        result.status = 'failed';
+        result.errorMsg = err.message;
       }
     }
-  } else {
-    sentCount = validUsers.length;
   }
-  
-  for (const user of validUsers) {
+
+  const sentCount = deliveryResults.filter(result => result.status === 'sent').length;
+  const failedCount = deliveryResults.filter(result => result.status === 'failed').length;
+
+  for (const result of deliveryResults) {
     await pool.query(`
       INSERT INTO push_history 
-        (openid, title, content, type, race_id, stage_id, send_time, status)
-      VALUES (?, ?, ?, ?, ?, ?, NOW(), ?)
+        (openid, title, content, type, race_id, stage_id, send_time, status, error_msg)
+      VALUES (?, ?, ?, ?, ?, ?, NOW(), ?, ?)
     `, [
-      user.openid, title || '赛事通知', content || '',
+      result.user.openid, title || '赛事通知', content || '',
       type || 'general', raceId || null, stageId || null,
-      sentCount > 0 ? 'sent' : 'failed'
+      result.status, result.errorMsg
     ]);
   }
   

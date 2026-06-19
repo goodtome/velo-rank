@@ -92,17 +92,17 @@ router.get('/:id/stats', asyncHandler(async (req, res) => {
 
   const [podStats] = await pool.query(`
     SELECT COUNT(*) as podiums FROM stage_results 
-    WHERE rider_id = ? AND rank_pos <= 3
+    WHERE rider_id = ? AND \`rank\` <= 3
   `, [id]);
 
   const [winStats] = await pool.query(`
     SELECT COUNT(*) as wins FROM stage_results 
-    WHERE rider_id = ? AND rank_pos = 1
+    WHERE rider_id = ? AND \`rank\` = 1
   `, [id]);
 
   const [top10Stats] = await pool.query(`
     SELECT COUNT(*) as top10 FROM stage_results 
-    WHERE rider_id = ? AND rank_pos <= 10
+    WHERE rider_id = ? AND \`rank\` <= 10
   `, [id]);
 
   const [stageTypeStats] = await pool.query(`
@@ -115,7 +115,7 @@ router.get('/:id/stats', asyncHandler(async (req, res) => {
   `, [id]);
 
   const [latestResult] = await pool.query(`
-    SELECT sr.rank_pos, s.stage_name, s.date, r.race_name, r.race_name_zh
+    SELECT sr.\`rank\`, s.stage_name, s.date, r.race_name, r.race_name_zh
     FROM stage_results sr
     JOIN stages s ON sr.stage_id = s.id
     JOIN races r ON s.race_id = r.id
@@ -165,7 +165,7 @@ router.get('/:id/results', asyncHandler(async (req, res) => {
   }
 
   const [rows] = await pool.query(`
-    SELECT sr.rank_pos AS stage_rank, sr.time_gap,
+    SELECT sr.\`rank\` AS stage_rank, sr.time_gap,
            s.stage_number, s.stage_name, s.date, s.stage_type,
            r.race_name, r.race_name_zh, r.race_code,
            t.team_name, t.team_name_zh, t.uci_code

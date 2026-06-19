@@ -124,14 +124,14 @@ router.get('/:id/results', asyncHandler(async (req, res) => {
   const total = countResult[0].total;
     
   const sql = `
-    SELECT sr.*, sr.rank_pos AS \`rank\`,
+    SELECT sr.*,
            r.rider_name, r.rider_name_zh, r.nationality, r.photo_url,
            t.team_name, t.team_name_zh, t.uci_code
     FROM stage_results sr
     JOIN riders r ON sr.rider_id = r.id
     JOIN teams t ON sr.team_id = t.id
     WHERE sr.stage_id = ?
-    ORDER BY sr.rank_pos
+    ORDER BY sr.\`rank\`
     LIMIT ? OFFSET ?
   `;
     
@@ -200,7 +200,7 @@ router.post('/', adminMiddleware, asyncHandler(async (req, res) => {
   }
 
   // 检查赛事是否存在
-  const [race] = await pool.query('SELECT id FROM races WHERE id = ?', [race_id]);
+  const [race] = await pool.query('SELECT id, race_code FROM races WHERE id = ?', [race_id]);
   if (race.length === 0) {
     throw new AppError('赛事不存在', ERROR_CODE.NOT_FOUND);
   }
@@ -215,6 +215,9 @@ router.post('/', adminMiddleware, asyncHandler(async (req, res) => {
   }
 
   const id = require('crypto').randomUUID();
+  const resolvedStageCode = typeof stage_code === 'string' && stage_code.trim()
+    ? stage_code.trim()
+    : `${race[0].race_code}-s${stage_number}`;
   
   const sql = 'INSERT INTO stages (id, race_id, stage_number, stage_name, stage_code, date, distance_km, stage_type, start_city, finish_city, start_city_zh, finish_city_zh) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
 
@@ -223,7 +226,7 @@ router.post('/', adminMiddleware, asyncHandler(async (req, res) => {
     race_id,
     stage_number,
     stage_name,
-    stage_code || null,
+    resolvedStageCode,
     date || null,
     distance_km || null,
     stage_type || 'Flat',

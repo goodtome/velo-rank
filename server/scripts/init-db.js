@@ -33,9 +33,11 @@ async function initDatabase() {
       CREATE TABLE IF NOT EXISTS races (
         id CHAR(36) PRIMARY KEY,
         race_name VARCHAR(200) NOT NULL,
+        race_name_zh VARCHAR(200),
         race_name_en VARCHAR(200),
         race_code VARCHAR(50) UNIQUE NOT NULL,
         category VARCHAR(20) NOT NULL,
+        category_zh VARCHAR(50),
         gender VARCHAR(10) NOT NULL,
         season INT NOT NULL,
         country VARCHAR(100),
@@ -49,6 +51,7 @@ async function initDatabase() {
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
         INDEX idx_races_category (category, gender, season),
+        INDEX idx_start_date (start_date),
         INDEX idx_races_active (is_active)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     `);
@@ -61,6 +64,7 @@ async function initDatabase() {
         race_id CHAR(36) NOT NULL,
         stage_number INT NOT NULL,
         stage_name VARCHAR(200),
+        stage_name_zh VARCHAR(200),
         stage_type VARCHAR(50),
         date DATE NOT NULL,
         start_time TIME,
@@ -117,6 +121,56 @@ async function initDatabase() {
     `);
     console.log('✅ teams 表创建成功');
     
+    // 用户设置表
+    await dbConn.query(`
+      CREATE TABLE IF NOT EXISTS users_settings (
+        user_id VARCHAR(50) PRIMARY KEY,
+        username VARCHAR(100) UNIQUE,
+        password VARCHAR(255),
+        openid VARCHAR(100) UNIQUE,
+        avatar TEXT,
+        is_admin BOOLEAN DEFAULT FALSE,
+        last_login_at TIMESTAMP NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        INDEX idx_username (username),
+        INDEX idx_openid (openid)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    `);
+    console.log('✅ users_settings 表创建成功');
+
+    // 管理/用户操作日志表
+    await dbConn.query(`
+      CREATE TABLE IF NOT EXISTS admin_logs (
+        id VARCHAR(36) PRIMARY KEY,
+        user_id VARCHAR(50),
+        action VARCHAR(100) NOT NULL,
+        details TEXT,
+        ip VARCHAR(45),
+        user_agent TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        INDEX idx_user_action (user_id, action),
+        INDEX idx_created_at (created_at)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    `);
+    console.log('✅ admin_logs 表创建成功');
+
+    // 车手关注表
+    await dbConn.query(`
+      CREATE TABLE IF NOT EXISTS riders_favorites (
+        id VARCHAR(36) PRIMARY KEY,
+        user_id VARCHAR(50) NOT NULL,
+        rider_id CHAR(36) NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE KEY unique_user_rider (user_id, rider_id),
+        INDEX idx_user_id (user_id),
+        INDEX idx_rider_id (rider_id),
+        INDEX idx_created_at (created_at),
+        CONSTRAINT fk_riders_favorites_rider_id FOREIGN KEY (rider_id) REFERENCES riders(id) ON DELETE CASCADE
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    `);
+    console.log('✅ riders_favorites 表创建成功');
+
     // 赛段成绩表
     await dbConn.query(`
       CREATE TABLE IF NOT EXISTS stage_results (
@@ -259,6 +313,80 @@ async function initDatabase() {
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     `);
     console.log('✅ user_tokens 表创建成功');
+
+    // 用户推送设置表
+    await dbConn.query(`
+      CREATE TABLE IF NOT EXISTS user_push_settings (
+        id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+        openid VARCHAR(128) NOT NULL,
+        push_enabled TINYINT(1) DEFAULT 1,
+        notify_race_start TINYINT(1) DEFAULT 1,
+        notify_stage_end TINYINT(1) DEFAULT 1,
+        notify_rider_change TINYINT(1) DEFAULT 1,
+        notify_key_events TINYINT(1) DEFAULT 0,
+        dnd_enabled TINYINT(1) DEFAULT 0,
+        dnd_start VARCHAR(10) DEFAULT '22:00',
+        dnd_end VARCHAR(10) DEFAULT '07:00',
+        push_frequency VARCHAR(20) DEFAULT 'realtime',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        UNIQUE KEY uk_openid (openid)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    `);
+    console.log('✅ user_push_settings 表创建成功');
+
+    // 用户推送订阅记录表
+    await dbConn.query(`
+      CREATE TABLE IF NOT EXISTS user_push_subscriptions (
+        id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+        openid VARCHAR(128) NOT NULL,
+        template_id VARCHAR(255),
+        subscribe_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        is_valid TINYINT(1) DEFAULT 1,
+        UNIQUE KEY uk_openid_template (openid, template_id),
+        INDEX idx_openid (openid)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    `);
+    console.log('✅ user_push_subscriptions 表创建成功');
+
+    // 推送历史记录表
+    await dbConn.query(`
+      CREATE TABLE IF NOT EXISTS push_history (
+        id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+        openid VARCHAR(128),
+        title VARCHAR(255) NOT NULL,
+        content TEXT NOT NULL,
+        type VARCHAR(50),
+        race_id VARCHAR(36),
+        stage_id VARCHAR(36),
+        send_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        status VARCHAR(20) DEFAULT 'sent',
+        error_msg TEXT,
+        INDEX idx_openid (openid),
+        INDEX idx_send_time (send_time)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    `);
+    console.log('✅ push_history 表创建成功');
+
+    // 数据同步日志表
+    await dbConn.query(`
+      CREATE TABLE IF NOT EXISTS sync_logs (
+        id VARCHAR(36) PRIMARY KEY,
+        race_id VARCHAR(36) NOT NULL,
+        requested_by VARCHAR(50),
+        status VARCHAR(20) DEFAULT 'pending',
+        started_at TIMESTAMP NULL,
+        completed_at TIMESTAMP NULL,
+        error_message TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        INDEX idx_race_id (race_id),
+        INDEX idx_requested_by (requested_by),
+        INDEX idx_status (status),
+        INDEX idx_created_at (created_at),
+        CONSTRAINT fk_sync_logs_race_id FOREIGN KEY (race_id) REFERENCES races(id) ON DELETE CASCADE
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    `);
+    console.log('✅ sync_logs 表创建成功');
     
     await dbConn.end();
     console.log('\n🎉 所有数据表创建完成！');

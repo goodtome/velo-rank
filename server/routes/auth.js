@@ -20,14 +20,14 @@ const log = routeLog('auth');
  * Response: { code: 200, data: { token, openid } }
  */
 router.post('/login', asyncHandler(async (req, res) => {
-  const { code } = req.body;
+  const code = req.body && typeof req.body.code === 'string' ? req.body.code.trim() : '';
 
-  if (!code || code.trim() === '') {
+  if (!code) {
     throw new AppError('缺少 code 参数', 400);
   }
 
   // 调用微信 code2Session 换取 openid
-  const wxSession = await code2Session(code.trim());
+  const wxSession = await code2Session(code);
   const { openid } = wxSession;
 
   // 生成 UUID token，有效期 30 天
