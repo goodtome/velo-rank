@@ -49,6 +49,14 @@
       <text class="arrow">›</text>
     </view>
     <view class="menu-divider"></view>
+    <view class="menu-item" bindtap="goToFavorites">
+      <view class="menu-left">
+        <text class="menu-icon">★</text>
+        <text class="menu-text">我的关注</text>
+      </view>
+      <text class="arrow">›</text>
+    </view>
+    <view class="menu-divider"></view>
     <view class="menu-item" bindtap="goToPushSettings">
       <view class="menu-left">
         <text class="menu-icon">🔔</text>
@@ -64,8 +72,8 @@
       </view>
       <text class="arrow">›</text>
     </view>
-    <view class="menu-divider"></view>
-    <view class="menu-item" bindtap="goToAdminSync">
+    <view wx:if="{{isAdminToolsVisible}}" class="menu-divider"></view>
+    <view wx:if="{{isAdminToolsVisible}}" class="menu-item" bindtap="goToAdminSync">
       <view class="menu-left">
         <text class="menu-icon">⚙️</text>
         <text class="menu-text">管理同步</text>

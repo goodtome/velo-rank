@@ -7,17 +7,10 @@
  */
 
 const mysql = require('mysql2/promise');
+const { localDbConfig, prodDbConfig } = require('../../scripts/lib/db-config');
 
-const LOCAL = {
-  host: '127.0.0.1', port: 13306,
-  user: 'root', password: 'mysql123456', database: 'jersey_db'
-};
-
-const TIDB = {
-  host: 'gateway01.ap-northeast-1.prod.aws.tidbcloud.com', port: 4000,
-  user: '2A7GiKTCf4sRJLw.root', password: 'JkDXt0GyOnhMIagc',
-  database: 'jersey_db', ssl: { rejectUnauthorized: true }
-};
+const LOCAL = localDbConfig();
+const TIDB = prodDbConfig();
 
 // TiDB 实际列结构（与本地差异已排除）
 const TABLES = {
@@ -29,7 +22,7 @@ const TABLES = {
   stages: ['id', 'race_id', 'stage_number', 'stage_name',
            'stage_type', 'date', 'distance_km', 'elevation_m',
            'start_city', 'finish_city', 'stage_code', 'created_at', 'updated_at'],
-  stage_results: ['id', 'stage_id', 'rank_pos', 'rider_id', 'team_id',
+  stage_results: ['id', 'stage_id', 'rank', 'rider_id', 'team_id',
                   'nationality', 'time_gap', 'is_same_time',
                   'sprint_points', 'mountain_points', 'youth_eligible',
                   'jersey_earned', 'created_at'],

@@ -1,10 +1,9 @@
 const mysql = require('mysql2/promise');
 const crypto = require('crypto');
+const { localDbConfig } = require('../../scripts/lib/db-config');
 
 (async () => {
-  const conn = await mysql.createConnection({
-    host: 'localhost', port: 13306, user: 'root', password: 'mysql123456', database: 'jersey_db'
-  });
+  const conn = await mysql.createConnection(localDbConfig());
 
   const oneDay = [
     { name:'Muscat Classic', zh:'马斯喀特经典赛', code:'muscat-classic-2026', date:'2026-02-06', country:'Oman' },

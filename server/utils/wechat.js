@@ -28,7 +28,7 @@ async function getAccessToken() {
   }
   
   const appId = process.env.WECHAT_APPID;
-  const appSecret = process.env.WECHAT_APPSECRET || process.env.WECHAT_SECRET;
+  const appSecret = process.env.WECHAT_APPSECRET;
   
   if (!appId || !appSecret) {
     throw new Error('缺少微信配置: WECHAT_APPID 或 WECHAT_APPSECRET');
@@ -173,11 +173,11 @@ async function batchSendSubscribeMessage(messages) {
 /**
  * 微信登录：用 code 换取 openid 和 session_key
  * @param {string} code - wx.login() 返回的临时凭证
- * @returns {Promise<{openid: string, session_key: string, unionid?: string}>}
+ * @returns {Promise<{openid: string, session_key: string}>}
  */
 async function code2Session(code) {
   const appId = process.env.WECHAT_APPID;
-  const appSecret = process.env.WECHAT_APPSECRET || process.env.WECHAT_SECRET;
+  const appSecret = process.env.WECHAT_APPSECRET;
 
   if (!appId || !appSecret) {
     throw new Error('缺少微信配置: WECHAT_APPID 或 WECHAT_APPSECRET');
@@ -196,10 +196,10 @@ async function code2Session(code) {
             reject(new Error(`code2Session 失败: ${result.errmsg} (errcode=${result.errcode})`));
             return;
           }
+          // 仅取 openid/session_key，不采集 unionid（数据最小化）
           resolve({
             openid: result.openid,
-            session_key: result.session_key,
-            unionid: result.unionid || null
+            session_key: result.session_key
           });
         } catch (error) {
           reject(error);

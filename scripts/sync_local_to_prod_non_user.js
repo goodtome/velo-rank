@@ -1,26 +1,11 @@
 #!/usr/bin/env node
 
 const mysql = require('mysql2/promise');
-require('dotenv').config();
+const { localDbConfig, prodDbConfig } = require('./lib/db-config');
+require('dotenv').config({ path: require('path').join(__dirname, '..', 'server', 'config', '.env') });
 
-const LOCAL = {
-  host: process.env.DB_HOST || 'localhost',
-  port: Number(process.env.DB_PORT || 13306),
-  user: process.env.DB_USER || 'root',
-  password: process.env.DB_PASSWORD || 'mysql123456',
-  database: process.env.DB_NAME || 'jersey_db',
-  dateStrings: true
-};
-
-const PROD = {
-  host: process.env.DB_HOST_PROD,
-  port: Number(process.env.DB_PORT_PROD || 4000),
-  user: process.env.DB_USER_PROD,
-  password: process.env.DB_PASSWORD_PROD,
-  database: process.env.DB_NAME_PROD || process.env.DB_NAME || 'jersey_db',
-  ssl: { rejectUnauthorized: true },
-  dateStrings: true
-};
+const LOCAL = localDbConfig({ dateStrings: true });
+const PROD = prodDbConfig({ dateStrings: true });
 
 const USER_TABLE_PATTERNS = [
   /^user/i,
@@ -255,6 +240,40 @@ async function applySync(local, prod, auditResult) {
   return results;
 }
 
+// Replaces data without dropping production tables. This avoids schema churn and
+// keeps the operation transactional when both databases already share columns.
+async function applyDataOnlySync(local, prod, auditResult) {
+  const results = [];
+  const reportByTable = new Map(auditResult.reports.map(report => [report.table, report]));
+  await prod.query('SET FOREIGN_KEY_CHECKS = 0');
+
+  try {
+    await prod.beginTransaction();
+    try {
+      for (const table of auditResult.dataTables.slice().reverse()) {
+        await prod.query(`DELETE FROM ${qid(table)}`);
+      }
+
+      for (const table of auditResult.dataTables) {
+        const report = reportByTable.get(table);
+        if (!report || !report.columns.length) {
+          throw new Error(`No compatible columns found for ${table}`);
+        }
+        const result = await copyTable(local, prod, table, report.columns);
+        results.push({ table, ...result, recreated: false });
+      }
+      await prod.commit();
+    } catch (error) {
+      await prod.rollback();
+      throw error;
+    }
+  } finally {
+    await prod.query('SET FOREIGN_KEY_CHECKS = 1');
+  }
+
+  return results;
+}
+
 function printAudit(auditResult) {
   console.log('=== Sync audit: local -> prod, non-user tables ===');
   console.log(`Data tables: ${auditResult.dataTables.join(', ') || '(none)'}`);
@@ -279,6 +298,7 @@ function printAudit(auditResult) {
 
 async function main() {
   const apply = process.argv.includes('--apply');
+  const dataOnly = process.argv.includes('--data-only');
   const local = await mysql.createConnection(LOCAL);
   const prod = await mysql.createConnection(PROD);
 
@@ -291,8 +311,12 @@ async function main() {
       return;
     }
 
-    console.log('\nApplying sync. Prod non-user tables will be overwritten from local.');
-    const results = await applySync(local, prod, auditResult);
+    console.log(dataOnly
+      ? '\nApplying transactional data-only sync. Prod non-user rows will be replaced from local.'
+      : '\nApplying sync. Prod non-user tables will be overwritten from local.');
+    const results = dataOnly
+      ? await applyDataOnlySync(local, prod, auditResult)
+      : await applySync(local, prod, auditResult);
     console.log('\n=== Apply results ===');
     for (const result of results) {
       console.log(`${result.table}: inserted=${result.inserted}${result.recreated ? ' recreated-schema' : ''}`);

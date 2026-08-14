@@ -1,3 +1,0 @@
-✅ MySQL 连接成功
-已有字段: finish_city_zh, start_city_zh
-✅ 两个字段已存在，无需修改

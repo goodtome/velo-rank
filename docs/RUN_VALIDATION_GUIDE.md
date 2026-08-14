@@ -1,4 +1,4 @@
-# 🔧 正一领骑分页功能验证 - 运行指南
+﻿# 🔧 正一领骑分页功能验证 - 运行指南
 
 ## 快速开始
 
@@ -8,15 +8,15 @@
 # 进入项目目录
 cd D:\codes\velo-rank
 
-# 启动开发服务器（如果已启动但报错，先确保端口3000未被占用）
+# 启动开发服务器（如果已启动但报错，先确保端口3390未被占用）
 npm run dev
 ```
 
 **预期输出**:
 ```
-正一领骑后端服务启动成功 - http://localhost:3000
-WebSocket服务已启动 - ws://localhost:3000/ws/realtime
-API文档：http://localhost:3000/api/v1
+正一领骑后端服务启动成功 - http://localhost:3390
+WebSocket服务已启动 - ws://localhost:3390/ws/realtime
+API文档：http://localhost:3390/api/v1
 ```
 
 > ⚠️ **注意**: 首次启动可能需要等几秒钟连接数据库
@@ -83,7 +83,7 @@ node verify-pagination.js
 ```
 🚀 开始测试分页加载功能
 
-📋 基础URL: http://localhost:3000
+📋 基础URL: http://localhost:3390
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 测试 1: 获取赛段points分类数据（分页）
@@ -192,10 +192,10 @@ DB_PASSWORD=你的密码
 
 ```bash
 # 获取赛段points数据
-curl "http://localhost:3000/api/v1/stages/YOUR-STAGE-ID/points?page=1&limit=20"
+curl "http://localhost:3390/api/v1/stages/YOUR-STAGE-ID/points?page=1&limit=20"
 
 # 获取赛段mountains数据
-curl "http://localhost:3000/api/v1/stages/YOUR-STAGE-ID/mountains?page=1&limit=20"
+curl "http://localhost:3390/api/v1/stages/YOUR-STAGE-ID/mountains?page=1&limit=20"
 
 # 预期返回格式
 {

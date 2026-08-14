@@ -1,10 +1,8 @@
 const mysql = require('mysql2/promise');
+const { localDbConfig } = require('../../scripts/lib/db-config');
+
 const pool = mysql.createPool({
-  host: 'localhost',
-  port: 13306,
-  user: 'root',
-  password: 'mysql123456',
-  database: 'jersey_db',
+  ...localDbConfig(),
   waitForConnections: true,
   connectionLimit: 10
 });

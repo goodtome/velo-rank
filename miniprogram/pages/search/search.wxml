@@ -1,13 +1,14 @@
 <view class="search-bar">
   <view class="search-input-wrap">
-    <text class="search-icon">🔎</text>
+    <text class="search-icon">⌕</text>
     <input
       class="search-input"
       type="text"
-      placeholder="搜索车手、车队、赛事"
+      placeholder="{{searchPlaceholder}}"
       value="{{keyword}}"
       bindinput="onInput"
       confirm-type="search"
+      bindconfirm="doSearch"
     />
     <view wx:if="{{keyword}}" class="clear-btn" bindtap="clearInput">
       <text>×</text>
@@ -27,7 +28,22 @@
   </view>
 </view>
 
-<view class="container" wx:if="{{!searched && !loading && !keyword && searchHistory.length > 0}}">
+<view wx:if="{{searchType === 'races'}}" class="race-filter-bar">
+  <picker mode="selector" range="{{yearOptions}}" range-key="label" value="{{selectedYearIndex}}" bindchange="onYearChange">
+    <view class="filter-pill">{{selectedYearLabel}}</view>
+  </picker>
+  <picker mode="selector" range="{{statusOptions}}" range-key="label" value="{{selectedStatusIndex}}" bindchange="onStatusChange">
+    <view class="filter-pill">{{selectedStatusLabel}}</view>
+  </picker>
+  <picker mode="selector" range="{{genderOptions}}" range-key="label" value="{{selectedGenderIndex}}" bindchange="onGenderChange">
+    <view class="filter-pill">{{selectedGenderLabel}}</view>
+  </picker>
+  <picker mode="selector" range="{{categoryOptions}}" range-key="label" value="{{selectedCategoryIndex}}" bindchange="onCategoryChange">
+    <view class="filter-pill">{{selectedCategoryLabel}}</view>
+  </picker>
+</view>
+
+<view class="container" wx:if="{{!searched && !loading && !keyword && searchType !== 'races' && searchHistory.length > 0}}">
   <view class="history-header">
     <text class="history-title">搜索历史</text>
     <text class="history-clear" bindtap="clearHistory">清除</text>
@@ -39,28 +55,27 @@
   </view>
 </view>
 
-<view class="initial-state" wx:if="{{!searched && !loading && !keyword && searchHistory.length === 0}}">
-  <text class="initial-icon">🔎</text>
+<view class="initial-state" wx:if="{{!searched && !loading && !keyword && searchType !== 'races' && searchHistory.length === 0}}">
+  <text class="initial-icon">⌕</text>
   <text class="initial-text">搜索车手、车队或赛事</text>
 </view>
 
 <view class="loading-container" wx:if="{{loading}}">
   <view class="loading-spinner"></view>
-  <text class="loading-text" wx:if="{{keyword}}">搜索中...</text>
-  <text class="loading-text" wx:else>加载中...</text>
+  <text class="loading-text">{{keyword ? '搜索中...' : '加载中...'}}</text>
 </view>
 
 <view class="error-state" wx:if="{{!loading && loadError}}">
-  <text class="error-state-icon">⚠️</text>
+  <text class="error-state-icon">!</text>
   <text class="error-state-text">搜索失败，请检查网络后重试</text>
   <button class="retry-btn" bindtap="retrySearch">重试</button>
 </view>
 
 <view class="result-container" wx:if="{{!loading && !loadError && searched}}">
   <view class="empty-state" wx:if="{{results.length === 0}}">
-    <text class="empty-state-icon">🔎</text>
-    <text class="empty-state-text" wx:if="{{keyword}}">未找到与 {{keyword}} 相关的{{searchTypeLabel}}</text>
-    <text class="empty-state-text" wx:else>暂无{{searchTypeLabel}}数据</text>
+    <text class="empty-state-icon">⌕</text>
+    <text class="empty-state-text" wx:if="{{keyword}}">未找到与“{{keyword}}”相关的{{searchTypeLabel}}</text>
+    <text class="empty-state-text" wx:else>暂无匹配的{{searchTypeLabel}}</text>
   </view>
 
   <view wx:if="{{results.length > 0}}" class="result-count-bar">
@@ -98,6 +113,7 @@
         <text class="result-name">{{item.displayName}}</text>
         <text class="result-sub" wx:if="{{item.displaySub}}">{{item.displaySub}}</text>
         <view class="race-tag-row">
+          <text wx:if="{{item.statusLabel}}" class="tag tag-status">{{item.statusLabel}}</text>
           <text wx:if="{{item.genderLabel}}" class="tag tag-green">{{item.genderLabel}}</text>
           <text wx:if="{{item.typeLabel}}" class="tag tag-orange">{{item.typeLabel}}</text>
         </view>

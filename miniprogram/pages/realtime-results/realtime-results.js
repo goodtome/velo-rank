@@ -107,7 +107,7 @@ Page({
       return;
     }
 
-    get(url, { page: 1, limit: 50 }).then(res => {
+    return get(url, { page: 1, limit: 50 }).then(res => {
       if (res && res.code === 200 && Array.isArray(res.data)) {
         const now = new Date();
         const lastUpdate = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
@@ -213,7 +213,7 @@ Page({
    * 处理 WebSocket 消息
    */
   handleWebSocketMessage(data) {
-    if (data.type === 'update' && data.dataType && Array.isArray(data.data)) {
+    if ((data.type === 'update' || data.type === 'data') && data.dataType && Array.isArray(data.data)) {
       const now = new Date();
       const lastUpdate = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
 
@@ -221,6 +221,7 @@ Page({
       switch (data.dataType) {
         case 'gc': update.gcRankings = data.data; break;
         case 'stage': update.stageResults = data.data; break;
+        case 'results': update.stageResults = data.data; break;
         case 'points': update.pointsRankings = data.data; break;
         case 'mountains': update.mountainsRankings = data.data; break;
         case 'youth': update.youthRankings = data.data; break;

@@ -753,6 +753,106 @@ router.get('/:id/gc', asyncHandler(async (req, res) => {
   });
 }));
 
+// GET /api/v1/races/:id/visualization/gc-trend - GC time-gap timeline for the latest contenders
+router.get('/:id/visualization/gc-trend', asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const requestedLimit = parseInt(req.query.limit, 10);
+  const riderLimit = Math.min(10, Math.max(5, Number.isFinite(requestedLimit) ? requestedLimit : 5));
+
+  if (!id || id.trim() === '') {
+    throw new AppError('Invalid race ID', ERROR_CODE.BAD_REQUEST);
+  }
+
+  // The latest stage that has GC rows anchors both the selected riders and the
+  // time window. Stages without a GC row are deliberately kept in the response
+  // so clients can render an honest partial-data state instead of connecting
+  // points across missing stages.
+  const [latestRows] = await pool.query(`
+    SELECT s.id, s.stage_number
+    FROM stages s
+    JOIN general_classification gc ON gc.stage_id = s.id
+    WHERE s.race_id = ?
+    ORDER BY s.stage_number DESC
+    LIMIT 1
+  `, [id]);
+
+  if (latestRows.length === 0) {
+    return res.json({
+      code: 200,
+      data: { status: 'empty', stages: [], riders: [] }
+    });
+  }
+
+  const latestStage = latestRows[0];
+  const [stages] = await pool.query(`
+    SELECT id, stage_number, stage_name, stage_name_zh
+    FROM stages
+    WHERE race_id = ? AND stage_number <= ?
+    ORDER BY stage_number ASC
+  `, [id, latestStage.stage_number]);
+
+  const [latestRiders] = await pool.query(`
+    SELECT gc.rider_id, gc.\`rank\`, r.rider_name, r.rider_name_zh
+    FROM general_classification gc
+    JOIN riders r ON r.id = gc.rider_id
+    WHERE gc.stage_id = ?
+    ORDER BY gc.\`rank\` ASC, gc.rider_id ASC
+    LIMIT ?
+  `, [latestStage.id, riderLimit]);
+
+  if (latestRiders.length === 0) {
+    return res.json({
+      code: 200,
+      data: { status: 'empty', stages: [], riders: [] }
+    });
+  }
+
+  const riderIds = latestRiders.map(row => row.rider_id);
+  const [timelineRows] = await pool.query(`
+    SELECT gc.stage_id, gc.rider_id, gc.\`rank\`, gc.time_gap, s.stage_number
+    FROM general_classification gc
+    JOIN stages s ON s.id = gc.stage_id
+    WHERE s.race_id = ?
+      AND s.stage_number <= ?
+      AND gc.rider_id IN (?)
+    ORDER BY s.stage_number ASC, gc.\`rank\` ASC
+  `, [id, latestStage.stage_number, riderIds]);
+
+  const rowsByRider = new Map();
+  timelineRows.forEach(row => {
+    if (!rowsByRider.has(row.rider_id)) rowsByRider.set(row.rider_id, []);
+    rowsByRider.get(row.rider_id).push({
+      stageId: row.stage_id,
+      stageNumber: row.stage_number,
+      rank: row.rank,
+      timeGap: row.time_gap
+    });
+  });
+
+  const riders = latestRiders.map(row => ({
+    id: row.rider_id,
+    rank: row.rank,
+    name: row.rider_name_zh || row.rider_name || '',
+    points: rowsByRider.get(row.rider_id) || []
+  }));
+  const expectedPoints = stages.length * riders.length;
+  const status = timelineRows.length < expectedPoints ? 'partial' : 'ready';
+
+  res.json({
+    code: 200,
+    data: {
+      status,
+      latestStageId: latestStage.id,
+      stages: stages.map(stage => ({
+        id: stage.id,
+        number: stage.stage_number,
+        name: stage.stage_name_zh || stage.stage_name || `Stage ${stage.stage_number}`
+      })),
+      riders
+    }
+  });
+}));
+
 // GET /api/v1/races/:id/points - 赛事冲刺积分榜（支持分页）
 router.get('/:id/points', asyncHandler(async (req, res) => {
   const { id } = req.params;

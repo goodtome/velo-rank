@@ -64,6 +64,15 @@
   box-shadow: 0 2rpx 16rpx rgba(0,0,0,0.05);
 }
 
+.cache-notice {
+  margin: 0 24rpx 16rpx;
+  padding: 14rpx 20rpx;
+  border-radius: 12rpx;
+  background: #fff7e6;
+  color: #a46000;
+  font-size: 22rpx;
+}
+
 /* ====== 赛段信息头（复用 stage-results） ====== */
 .stage-header {
   background: #fff;

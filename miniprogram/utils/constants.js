@@ -51,6 +51,11 @@ const CACHE = {
   STATS_TTL: 5 * 60 * 1000,
   // 赛事数据缓存有效期（毫秒）- 10分钟
   RACE_TTL: 10 * 60 * 1000,
+  // Detail pages use stale-while-revalidate: render this cache first, then refresh.
+  RACE_DETAIL_TTL: 10 * 60 * 1000,
+  STAGE_RESULTS_TTL: 5 * 60 * 1000,
+  CLASSIFICATION_TTL: 5 * 60 * 1000,
+  RIDER_DETAIL_TTL: 30 * 60 * 1000,
 };
 
 // 验证配置

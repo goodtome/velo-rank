@@ -1,4 +1,4 @@
-# 数据录入规范文档
+﻿# 数据录入规范文档
 
 **版本**: v1.0  
 **生效日期**: 2026-05-19  
@@ -17,7 +17,7 @@
 ### ✅ 正确方法
 
 **方法A：直接使用管理后台表单**
-1. 打开管理后台：`http://localhost:3000/admin`
+1. 打开管理后台：`http://localhost:3390/admin`
 2. 在表单中**直接输入中文**（推荐）
 3. 点击"保存"
 
@@ -157,7 +157,7 @@ await db.query(`UPDATE races SET race_name_zh = '${name}' WHERE id = '${id}'`);
 **排查步骤**：
 ```bash
 # 1. 检查 API 响应头
-curl -I http://localhost:3000/api/v1/races | grep charset
+curl -I http://localhost:3390/api/v1/races | grep charset
 # 应该显示：Content-Type: application/json; charset=utf-8
 
 # 2. 检查数据库中的数据

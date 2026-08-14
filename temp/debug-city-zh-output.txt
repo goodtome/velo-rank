@@ -1,7 +1,0 @@
-赛段ID: 25173cfa-0a4c-4316-9964-c0dc85c1bf0d
-赛段: 1 Nessebar - Burgas
-英文: Nessebar → Burgas
-中文: 内塞伯尔 → 布尔加斯
-stage_name_zh: 内塞伯尔 → 布尔加斯
-start_city_zh 是否为空: false
-finish_city_zh 是否为空: false

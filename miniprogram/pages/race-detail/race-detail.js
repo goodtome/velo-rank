@@ -6,6 +6,8 @@
 const { get, formatErrorMessage } = require('../../utils/request');
 const { showError, navigateTo } = require('../../utils/util');
 const { jerseyTypeName, detectRaceType, getClassificationConfig } = require('../../utils/jersey-config');
+const dataCache = require('../../utils/cache');
+const { CACHE } = require('../../utils/constants');
 const {
   normalizeStageType,
   stageTypeName: getStageTypeName,
@@ -13,6 +15,8 @@ const {
   isTerrainHeavyStageType,
   compareStageTypes
 } = require('../../utils/stage-type');
+
+const ADMIN_KEY_STORAGE = 'adminSyncKey';
 
 Page({
   data: {
@@ -40,6 +44,8 @@ Page({
     loading: true,
     loadError: false,
     errorMessage: '',
+    cacheNotice: '',
+    isAdminToolsVisible: false,
     genderLabel: '',
     clfEntries: [
       { type: 'points', icon: '🏁', title: '冲刺积分榜', sub: '按冲刺积分排名' },
@@ -56,11 +62,26 @@ Page({
     }
 
     this.setData({ raceId: id });
+    this.refreshAdminToolsVisibility();
     this.loadData();
+  },
+
+  onShow() {
+    this.refreshAdminToolsVisibility();
+  },
+
+  refreshAdminToolsVisibility() {
+    const adminKey = wx.getStorageSync(ADMIN_KEY_STORAGE) || '';
+    this.setData({ isAdminToolsVisible: !!adminKey });
   },
 
   async loadData() {
     this.setData({ loading: true, loadError: false, errorMessage: '' });
+    const cacheKey = dataCache.makeKey('race-detail', { raceId: this.data.raceId });
+    const cached = dataCache.get(cacheKey, { ttl: CACHE.RACE_DETAIL_TTL, allowStale: true });
+    if (cached) {
+      this.applyCachedRaceData(cached.data, cached.isExpired ? '离线浏览 · 数据更新于' : '缓存数据 · 更新于', cached.cachedAt);
+    }
 
     try {
       const [raceRes, stagesRes, jerseysRes] = await Promise.all([
@@ -106,20 +127,42 @@ Page({
         jerseys,
         visualization,
         loading: false,
-        genderLabel: this.genderName(race.gender)
+        genderLabel: this.genderName(race.gender),
+        cacheNotice: ''
       });
+
+      dataCache.set(cacheKey, { race, stages, jerseys });
 
       this._updateClfEntries();
     } catch (err) {
       console.error('加载赛事失败:', err);
       const message = formatErrorMessage(err);
-      this.setData({
-        loading: false,
-        loadError: true,
-        errorMessage: message
-      });
-      showError(message);
+      if (cached) {
+        this.setData({ loading: false, cacheNotice: `离线浏览 · 数据更新于 ${dataCache.formatCachedAt(cached.cachedAt)}` });
+      } else {
+        this.setData({ loading: false, loadError: true, errorMessage: message });
+        showError(message);
+      }
     }
+  },
+
+  applyCachedRaceData(payload, notice, cachedAt) {
+    const race = payload.race || {};
+    const stages = payload.stages || [];
+    const jerseys = payload.jerseys || [];
+    wx.setNavigationBarTitle({ title: race.race_name_zh || race.race_name || '赛事详情' });
+    this.setData({
+      race,
+      raceCode: race.race_code || '',
+      stages,
+      jerseys,
+      visualization: this.buildVisualization(stages, race),
+      loading: false,
+      loadError: false,
+      genderLabel: this.genderName(race.gender),
+      cacheNotice: `${notice} ${dataCache.formatCachedAt(cachedAt)}`
+    });
+    this._updateClfEntries();
   },
 
   formatDate(dateStr) {
@@ -226,9 +269,14 @@ Page({
       .sort((a, b) => Number(a.stage_number || 0) - Number(b.stage_number || 0))
       .map(stage => {
         const distance = stage._distance_value;
+        const normalizedType = normalizeStageType(stage.stage_type);
         const barHeight = maxDistance > 0
           ? Math.max(32, Math.round((distance / maxDistance) * 180))
           : 32;
+        const markerLabels = [];
+        if (maxDistance > 0 && distance === maxDistance) markerLabels.push('最长');
+        if (normalizedType === 'itt' || normalizedType === 'ttt') markerLabels.push('计时');
+        if (normalizedType === 'mountain') markerLabels.push('山地');
 
         return {
           id: stage.id,
@@ -238,7 +286,9 @@ Page({
           stageTypeLabel: this.stageTypeName(stage.stage_type),
           distanceLabel: this.formatDistance(distance),
           labelText: `${stage.stage_number || ''}${stage.stage_name ? ` · ${stage.stage_name}` : ''}`,
-          barHeight
+          barHeight,
+          markerText: markerLabels.join(' · '),
+          isKeyStage: markerLabels.length > 0
         };
       });
 
@@ -275,25 +325,25 @@ Page({
       });
 
     const timelineItems = timelineSource.map((stage, index) => {
+      const stageNumber = stage.stage_number || index + 1;
       const currentDate = this.getDateValue(stage.date);
       const prevDate = index > 0 ? this.getDateValue(timelineSource[index - 1].date) : null;
       const gapDays = currentDate && prevDate
         ? Math.max(0, Math.round((currentDate.getTime() - prevDate.getTime()) / 86400000))
         : 0;
-      const isOpeningStage = index === 0;
 
       return {
         id: stage.id,
-        stageNumber: stage.stage_number || '',
-        stageLabel: `S${stage.stage_number || index + 1}`,
+        stageNumber,
+        stageLabel: `S${stageNumber}`,
         dateLabel: this.formatDate(stage.date),
         routeLabel: this.getStageRouteLabel(stage),
         distanceLabel: this.formatDistance(stage._distance_value),
         stageType: stage.stage_type || 'Unknown',
         stageTypeLabel: this.stageTypeName(stage.stage_type),
-        gapLabel: isOpeningStage ? '开幕赛段' : gapDays > 1 ? `休息 ${gapDays - 1} 天` : gapDays === 1 ? '连续赛程' : '同日赛段',
+        gapLabel: `第 ${stageNumber} 赛段`,
         isRestDay: gapDays > 1,
-        isLeader: isOpeningStage,
+        isLeader: index === 0,
         isLast: index === timelineSource.length - 1
       };
     });

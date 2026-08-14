@@ -45,6 +45,38 @@
   color: #ff4444;
 }
 
+.template-warning {
+  margin-top: 28rpx;
+  padding: 22rpx 24rpx;
+  background: rgba(255, 193, 7, 0.14);
+  border: 1rpx solid rgba(255, 193, 7, 0.35);
+  border-radius: 16rpx;
+}
+
+.template-warning-title {
+  display: block;
+  font-size: 26rpx;
+  font-weight: 600;
+  color: #ffd166;
+  margin-bottom: 8rpx;
+}
+
+.template-warning-desc {
+  display: block;
+  font-size: 23rpx;
+  color: rgba(255, 255, 255, 0.82);
+  line-height: 1.55;
+}
+
+.subscription-status {
+  margin-top: 20rpx;
+  padding: 18rpx 24rpx;
+  border-radius: 14rpx;
+  background: rgba(7, 193, 96, 0.1);
+  color: #16884c;
+  font-size: 24rpx;
+}
+
 /* 设置区块 */
 .setting-section {
   background: #fff;

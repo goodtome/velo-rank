@@ -1,6 +1,15 @@
 /* pages/race-detail/race-detail.wxss */
 
 /* 赛事信息头部卡片 */
+.cache-notice {
+  margin: 0 24rpx 16rpx;
+  padding: 14rpx 20rpx;
+  border-radius: 12rpx;
+  background: #fff7e6;
+  color: #a46000;
+  font-size: 22rpx;
+}
+
 .race-card {
   background: #fff;
   border-radius: 24rpx;
@@ -567,6 +576,20 @@
   font-weight: 600;
   color: #1565c0;
   margin-bottom: 4rpx;
+}
+
+.viz-bar-marker {
+  max-width: 100rpx;
+  margin: 2rpx 0 6rpx;
+  padding: 4rpx 8rpx;
+  overflow: hidden;
+  border-radius: 999rpx;
+  color: #9c4d00;
+  background: #fff3e0;
+  font-size: 18rpx;
+  line-height: 1.3;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .viz-bar-label {

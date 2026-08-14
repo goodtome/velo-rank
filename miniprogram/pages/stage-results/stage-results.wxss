@@ -177,6 +177,51 @@
   font-weight: 600;
 }
 
+.gc-trend-notice {
+  margin: -4rpx 0 18rpx;
+  padding: 14rpx 16rpx;
+  border-radius: 12rpx;
+  background: #fff7e6;
+  color: #9a6700;
+  font-size: 22rpx;
+  line-height: 1.5;
+}
+
+.gc-trend-rider-scroll {
+  width: 100%;
+  margin-bottom: 16rpx;
+}
+
+.gc-trend-rider-options {
+  display: inline-flex;
+  gap: 12rpx;
+  padding: 2rpx 0;
+  white-space: nowrap;
+}
+
+.gc-trend-rider-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 8rpx;
+  padding: 10rpx 14rpx;
+  border: 2rpx solid #e4e9f0;
+  border-radius: 999rpx;
+  color: #607080;
+  background: #fff;
+  font-size: 22rpx;
+}
+
+.gc-trend-rider-option-active {
+  background: #f7fbff;
+  font-weight: 600;
+}
+
+.gc-trend-rider-color {
+  width: 14rpx;
+  height: 14rpx;
+  border-radius: 50%;
+}
+
 .gc-trend-scroll {
   width: 100%;
   overflow: hidden;
@@ -196,20 +241,28 @@
   transform-origin: 0 50%;
 }
 
+.gc-trend-segment-highlighted {
+  height: 6rpx;
+}
+
 .gc-trend-point {
   position: absolute;
-  width: 90rpx;
+  width: 44rpx;
+  height: 44rpx;
   display: flex;
   flex-direction: column;
   align-items: center;
   transform: translate(-50%, -50%);
 }
 
+.gc-trend-point-highlighted {
+  z-index: 2;
+}
+
 .gc-trend-gap {
+  position: absolute;
   font-size: 18rpx;
-  color: #1565c0;
   font-weight: 600;
-  margin-bottom: 8rpx;
   white-space: nowrap;
 }
 
@@ -232,9 +285,65 @@
 }
 
 .gc-trend-rank {
+  position: absolute;
+  top: 24rpx;
   margin-top: 8rpx;
   font-size: 18rpx;
   color: #34495e;
+}
+
+.gc-trend-stage-label {
+  position: absolute;
+  bottom: 6rpx;
+  min-width: 48rpx;
+  transform: translateX(-50%);
+  text-align: center;
+  color: #7f8c8d;
+  font-size: 18rpx;
+}
+
+.cache-notice {
+  margin: 0 24rpx 16rpx;
+  padding: 14rpx 20rpx;
+  border-radius: 12rpx;
+  background: #fff7e6;
+  color: #a46000;
+  font-size: 22rpx;
+}
+
+.gc-trend-empty {
+  background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+}
+
+.gc-trend-empty-body {
+  display: flex;
+  align-items: center;
+  gap: 18rpx;
+  min-height: 120rpx;
+  padding: 20rpx 18rpx;
+  border-radius: 18rpx;
+  background: rgba(33, 150, 243, 0.06);
+}
+
+.gc-trend-empty-icon {
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: 20rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: rgba(33, 150, 243, 0.12);
+  color: #1565c0;
+  font-size: 24rpx;
+  font-weight: 800;
+}
+
+.gc-trend-empty-text {
+  flex: 1;
+  font-size: 24rpx;
+  line-height: 1.55;
+  color: #5f6b7a;
 }
 
 /* ====== 领骑衫 ====== */

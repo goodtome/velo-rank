@@ -1,10 +1,10 @@
 /**
  * 小程序环境配置管理
- * 
+ *
  * 切换环境：
  *   1. 修改下方 CURRENT_ENV 常量（默认值）
  *   2. 或运行时调用 switchEnv() 持久化到本地存储
- * 
+ *
  * 用法：
  *   const config = require('./config/env');
  *   const baseUrl = config.getConfig().baseUrl;
@@ -18,20 +18,29 @@ const CURRENT_ENV = 'production';
 
 const STORAGE_KEY = 'app_env_mode';
 
+const EMPTY_TEMPLATE_IDS = {
+  raceStart: '',
+  stageEnd: '',
+  riderChange: '',
+  keyEvent: ''
+};
+
 const ENV = {
   development: {
     baseUrl: 'http://localhost:3000/api/v1',
     wsUrl: 'ws://localhost:3000/ws/realtime',
     timeout: 10000,
     enableDebug: true,
-    label: '本地开发'
+    label: '本地开发',
+    subscribeTemplateIds: { ...EMPTY_TEMPLATE_IDS }
   },
   production: {
     baseUrl: 'https://velo-rank-api.fly.dev/api/v1',
     wsUrl: 'wss://velo-rank-api.fly.dev/ws/realtime',
     timeout: 15000,
     enableDebug: false,
-    label: '正式环境'
+    label: '正式环境',
+    subscribeTemplateIds: { ...EMPTY_TEMPLATE_IDS }
   }
 };
 
@@ -88,5 +97,12 @@ module.exports = {
    */
   getWsUrl() {
     return ENV[_getEnv()].wsUrl;
+  },
+
+  /**
+   * 获取当前环境的微信订阅消息模板 ID
+   */
+  getSubscribeTemplateIds() {
+    return ENV[_getEnv()].subscribeTemplateIds || {};
   }
 };

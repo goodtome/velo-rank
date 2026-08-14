@@ -55,6 +55,9 @@
     .stat-percentage { font-size: 12px; color: #666; }
     .zh-input { padding: 6px 10px; border: 1px solid #d9d9d9; border-radius: 4px; font-size: 13px; }
     .zh-input:focus { outline: none; border-color: #1890ff; }
+    .inline-status { margin-left: 8px; font-size: 12px; color: #666; }
+    .inline-status.success { color: #52c41a; }
+    .inline-status.error { color: #ff4d4f; }
     .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; }
     .modal.active { display: flex; }
     .modal-content { background: white; padding: 24px; border-radius: 12px; max-width: 600px; width: 90%; max-height: 80vh; overflow-y: auto; }
@@ -79,7 +82,7 @@
             <span class="status-dot status-online"></span>
             <strong>API服务</strong>
           </div>
-          <p style="color: #666; font-size: 14px;">http://localhost:3000</p>
+          <p style="color: #666; font-size: 14px;">跟随当前后台地址</p>
         </div>
         <div style="flex: 1; min-width: 200px;">
           <div style="margin-bottom: 10px;">
@@ -567,7 +570,7 @@
   </div>
 
   <script>
-    const API_BASE = 'http://localhost:3000';
+    const API_BASE = window.location.origin;
 
     // ===== 工具函数 =====
     function formatDate(dateStr) {
@@ -615,7 +618,8 @@
       document.getElementById('raceNameEn').value = '';
       document.getElementById('raceCode').value = '';
       document.getElementById('raceCategory').value = 'Grand Tour';
-      document.getElementById('raceGender').value = 'MEN'; = new Date().getFullYear();
+      document.getElementById('raceGender').value = 'MEN';
+      document.getElementById('raceSeason').value = new Date().getFullYear();
       document.getElementById('raceCountry').value = '';
       document.getElementById('raceStartDate').value = '';
       document.getElementById('raceEndDate').value = '';
@@ -1384,6 +1388,57 @@
       };
       reader.readAsText(file);
     });
+
+    function getImportSummaryText(data) {
+      const validation = data?.validation;
+      const summary = data?.summary || validation?.summary;
+      if (!summary && !validation) return '';
+
+      const lines = [];
+      if (summary) {
+        lines.push(`赛事: ${summary.race_code || '-'} / Stage ${summary.stage_number || '-'}`);
+        lines.push(`成绩: ${summary.results_count ?? 0} 条，车手 ${summary.unique_riders ?? 0} 名，车队 ${summary.unique_teams ?? 0} 支`);
+        lines.push(`领骑衫: ${summary.jerseys_count ?? 0} 条，重复名次 ${summary.duplicate_rank_count ?? 0} 处，缺少 time_gap ${summary.missing_time_gap_count ?? 0} 条`);
+        if (summary.results_imported !== undefined) {
+          lines.push(`导入: 成绩成功 ${summary.results_imported} 条，跳过 ${summary.results_skipped ?? 0} 条；领骑衫成功 ${summary.jerseys_imported ?? 0} 条，跳过 ${summary.jerseys_skipped ?? 0} 条`);
+        }
+        if (summary.db_result_count !== undefined) lines.push(`数据库校验: 当前赛段 ${summary.db_result_count} 条成绩`);
+        if (summary.generated_sql_bytes !== undefined) lines.push(`SQL大小: ${summary.generated_sql_bytes} bytes`);
+      }
+
+      if (validation?.warnings?.length) lines.push(`警告: ${validation.warnings.join('；')}`);
+      if (validation?.errors?.length) lines.push(`错误: ${validation.errors.join('；')}`);
+      return lines.join('\n');
+    }
+
+    function getImportErrorDetails(data) {
+      const details = [];
+      const rowErrors = data?.row_errors || [];
+      const jerseyErrors = data?.jersey_errors || [];
+
+      if (rowErrors.length) {
+        details.push('成绩错误:');
+        rowErrors.forEach(item => details.push(`- 第 ${item.rank || '-'} 名 ${item.rider_name || '-'} / ${item.team_name || '-'}: ${item.error}`));
+      }
+
+      if (jerseyErrors.length) {
+        details.push('领骑衫错误:');
+        jerseyErrors.forEach(item => details.push(`- ${item.jersey_type || '-'} ${item.rider_name || '-'} / ${item.team_name || '-'}: ${item.error}`));
+      }
+
+      return details.join('\n');
+    }
+
+    function setFieldStatus(input, type, text) {
+      let status = input.parentElement.querySelector('.inline-status');
+      if (!status) {
+        status = document.createElement('span');
+        status.className = 'inline-status';
+        input.parentElement.appendChild(status);
+      }
+      status.className = `inline-status ${type}`;
+      status.textContent = text;
+    }
     
     // 预览导入脚本
     function previewImport() {
@@ -1408,10 +1463,12 @@
         .then(res => res.json())
         .then(result => {
           if (result.code === 200) {
-            previewDiv.textContent = result.data.sql;
+            const summaryText = getImportSummaryText(result.data);
+            previewDiv.textContent = `${summaryText ? `✅ 校验通过\n${summaryText}\n\n` : ''}${result.data.sql}`;
             document.getElementById('executeBtn').disabled = false;
           } else {
-            previewDiv.textContent = '❌ 生成失败: ' + result.message;
+            const summaryText = getImportSummaryText(result.data);
+            previewDiv.textContent = `❌ 生成失败: ${result.message}${summaryText ? `\n\n${summaryText}` : ''}`;
             document.getElementById('executeBtn').disabled = true;
           }
         })
@@ -1448,10 +1505,14 @@
         const result = await res.json();
         
         if (result.code === 200) {
-          alert(`✅ 导入成功！\n\n${result.message}`);
+          const summaryText = getImportSummaryText(result.data);
+          const details = getImportErrorDetails(result.data);
+          alert(`✅ 导入成功！${summaryText ? `\n\n${summaryText}` : ''}${details ? `\n\n${details}` : ''}`);
           loadDbStats();
         } else {
-          alert(`❌ 导入失败: ${result.message}`);
+          const summaryText = getImportSummaryText(result.data);
+          const details = getImportErrorDetails(result.data);
+          alert(`❌ 导入失败: ${result.message}${summaryText ? `\n\n${summaryText}` : ''}${details ? `\n\n${details}` : ''}`);
         }
       } catch (err) {
         alert('❌ 执行失败: ' + err.message);
@@ -1602,7 +1663,8 @@
       const riderNameZh = input.value.trim();
       
       if (!riderNameZh) {
-        alert('请输入中文名');
+        input.style.borderColor = '#ff4d4f';
+        setFieldStatus(input, 'error', '请输入中文名');
         return;
       }
       
@@ -1617,12 +1679,17 @@
         
         if (result.code === 200) {
           input.style.borderColor = '#52c41a';
+          setFieldStatus(input, 'success', `已保存: ${result.data?.value || riderNameZh}`);
           setTimeout(() => loadRidersWithoutZh(currentRiderPage), 500);
           loadTranslationStats();
         } else {
+          input.style.borderColor = '#ff4d4f';
+          setFieldStatus(input, 'error', result.message || '更新失败');
           alert(`❌ 更新失败: ${result.message}`);
         }
       } catch (err) {
+        input.style.borderColor = '#ff4d4f';
+        setFieldStatus(input, 'error', err.message);
         alert('❌ 更新失败: ' + err.message);
       }
     }
@@ -1684,7 +1751,8 @@
       const teamNameZh = input.value.trim();
       
       if (!teamNameZh) {
-        alert('请输入中文名');
+        input.style.borderColor = '#ff4d4f';
+        setFieldStatus(input, 'error', '请输入中文名');
         return;
       }
       
@@ -1699,12 +1767,17 @@
         
         if (result.code === 200) {
           input.style.borderColor = '#52c41a';
+          setFieldStatus(input, 'success', `已保存: ${result.data?.value || teamNameZh}`);
           setTimeout(() => loadTeamsWithoutZh(currentTeamPage), 500);
           loadTranslationStats();
         } else {
+          input.style.borderColor = '#ff4d4f';
+          setFieldStatus(input, 'error', result.message || '更新失败');
           alert(`❌ 更新失败: ${result.message}`);
         }
       } catch (err) {
+        input.style.borderColor = '#ff4d4f';
+        setFieldStatus(input, 'error', err.message);
         alert('❌ 更新失败: ' + err.message);
       }
     }

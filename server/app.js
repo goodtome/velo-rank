@@ -3,7 +3,6 @@ const cors = require('cors');
 const http = require('http');
 const rateLimit = require('express-rate-limit');
 const path = require('path');
-require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
 require('dotenv').config({ path: path.join(__dirname, 'config', '.env') });
 
 const { validateEnv } = require('./config/env-check');
@@ -11,6 +10,9 @@ validateEnv();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const HOST = process.env.SERVER_HOST || process.env.HOST || (
+  process.env.NODE_ENV === 'production' ? '0.0.0.0' : '127.0.0.1'
+);
 
 // Required when the app runs behind Fly.io, Nginx, or another reverse proxy.
 app.set('trust proxy', 1);
@@ -64,6 +66,7 @@ app.use(responseFormatter);
 
 const { requestLogger } = require('./middleware/requestLogger');
 app.use(requestLogger);
+const { adminPageMiddleware } = require('./middleware/auth');
 
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
@@ -73,7 +76,7 @@ app.get('/api/v1/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-app.use('/admin', express.static(`${__dirname}/admin`, {
+app.use('/admin', adminPageMiddleware, express.static(`${__dirname}/admin`, {
   setHeaders(res, filePath) {
     if (filePath.endsWith('.html')) {
       res.setHeader('Content-Type', 'text/html; charset=utf-8');
@@ -111,12 +114,38 @@ app.use(errorHandler);
 const { initWebSocket } = require('./websocket');
 initWebSocket(server);
 
-server.listen(PORT, () => {
+server.on('error', (err) => {
+  const bindTarget = `${HOST}:${PORT}`;
+  let hint = 'Check the configured SERVER_HOST/PORT and whether another process is using the port.';
+
+  if (err.code === 'EACCES') {
+    hint = `Permission denied while binding ${bindTarget}. For local development, use SERVER_HOST=127.0.0.1 or another PORT.`;
+  } else if (err.code === 'EADDRINUSE') {
+    hint = `Port ${PORT} is already in use. Stop the existing process or set a different PORT.`;
+  }
+
+  console.error(JSON.stringify({
+    ts: new Date().toISOString(),
+    level: 'error',
+    type: 'startup',
+    message: 'Server failed to start',
+    code: err.code,
+    host: HOST,
+    port: PORT,
+    error: err.message,
+    hint,
+  }));
+
+  process.exitCode = 1;
+});
+
+server.listen(PORT, HOST, () => {
   console.log(JSON.stringify({
     ts: new Date().toISOString(),
     level: 'info',
     type: 'startup',
     message: 'Server started successfully',
+    host: HOST,
     port: PORT,
     env: process.env.NODE_ENV || 'development',
     ws: '/ws/realtime',
@@ -126,19 +155,5 @@ server.listen(PORT, () => {
     console.log(`API docs: http://localhost:${PORT}/api/v1`);
   }
 });
-
-if (process.env.NODE_ENV === 'production') {
-  try {
-    require('./scripts/schedule-backup');
-  } catch (err) {
-    console.error(JSON.stringify({
-      ts: new Date().toISOString(),
-      level: 'error',
-      type: 'startup',
-      message: 'Backup scheduler failed to start',
-      error: err.message,
-    }));
-  }
-}
 
 module.exports = { app, server };

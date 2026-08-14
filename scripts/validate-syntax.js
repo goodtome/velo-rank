@@ -4,7 +4,7 @@ const { spawnSync } = require('child_process');
 
 const ROOT = path.resolve(__dirname, '..');
 const TARGET_DIRS = ['server', 'miniprogram'];
-const SKIP_DIRS = new Set(['node_modules', 'temp', '.git', 'scripts']);
+const SKIP_DIRS = new Set(['node_modules', 'temp', '.git', 'scripts', 'archive']);
 const SKIP_FILE_SUFFIXES = ['.bak'];
 
 function collectJsFiles(dir, files = []) {

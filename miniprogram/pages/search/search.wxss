@@ -87,6 +87,28 @@
   border-radius: 2rpx;
 }
 
+.race-filter-bar {
+  display: flex;
+  gap: 12rpx;
+  padding: 16rpx 24rpx;
+  background-color: #ffffff;
+  border-bottom: 2rpx solid #f0f2f5;
+  overflow-x: auto;
+  white-space: nowrap;
+}
+
+.filter-pill {
+  min-width: 120rpx;
+  height: 56rpx;
+  line-height: 56rpx;
+  padding: 0 20rpx;
+  border-radius: 28rpx;
+  background-color: #f6f7f9;
+  color: #333;
+  font-size: 24rpx;
+  text-align: center;
+}
+
 /* ========== 搜索历史 ========== */
 .history-header {
   display: flex;
@@ -143,6 +165,57 @@
 .result-container {
   padding: 0 24rpx;
   padding-bottom: 40rpx;
+}
+
+.loading-container,
+.error-state,
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 120rpx 40rpx;
+}
+
+.loading-spinner {
+  width: 44rpx;
+  height: 44rpx;
+  border: 4rpx solid #d8e8f8;
+  border-top-color: #2196F3;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin-bottom: 20rpx;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.loading-text,
+.error-state-text,
+.empty-state-text {
+  font-size: 28rpx;
+  color: #666;
+  text-align: center;
+}
+
+.error-state-icon,
+.empty-state-icon {
+  font-size: 56rpx;
+  color: #999;
+  margin-bottom: 20rpx;
+}
+
+.retry-btn {
+  margin-top: 24rpx;
+  width: 180rpx;
+  height: 72rpx;
+  line-height: 72rpx;
+  border-radius: 36rpx;
+  background-color: #2196F3;
+  color: #ffffff;
+  font-size: 28rpx;
 }
 
 /* ========== 结果卡片 ========== */
@@ -228,6 +301,11 @@
 
 .race-tag-row .tag {
   margin-right: 0;
+}
+
+.tag-status {
+  background-color: #eef6ff;
+  color: #1f6fb2;
 }
 
 .load-more-wrap {

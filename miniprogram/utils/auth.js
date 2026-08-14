@@ -25,10 +25,11 @@ function login() {
 
         const app = getApp();
         const baseUrl = app.globalData.baseUrl;
+        const url = `${baseUrl}/auth/login`;
 
         // 直接用 wx.request 避免循环依赖 request.js
         wx.request({
-          url: `${baseUrl}/auth/login`,
+          url,
           method: 'POST',
           data: { code: loginRes.code },
           header: { 'Content-Type': 'application/json' },
@@ -44,7 +45,9 @@ function login() {
             }
           },
           fail: (err) => {
-            reject(new Error(err.errMsg || '网络请求失败'));
+            const error = new Error(err.errMsg || '网络请求失败');
+            error.detail = { url, timeout: 10000, raw: err };
+            reject(error);
           }
         });
       },

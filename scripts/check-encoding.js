@@ -5,7 +5,7 @@ const { TextDecoder } = require('util');
 
 const ROOT = path.resolve(__dirname, '..');
 const TEXT_FILE_PATTERN = /(?:\.(?:js|json|wxml|wxss|html|md|sql|csv|txt|ps1|bat|sh|env|example)$|(?:^|[\\/])\.env(?:\..*)?$)/i;
-const SKIP_PATH_PATTERN = /^(node_modules|temp|backups|\.git)(\/|\\)/;
+const SKIP_PATH_PATTERN = /^(node_modules|temp|backups|\.git|.*archive)(\/|\\)/;
 const utf8Decoder = new TextDecoder('utf-8', { fatal: true });
 
 const MOJIBAKE_PATTERNS = [
@@ -71,6 +71,9 @@ for (const file of listTrackedFiles()) {
   }
 
   const absolutePath = path.join(ROOT, file);
+  if (!fs.existsSync(absolutePath)) {
+    continue;
+  }
   const bytes = fs.readFileSync(absolutePath);
   let content;
 

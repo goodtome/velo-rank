@@ -1,69 +1,71 @@
-<!-- 推送设置页面 -->
 <view class="settings-container">
-  <!-- 页面标题 -->
   <view class="page-header">
     <text class="page-title">推送设置</text>
-    <text class="page-desc">管理您的推送通知偏好</text>
+    <text class="page-desc">管理赛事通知偏好</text>
     <view class="sync-status {{syncStatus}}" wx:if="{{syncStatus}}">
-      <text wx:if="{{syncStatus === 'synced'}}">✓ 已同步</text>
-      <text wx:if="{{syncStatus === 'error'}}">⚠ 同步失败</text>
+      <text wx:if="{{syncStatus === 'synced'}}">已同步</text>
+      <text wx:if="{{syncStatus === 'error'}}">同步失败</text>
     </view>
   </view>
 
-  <!-- 总开关 -->
   <view class="setting-section">
     <view class="setting-item">
       <view class="setting-info">
         <text class="setting-label">推送通知</text>
-        <text class="setting-desc">总开关，关闭后不再接收任何推送</text>
+        <text class="setting-desc">总开关。关闭后不再接收赛事通知。</text>
       </view>
       <switch checked="{{pushEnabled}}" bindchange="togglePush" color="#07c160" />
     </view>
+    <view class="template-warning" wx:if="{{!hasSubscribeTemplates}}">
+      <text class="template-warning-title">订阅模板待配置</text>
+      <text class="template-warning-desc">当前仅保存推送偏好与测试记录。需要在微信公众平台创建订阅消息模板，并填入 miniprogram/config/env.js 后，才会弹出微信订阅授权并真实送达手机通知。</text>
+    </view>
+    <view class="subscription-status" wx:if="{{hasSubscribeTemplates}}">
+      <text>{{subscriptionSummary}}</text>
+    </view>
   </view>
 
-  <!-- 推送类型设置 -->
   <view class="setting-section" wx:if="{{pushEnabled}}">
     <view class="section-title">通知类型</view>
 
     <view class="setting-item">
       <view class="setting-info">
-        <text class="setting-label">🚴 赛事开始</text>
-        <text class="setting-desc">赛事发车前30分钟提醒</text>
+        <text class="setting-label">赛事开始</text>
+        <text class="setting-desc">赛事发车前提醒</text>
       </view>
       <switch checked="{{notifyRaceStart}}" bindchange="toggleRaceStart" color="#07c160" />
     </view>
 
     <view class="setting-item">
       <view class="setting-info">
-        <text class="setting-label">🏁 赛段结束</text>
-        <text class="setting-desc">每个赛段结束后推送成绩</text>
+        <text class="setting-label">赛段结束</text>
+        <text class="setting-desc">赛段结束后推送成绩</text>
       </view>
       <switch checked="{{notifyStageEnd}}" bindchange="toggleStageEnd" color="#07c160" />
     </view>
 
     <view class="setting-item">
       <view class="setting-info">
-        <text class="setting-label">📊 排名变化</text>
-        <text class="setting-desc">关注车手排名变动通知</text>
+        <text class="setting-label">排名变化</text>
+        <text class="setting-desc">关注车手排名变化通知</text>
       </view>
       <switch checked="{{notifyRiderChange}}" bindchange="toggleRiderChange" color="#07c160" />
     </view>
 
     <view class="setting-item">
       <view class="setting-info">
-        <text class="setting-label">⚡ 关键事件</text>
-        <text class="setting-desc">摔车、退赛、领骑衫易主等</text>
+        <text class="setting-label">关键事件</text>
+        <text class="setting-desc">摔车、退赛、领骑衫易主等事件</text>
       </view>
       <switch checked="{{notifyKeyEvents}}" bindchange="toggleKeyEvents" color="#07c160" />
     </view>
   </view>
 
-  <!-- 免打扰设置 -->
   <view class="setting-section" wx:if="{{pushEnabled}}">
     <view class="section-title">免打扰时段</view>
     <view class="setting-item">
       <view class="setting-info">
-        <text class="setting-label">🌙 免打扰模式</text>
+        <text class="setting-label">免打扰模式</text>
         <text class="setting-desc">在指定时段内不推送通知</text>
       </view>
       <switch checked="{{dndEnabled}}" bindchange="toggleDnd" color="#07c160" />
@@ -88,45 +90,42 @@
     </view>
 
     <view class="dnd-tip" wx:if="{{dndEnabled}}">
-      <text>免打扰时段内不会收到任何推送通知，赛段结束后仍可查看历史记录</text>
+      <text>免打扰时段内不会收到通知，赛段结束后仍可查看历史记录。</text>
     </view>
   </view>
 
-  <!-- 推送频率 -->
   <view class="setting-section" wx:if="{{pushEnabled && notifyRiderChange}}">
     <view class="section-title">推送频率</view>
 
     <view class="frequency-options">
-      <view class="frequency-item {{pushFrequency === 'realtime' ? 'active' : ''}}"
-            bindtap="setFrequency" data-frequency="realtime">
+      <view class="frequency-item {{pushFrequency === 'realtime' ? 'active' : ''}}" bindtap="setFrequency" data-frequency="realtime">
         <text class="frequency-name">实时</text>
-        <text class="frequency-desc">变化即推送</text>
+        <text class="frequency-desc">变化即提醒</text>
       </view>
 
-      <view class="frequency-item {{pushFrequency === '30min' ? 'active' : ''}}"
-            bindtap="setFrequency" data-frequency="30min">
+      <view class="frequency-item {{pushFrequency === '30min' ? 'active' : ''}}" bindtap="setFrequency" data-frequency="30min">
         <text class="frequency-name">30分钟</text>
-        <text class="frequency-desc">汇总推送</text>
+        <text class="frequency-desc">汇总提醒</text>
       </view>
 
-      <view class="frequency-item {{pushFrequency === 'daily' ? 'active' : ''}}"
-            bindtap="setFrequency" data-frequency="daily">
+      <view class="frequency-item {{pushFrequency === 'daily' ? 'active' : ''}}" bindtap="setFrequency" data-frequency="daily">
         <text class="frequency-name">每日</text>
         <text class="frequency-desc">每日汇总</text>
       </view>
     </view>
   </view>
 
-  <!-- 测试推送 -->
   <view class="setting-section" wx:if="{{pushEnabled}}">
     <button class="test-btn" bindtap="sendTestNotification" disabled="{{syncing}}">
       发送测试推送
     </button>
+    <view class="dnd-tip">
+      <text>未配置订阅模板时，测试只会写入服务端记录，不会真实送达手机通知。</text>
+    </view>
   </view>
 
-  <!-- 提示信息 -->
   <view class="tip-section">
-    <view class="tip-icon">💡</view>
-    <text class="tip-text">推送通知需要您在手机系统设置中允许"正一领骑"应用发送通知。如果收不到推送，请检查系统通知权限。</text>
+    <view class="tip-icon">i</view>
+    <text class="tip-text">真实手机通知依赖微信订阅消息授权和系统通知权限。保存偏好不等于已经完成订阅授权。</text>
   </view>
 </view>

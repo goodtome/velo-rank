@@ -26,6 +26,7 @@
   </view>
 
   <view wx:else>
+    <view wx:if="{{cacheNotice}}" class="cache-notice">{{cacheNotice}}</view>
     <!-- 赛段信息头 -->
     <view class="stage-header card">
       <view class="stage-title-row">

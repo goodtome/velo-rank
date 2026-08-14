@@ -23,6 +23,7 @@
   </view>
 
   <view wx:else>
+    <view wx:if="{{cacheNotice}}" class="cache-notice">{{cacheNotice}}</view>
     <view class="race-card card">
       <view class="race-name">{{race.race_name_zh || race.race_name}}</view>
       <view class="race-name-en" wx:if="{{race.race_name_en && race.race_name_zh}}">{{race.race_name_en}}</view>
@@ -146,6 +147,7 @@
               <view class="viz-bar-fill" style="height: {{item.barHeight}}rpx;"></view>
             </view>
             <view class="viz-bar-label-top">{{item.distanceLabel}}</view>
+            <view wx:if="{{item.isKeyStage}}" class="viz-bar-marker">{{item.markerText}}</view>
             <view class="viz-bar-label">{{item.labelText}}</view>
             <view class="viz-bar-type">{{item.stageTypeLabel}}</view>
           </view>
@@ -170,7 +172,7 @@
       </view>
     </view>
 
-    <view class="viz-card card viz-timeline-card">
+    <view wx:if="{{visualization.totalStages > 0}}" class="viz-card card viz-timeline-card">
       <view class="viz-header">
         <view>
           <view class="section-label">赛程节奏</view>

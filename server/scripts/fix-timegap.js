@@ -17,6 +17,7 @@
  */
 
 const mysql = require('mysql2/promise');
+const { localDbConfig } = require('../../scripts/lib/db-config');
 
 /**
  * 修复单个时间字符串
@@ -59,11 +60,7 @@ function fixTime(val) {
 }
 
 async function main() {
-  const conn = await mysql.createConnection({
-    host: 'localhost', port: 13306,
-    user: 'root', password: 'mysql123456',
-    database: 'jersey_db'
-  });
+  const conn = await mysql.createConnection(localDbConfig());
 
   console.log('🔧 修复 time_gap / total_time 格式问题');
   console.log('='.repeat(60));

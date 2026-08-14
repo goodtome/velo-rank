@@ -8,6 +8,43 @@ function getPool() {
   return require('../config/db-pool');
 }
 
+function getConfiguredAdminKey() {
+  return process.env.ADMIN_API_KEY;
+}
+
+function getCookieValue(req, name) {
+  const cookieHeader = req.headers.cookie || '';
+  const pairs = cookieHeader.split(';').map(part => part.trim()).filter(Boolean);
+
+  for (const pair of pairs) {
+    const index = pair.indexOf('=');
+    if (index === -1) continue;
+
+    const key = pair.slice(0, index);
+    if (key !== name) continue;
+
+    return decodeURIComponent(pair.slice(index + 1));
+  }
+
+  return '';
+}
+
+function getProvidedAdminKey(req) {
+  return req.headers['x-admin-key']
+    || req.query?.admin_key
+    || req.query?.key
+    || getCookieValue(req, 'admin_key');
+}
+
+function setAdminCookie(req, res, adminKey) {
+  const secure = process.env.NODE_ENV === 'production' ? '; Secure' : '';
+  const maxAge = 60 * 60 * 8;
+  res.setHeader(
+    'Set-Cookie',
+    `admin_key=${encodeURIComponent(adminKey)}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${maxAge}${secure}`
+  );
+}
+
 /**
  * 输入验证辅助函数
  * 使用Joi进行参数验证，防止SQL注入和非法输入
@@ -64,12 +101,13 @@ function authMiddleware(req, res, next) {
 }
 
 function adminMiddleware(req, res, next) {
-  const configuredKey = process.env.ADMIN_API_KEY || process.env.ADMIN_KEY;
-  const providedKey = req.headers['x-admin-key'];
+  const configuredKey = getConfiguredAdminKey();
+  const providedKey = getProvidedAdminKey(req);
 
   if (configuredKey) {
     if (providedKey === configuredKey) {
       req.adminAuthenticated = true;
+      req.adminKeySource = req.headers['x-admin-key'] ? 'header' : (req.query?.admin_key || req.query?.key ? 'query' : 'cookie');
       return next();
     }
     return res.status(403).json({ code: 403, message: '管理密钥无效' });
@@ -80,6 +118,38 @@ function adminMiddleware(req, res, next) {
   }
 
   return authMiddleware(req, res, next);
+}
+
+function adminPageMiddleware(req, res, next) {
+  const configuredKey = getConfiguredAdminKey();
+  const providedKey = getProvidedAdminKey(req);
+
+  if (configuredKey) {
+    if (providedKey === configuredKey) {
+      req.adminAuthenticated = true;
+      setAdminCookie(req, res, configuredKey);
+      return next();
+    }
+
+    res.status(403).type('html').send(`
+      <!doctype html>
+      <html lang="zh-CN">
+        <head><meta charset="utf-8"><title>管理后台受保护</title></head>
+        <body style="font-family: sans-serif; padding: 32px;">
+          <h1>管理后台受保护</h1>
+          <p>请使用管理员密钥访问，例如：<code>/admin?admin_key=YOUR_KEY</code></p>
+        </body>
+      </html>
+    `);
+    return;
+  }
+
+  if (process.env.NODE_ENV === 'production') {
+    res.status(503).type('html').send('管理密钥未配置');
+    return;
+  }
+
+  next();
 }
 
 /**
@@ -107,6 +177,7 @@ function optionalAuth(req, res, next) {
 }
 
 module.exports = {
+  adminPageMiddleware,
   adminMiddleware,
   authMiddleware,
   optionalAuth,

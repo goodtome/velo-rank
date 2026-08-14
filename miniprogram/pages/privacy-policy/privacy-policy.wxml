@@ -3,7 +3,7 @@
   <view class="page-header">
     <text class="header-title">隐私政策</text>
     <text class="header-desc">正一领骑 尊重并保护您的个人隐私</text>
-    <text class="header-date">更新日期：2026年6月5日</text>
+    <text class="header-date">更新日期：2026年8月13日</text>
   </view>
 
   <!-- 引言 -->
@@ -47,6 +47,20 @@
         <view class="info-content">
           <text class="info-label">浏览记录</text>
           <text class="info-desc">您在应用内的浏览和搜索历史，用于提供搜索建议和历史记录查询功能。</text>
+        </view>
+      </view>
+      <view class="info-item">
+        <view class="info-dot"></view>
+        <view class="info-content">
+          <text class="info-label">剪贴板（仅写入）</text>
+          <text class="info-desc">仅当您主动点击「复制反馈链接」时，将意见反馈表格链接写入剪贴板，便于您粘贴打开填写反馈；我们不会读取剪贴板中的其他内容。</text>
+        </view>
+      </view>
+      <view class="info-item">
+        <view class="info-dot"></view>
+        <view class="info-content">
+          <text class="info-label">日历（仅写入）</text>
+          <text class="info-desc">仅当您主动点击「添加到日历」并确认后，将赛事名称和起止日期写入系统日历，用于赛事日程提醒；我们不会读取或修改您日历中的其他内容。</text>
         </view>
       </view>
     </view>
@@ -114,7 +128,7 @@
       <view class="info-item">
         <view class="info-dot"></view>
         <view class="info-content">
-          <text class="info-desc">您的个人信息存储在我们的服务器端，采用加密数据库进行安全存储。</text>
+          <text class="info-desc">您的个人信息存储在我们的服务器端，通过 HTTPS 加密传输、数据库访问控制等措施进行安全保护。</text>
         </view>
       </view>
       <view class="info-item">
@@ -185,6 +199,6 @@
   <!-- 底部信息 -->
   <view class="footer-section">
     <text class="footer-text">正一领骑 团队</text>
-    <text class="footer-date">最后更新：2026年6月5日</text>
+    <text class="footer-date">最后更新：2026年8月13日</text>
   </view>
 </view>

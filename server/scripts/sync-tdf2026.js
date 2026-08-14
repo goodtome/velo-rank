@@ -29,14 +29,20 @@ const REQUEST_DELAY = 4000;
 
 // 将 race_code 转换为 PCS URL 路径
 // 例如: "tour-de-france-2026" → "tour-de-france/2026"
+// 特殊映射: "tdf-2026" → "tour-de-france/2026"
+const RACE_PATH_MAP = { tdf: 'tour-de-france', tdfw: 'tour-de-france-femmes', giro: 'giro-d-italia', girow: 'giro-d-italia-women', vuelta: 'vuelta-a-espana' };
 function racePath(code) {
   const m = code.match(/^(.+)-(\d{4})$/);
-  return m ? `${m[1]}/${m[2]}` : code;
+  if (m) {
+    const slug = RACE_PATH_MAP[m[1]] || m[1];
+    return `${slug}/${m[2]}`;
+  }
+  return code;
 }
 
 // 命令行参数
 const args = process.argv.slice(2);
-let RACE_CODE = 'tour-de-france-2026';
+let RACE_CODE = 'tdf-2026';
 let stagesToSync = null;
 let typesToSync = ['stage', 'gc', 'points', 'kom', 'youth'];
 let dryRun = false;
@@ -313,12 +319,12 @@ async function saveStageResults(stageId, results) {
     const existing = await existsIn('stage_results', stageId, riderId);
     if (existing) {
       await conn.query(
-        'UPDATE stage_results SET rank_pos = ?, time_gap = ?, is_same_time = ? WHERE id = ?',
+        'UPDATE stage_results SET `rank` = ?, time_gap = ?, is_same_time = ? WHERE id = ?',
         [rank, r.time_gap, isSameTime, existing]
       );
     } else {
       await conn.query(
-        `INSERT INTO stage_results (id, stage_id, rank_pos, rider_id, team_id, nationality, time_gap, is_same_time)
+        `INSERT INTO stage_results (id, stage_id, \`rank\`, rider_id, team_id, nationality, time_gap, is_same_time)
          VALUES (?, ?, ?, ?, ?, 'UNK', ?, ?)`,
         [uuidv4(), stageId, rank, riderId, teamId, r.time_gap, isSameTime]
       );

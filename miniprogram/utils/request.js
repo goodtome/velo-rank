@@ -74,6 +74,7 @@ async function requestWithRetry(options, retries = REQUEST.MAX_RETRIES, delay = 
     const url = options.url.startsWith('http')
       ? options.url
       : baseUrl + options.url;
+    const startedAt = Date.now();
 
     // 自动注入 auth token
     const token = getAuthToken();
@@ -122,15 +123,24 @@ async function requestWithRetry(options, retries = REQUEST.MAX_RETRIES, delay = 
           }
         },
         fail: (err) => {
+          const elapsed = Date.now() - startedAt;
           const isTimeout = err.errMsg?.includes('timeout');
           const isNetworkError = err.errMsg?.includes('fail');
+          const debugDetail = {
+            url,
+            method: options.method || 'GET',
+            timeout,
+            elapsed,
+            retries,
+            errMsg: err.errMsg
+          };
 
           // 超时错误只重试1次（避免Fly.io冷启动时等待过久）
           const maxRetriesForError = isTimeout ? Math.min(retries, 1) : retries;
 
           if (maxRetriesForError > 0 && (isTimeout || isNetworkError)) {
             // 超时或网络错误，尝试重试
-            console.log(`网络请求失败，${delay}ms后重试，剩余${maxRetriesForError}次`);
+            console.log(`网络请求失败，${delay}ms后重试，剩余${maxRetriesForError}次`, debugDetail);
             setTimeout(() => {
               requestWithRetry(options, maxRetriesForError - 1, delay * 2)
                 .then(resolve)
@@ -152,7 +162,10 @@ async function requestWithRetry(options, retries = REQUEST.MAX_RETRIES, delay = 
               code: -1,
               errorType,
               message: errorMessage,
-              detail: err
+              detail: {
+                ...debugDetail,
+                raw: err
+              }
             });
           }
         }

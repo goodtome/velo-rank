@@ -7,6 +7,8 @@ const { get, del, formatErrorMessage } = require('../../utils/request');
 const { showSuccess, navigateTo } = require('../../utils/util');
 const { t, getLocale } = require('../../utils/i18n');
 
+const ADMIN_KEY_STORAGE = 'adminSyncKey';
+
 Page({
   data: {
     showAbout: false,
@@ -14,12 +16,18 @@ Page({
     riderCount: '--',
     teamCount: '--',
     loadError: false,
-    errorMessage: ''
+    errorMessage: '',
+    isAdminToolsVisible: false
   },
 
   onLoad() {
     this.initI18n();
+    this.refreshAdminToolsVisibility();
     this.loadCounts();
+  },
+
+  onShow() {
+    this.refreshAdminToolsVisibility();
   },
 
   /**
@@ -66,12 +74,23 @@ Page({
     this.loadCounts();
   },
 
+  refreshAdminToolsVisibility() {
+    const adminKey = wx.getStorageSync(ADMIN_KEY_STORAGE) || '';
+    this.setData({ isAdminToolsVisible: !!adminKey });
+  },
+
   /**
    * 跳转到搜索页
    */
   goToSearch() {
     wx.switchTab({ 
       url: '/pages/search/search' 
+    });
+  },
+
+  goToFavorites() {
+    navigateTo({
+      url: '/pages/favorites/favorites'
     });
   },
 
@@ -115,6 +134,12 @@ Page({
    * 跳转到管理员同步页
    */
   goToAdminSync() {
+    const adminKey = wx.getStorageSync(ADMIN_KEY_STORAGE) || '';
+    if (!adminKey) {
+      wx.showToast({ title: '管理员功能未启用', icon: 'none' });
+      return;
+    }
+
     navigateTo({
       url: '/pages/admin-sync/admin-sync'
     });

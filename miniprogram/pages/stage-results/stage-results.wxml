@@ -26,6 +26,7 @@
   </view>
 
   <view wx:else>
+    <view wx:if="{{cacheNotice}}" class="cache-notice">{{cacheNotice}}</view>
     <!-- 顶部导航切换 -->
     <scroll-view scroll-x class="tabs-nav card" enable-flex>
       <view 
@@ -81,7 +82,7 @@
       </view>
     </view>
 
-    <view wx:if="{{type === 'gc' && gcTrend.points.length > 0}}" class="gc-trend-card card">
+    <view wx:if="{{type === 'gc' && (gcTrend.status === 'ready' || gcTrend.status === 'partial')}}" class="gc-trend-card card">
       <view class="gc-trend-header">
         <view>
           <view class="section-label">GC 时间差走势图</view>
@@ -90,26 +91,65 @@
         <view class="gc-trend-badge">{{gcTrend.maxGapLabel}}</view>
       </view>
 
+      <view wx:if="{{gcTrend.message}}" class="gc-trend-notice">{{gcTrend.message}}</view>
+      <scroll-view scroll-x="true" class="gc-trend-rider-scroll" show-scrollbar="false">
+        <view class="gc-trend-rider-options">
+          <view
+            wx:for="{{gcTrend.riders}}"
+            wx:key="id"
+            class="gc-trend-rider-option {{item.selected ? 'gc-trend-rider-option-active' : ''}}"
+            style="{{item.selected ? 'border-color:' + item.color + ';color:' + item.color + ';' : ''}}"
+            bindtap="selectGcTrendRider"
+            data-id="{{item.id}}"
+          >
+            <view class="gc-trend-rider-color" style="background:{{item.color}};"></view>
+            <text>#{{item.rank}} {{item.name}}</text>
+          </view>
+        </view>
+      </scroll-view>
+
       <scroll-view scroll-x="true" class="gc-trend-scroll" show-scrollbar="false">
         <view class="gc-trend-chart" style="width: {{gcTrend.chartWidth}}rpx; height: {{gcTrend.chartHeight}}rpx;">
           <view
             wx:for="{{gcTrend.segments}}"
-            wx:key="index"
-            class="gc-trend-segment"
+            wx:key="key"
+            class="gc-trend-segment {{item.highlighted ? 'gc-trend-segment-highlighted' : ''}}"
             style="{{item.style}}"
           ></view>
           <view
             wx:for="{{gcTrend.points}}"
-            wx:key="rank"
-            class="gc-trend-point"
+            wx:key="key"
+            class="gc-trend-point {{item.isHighlighted ? 'gc-trend-point-highlighted' : ''}}"
             style="{{item.pointStyle}}"
+            bindtap="goToGcTrendStage"
+            data-stage-id="{{item.stageId}}"
+            data-stage-number="{{item.stageNumber}}"
           >
-            <view class="gc-trend-gap">{{item.gapLabel}}</view>
-            <view class="gc-trend-dot {{item.isLeader ? 'gc-trend-dot-leader' : ''}} {{item.isMissing ? 'gc-trend-dot-missing' : ''}}"></view>
-            <view class="gc-trend-rank">{{item.rankLabel}}</view>
+            <view wx:if="{{item.isHighlighted}}" class="gc-trend-gap" style="{{item.labelStyle}}">{{item.gapLabel}}</view>
+            <view class="gc-trend-dot" style="{{item.dotStyle}}"></view>
+            <view wx:if="{{item.isHighlighted}}" class="gc-trend-rank">#{{item.rank}}</view>
           </view>
+          <view
+            wx:for="{{gcTrend.stages}}"
+            wx:key="id"
+            class="gc-trend-stage-label"
+            style="{{item.style}}"
+          >S{{item.number}}</view>
         </view>
       </scroll-view>
+    </view>
+
+    <view wx:elif="{{type === 'gc' && (gcTrend.status === 'empty' || gcTrend.status === 'error')}}" class="gc-trend-card card gc-trend-empty">
+      <view class="gc-trend-header">
+        <view>
+          <view class="section-label">GC 时间差走势</view>
+          <view class="gc-trend-sub">数据不足或暂时无法获取走势时，仍可正常查看总成绩榜。</view>
+        </view>
+      </view>
+      <view class="gc-trend-empty-body">
+        <text class="gc-trend-empty-icon">GC</text>
+        <text class="gc-trend-empty-text">{{gcTrend.message}}</text>
+      </view>
     </view>
 
     <!-- 成绩列表 -->

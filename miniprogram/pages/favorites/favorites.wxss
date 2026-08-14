@@ -1,0 +1,141 @@
+.favorites-page {
+  min-height: 100vh;
+  background: #f0f2f5;
+  padding: 24rpx;
+  box-sizing: border-box;
+}
+
+.state-block {
+  min-height: 520rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #666;
+}
+
+.state-icon {
+  font-size: 56rpx;
+  color: #999;
+  margin-bottom: 20rpx;
+}
+
+.state-text {
+  font-size: 28rpx;
+  color: #555;
+  text-align: center;
+}
+
+.state-sub {
+  margin-top: 12rpx;
+  font-size: 24rpx;
+  color: #999;
+}
+
+.loading-spinner {
+  width: 44rpx;
+  height: 44rpx;
+  border: 4rpx solid #d8e8f8;
+  border-top-color: #2196F3;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin-bottom: 20rpx;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.retry-btn {
+  margin-top: 24rpx;
+  width: 180rpx;
+  height: 72rpx;
+  line-height: 72rpx;
+  border-radius: 36rpx;
+  background: #2196F3;
+  color: #fff;
+  font-size: 28rpx;
+}
+
+.favorite-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+
+.favorite-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 24rpx;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.05);
+}
+
+.favorite-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+}
+
+.rider-avatar {
+  width: 84rpx;
+  height: 84rpx;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: #eef3f8;
+}
+
+.rider-avatar-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #2196F3;
+  font-weight: 700;
+}
+
+.rider-info {
+  flex: 1;
+  min-width: 0;
+  margin-left: 20rpx;
+  display: flex;
+  flex-direction: column;
+}
+
+.rider-name {
+  font-size: 30rpx;
+  color: #222;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rider-sub,
+.rider-meta {
+  margin-top: 4rpx;
+  font-size: 24rpx;
+  color: #888;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.remove-btn {
+  width: 120rpx;
+  height: 60rpx;
+  line-height: 60rpx;
+  margin-left: 20rpx;
+  border-radius: 30rpx;
+  background: #f6f7f9;
+  color: #666;
+  font-size: 24rpx;
+}
+
+.remove-btn::after,
+.retry-btn::after {
+  border: none;
+}

@@ -1,6 +1,6 @@
 {
   "name": "zhengyi-lingqi",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "正一领骑 - 自行车比赛成绩查询小程序后端 API",
   "main": "server/app.js",
   "scripts": {
@@ -12,9 +12,10 @@
     "backup": "node server/scripts/backup-db.js",
     "backup-once": "node server/scripts/schedule-backup.js --once",
     "check-encoding": "node scripts/check-encoding.js",
-    "test": "node scripts/check-encoding.js && node scripts/validate-syntax.js && node scripts/test-auth-middleware.js && node scripts/test-jersey-service.js && node scripts/test-security-config.js && node scripts/test-favorites-transaction.js && node scripts/test-favorites-route.js",
+    "test": "node scripts/check-encoding.js && node scripts/validate-syntax.js && node scripts/check-miniapp-placeholders.js && node scripts/check-review-readiness.js && node scripts/test-sensitive-config.js && node scripts/test-auth-middleware.js && node scripts/test-auth-login-route.js && node scripts/test-jersey-service.js && node scripts/test-security-config.js && node scripts/test-favorites-transaction.js && node scripts/test-favorites-route.js && node scripts/test-search-races-route.js && node scripts/test-gc-trend-route.js && node scripts/test-race-visualization.js && node scripts/test-detail-insights-routes.js && node scripts/test-error-handler.js && node scripts/test-response-formatter.js && node scripts/test-push-send-route.js && node scripts/test-miniapp-env-default.js && node scripts/test-rank-field-mapping.js && node scripts/test-realtime-schema.js && node scripts/test-admin-translation-stats.js && node scripts/test-init-schema-contract.js && node scripts/test-stages-create-route.js && node scripts/test-admin-generate-sql.js && node scripts/test-admin-import-stage.js && node scripts/test-admin-chinese-name-routes.js",
     "install-all": "npm install",
-    "monitor": "node server/scripts/schedule-backup.js"
+    "monitor": "node server/scripts/schedule-backup.js",
+    "check-review": "node scripts/check-review-readiness.js"
   },
   "keywords": [
     "cycling",

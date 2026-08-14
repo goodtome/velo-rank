@@ -90,6 +90,30 @@
   margin-top: 12rpx;
 }
 
+.favorite-btn {
+  align-self: flex-start;
+  min-width: 132rpx;
+  height: 56rpx;
+  line-height: 56rpx;
+  margin: 18rpx 0 0 0;
+  padding: 0 22rpx;
+  border-radius: 28rpx;
+  background: rgba(255, 255, 255, 0.94);
+  color: #1565c0;
+  font-size: 24rpx;
+  font-weight: 600;
+}
+
+.favorite-btn::after {
+  border: none;
+}
+
+.favorite-btn-active {
+  background: rgba(255, 255, 255, 0.22);
+  color: #ffffff;
+  border: 1rpx solid rgba(255, 255, 255, 0.7);
+}
+
 /* 基本信息 */
 .info-card {
   margin-bottom: 24rpx;
@@ -395,6 +419,286 @@
 .jersey-tag-red, .jersey-tag-RED {
   background: #ffebee;
   color: #c62828;
+}
+
+/* 车手表现可视化 */
+.rider-viz-card {
+  margin-bottom: 24rpx;
+}
+
+.rider-insights-card {
+  margin-bottom: 24rpx;
+}
+
+.rider-insights-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12rpx;
+}
+
+.rider-insights-item {
+  display: flex;
+  flex-direction: column;
+  min-height: 86rpx;
+  padding: 16rpx;
+  border-radius: 16rpx;
+  background: #f8f9fa;
+}
+
+.rider-insights-value {
+  font-size: 34rpx;
+  font-weight: 800;
+  color: #1565c0;
+}
+
+.rider-insights-label,
+.rider-insights-subtitle {
+  margin-top: 6rpx;
+  color: #7f8c8d;
+  font-size: 20rpx;
+}
+
+.rider-insights-green .rider-insights-value { color: #2e7d32; }
+.rider-insights-purple .rider-insights-value { color: #7b1fa2; }
+.rider-insights-gold .rider-insights-value { color: #f57f17; }
+
+.rider-insights-section {
+  margin-top: 22rpx;
+  padding-top: 18rpx;
+  border-top: 1rpx solid #edf0f3;
+}
+
+.rider-insights-subtitle {
+  margin: 0 0 10rpx;
+  font-weight: 700;
+  color: #34495e;
+  font-size: 24rpx;
+}
+
+.rider-season-row,
+.rider-form-row {
+  display: flex;
+  align-items: center;
+  gap: 10rpx;
+  padding: 13rpx 0;
+  border-bottom: 1rpx solid #f1f3f5;
+}
+
+.rider-season-row:last-child,
+.rider-form-row:last-child {
+  border-bottom: none;
+}
+
+.rider-season-year {
+  min-width: 72rpx;
+  font-size: 26rpx;
+  font-weight: 800;
+  color: #1565c0;
+}
+
+.rider-season-meta,
+.rider-season-best,
+.rider-form-stage {
+  color: #7f8c8d;
+  font-size: 20rpx;
+}
+
+.rider-season-win {
+  color: #f57f17;
+  font-weight: 700;
+}
+
+.rider-season-best {
+  margin-left: auto;
+  color: #34495e;
+}
+
+.rider-form-main {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  flex-direction: column;
+}
+
+.rider-form-race {
+  overflow: hidden;
+  color: #34495e;
+  font-size: 24rpx;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rider-form-rank {
+  padding: 5rpx 12rpx;
+  border-radius: 999rpx;
+  background: #f1f3f5;
+  color: #5f6b7a;
+  font-size: 22rpx;
+  font-weight: 800;
+}
+
+.rider-form-rank-podium { color: #1565c0; background: #e3f2fd; }
+.rider-form-rank-win { color: #a75b00; background: #fff3cd; }
+
+.rider-viz-summary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12rpx;
+  margin-bottom: 22rpx;
+}
+
+.rider-viz-summary-item {
+  min-height: 92rpx;
+  border-radius: 16rpx;
+  padding: 16rpx;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  background: #f8f9fa;
+  box-shadow: inset 0 0 0 1rpx rgba(33, 150, 243, 0.06);
+}
+
+.rider-viz-summary-value {
+  font-size: 34rpx;
+  line-height: 1.1;
+  font-weight: 800;
+  color: #1565c0;
+}
+
+.rider-viz-summary-label {
+  margin-top: 8rpx;
+  font-size: 20rpx;
+  color: #7f8c8d;
+}
+
+.rider-viz-summary-green .rider-viz-summary-value {
+  color: #2e7d32;
+}
+
+.rider-viz-summary-gold .rider-viz-summary-value {
+  color: #f57f17;
+}
+
+.rider-viz-summary-purple .rider-viz-summary-value {
+  color: #7b1fa2;
+}
+
+.rider-viz-chart-title {
+  font-size: 24rpx;
+  font-weight: 700;
+  color: #34495e;
+  margin-bottom: 14rpx;
+}
+
+.rider-viz-scroll {
+  width: 100%;
+  margin-bottom: 22rpx;
+}
+
+.rider-viz-bars {
+  min-height: 238rpx;
+  display: flex;
+  align-items: flex-end;
+  gap: 18rpx;
+  padding: 8rpx 4rpx 0;
+}
+
+.rider-viz-bar-item {
+  width: 84rpx;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.rider-viz-rank {
+  min-height: 28rpx;
+  margin-bottom: 8rpx;
+  font-size: 20rpx;
+  font-weight: 700;
+  color: #5f6b7a;
+}
+
+.rider-viz-rank-win {
+  color: #f57f17;
+}
+
+.rider-viz-rank-podium {
+  color: #1565c0;
+}
+
+.rider-viz-bar-track {
+  width: 54rpx;
+  height: 164rpx;
+  border-radius: 999rpx;
+  overflow: hidden;
+  display: flex;
+  align-items: flex-end;
+  background: rgba(33, 150, 243, 0.08);
+}
+
+.rider-viz-bar-fill {
+  width: 100%;
+  border-radius: 999rpx;
+  background: linear-gradient(180deg, #90a4ae, #607d8b);
+}
+
+.rider-viz-bar-win {
+  background: linear-gradient(180deg, #ffca28, #f57f17);
+}
+
+.rider-viz-bar-podium {
+  background: linear-gradient(180deg, #42a5f5, #1565c0);
+}
+
+.rider-viz-stage {
+  margin-top: 8rpx;
+  font-size: 19rpx;
+  color: #7f8c8d;
+}
+
+.rider-viz-types {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+}
+
+.rider-viz-type-item {
+  padding: 14rpx 16rpx;
+  border-radius: 16rpx;
+  background: #f8f9fa;
+}
+
+.rider-viz-type-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12rpx;
+  margin-bottom: 10rpx;
+}
+
+.rider-viz-type-name {
+  font-size: 22rpx;
+  font-weight: 700;
+  color: #34495e;
+}
+
+.rider-viz-type-count {
+  font-size: 20rpx;
+  color: #7f8c8d;
+}
+
+.rider-viz-type-track {
+  height: 12rpx;
+  border-radius: 999rpx;
+  overflow: hidden;
+  background: rgba(33, 150, 243, 0.08);
+}
+
+.rider-viz-type-fill {
+  height: 100%;
+  border-radius: 999rpx;
+  background: linear-gradient(90deg, #42a5f5, #1565c0);
 }
 
 /* 成绩排名高亮 */

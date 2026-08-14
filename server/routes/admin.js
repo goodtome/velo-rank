@@ -88,6 +88,104 @@ function normalizeImportStagePayload(stageInfo, results) {
   };
 }
 
+function buildImportValidationSummary(stageInfo, results, jerseys = []) {
+  const rows = Array.isArray(results) ? results : [];
+  const jerseyRows = Array.isArray(jerseys) ? jerseys : [];
+  const ranks = new Map();
+  const riders = new Set();
+  const teams = new Set();
+  const errors = [];
+  let missingTimeGap = 0;
+
+  if (!stageInfo || typeof stageInfo !== 'object') {
+    errors.push('stage_info is required');
+  } else {
+    if (!normalizeRequiredStringField(stageInfo, 'race_code')) errors.push('stage_info.race_code is required');
+    if (!parsePositiveInteger(stageInfo.stage_number)) errors.push('stage_info.stage_number must be a positive integer');
+  }
+
+  if (!Array.isArray(results)) {
+    errors.push('results must be an array');
+  } else if (rows.length === 0) {
+    errors.push('results must contain at least one row');
+  }
+
+  rows.forEach((row, index) => {
+    const rank = parsePositiveInteger(row && row.rank);
+    const riderName = row && typeof row.rider_name === 'string' ? row.rider_name.trim() : '';
+    const teamName = row && typeof row.team_name === 'string' ? row.team_name.trim() : '';
+
+    if (!rank) errors.push(`results[${index}].rank must be a positive integer`);
+    if (!riderName) errors.push(`results[${index}].rider_name is required`);
+    if (!teamName) errors.push(`results[${index}].team_name is required`);
+
+    if (rank) {
+      if (!ranks.has(rank)) ranks.set(rank, []);
+      ranks.get(rank).push(index);
+    }
+    if (riderName) riders.add(riderName);
+    if (teamName) teams.add(teamName);
+    if (!row || row.time_gap === undefined || row.time_gap === null || row.time_gap === '') missingTimeGap += 1;
+  });
+
+  const duplicateRanks = [...ranks.entries()]
+    .filter(([, indexes]) => indexes.length > 1)
+    .map(([rank, indexes]) => ({ rank, rows: indexes }));
+
+  duplicateRanks.forEach(item => {
+    errors.push(`duplicate rank ${item.rank} at result rows ${item.rows.join(', ')}`);
+  });
+
+  jerseyRows.forEach((row, index) => {
+    if (!row || !row.jersey_type) errors.push(`jerseys[${index}].jersey_type is required`);
+    if (!row || !row.rider_name) errors.push(`jerseys[${index}].rider_name is required`);
+    if (!row || !row.team_name) errors.push(`jerseys[${index}].team_name is required`);
+  });
+
+  return {
+    ok: errors.length === 0,
+    errors,
+    warnings: missingTimeGap > 0 ? [`${missingTimeGap} result row(s) have no time_gap and will import as NULL`] : [],
+    summary: {
+      race_code: stageInfo && stageInfo.race_code,
+      stage_number: stageInfo && stageInfo.stage_number,
+      results_count: rows.length,
+      jerseys_count: jerseyRows.length,
+      unique_riders: riders.size,
+      unique_teams: teams.size,
+      duplicate_rank_count: duplicateRanks.length,
+      missing_time_gap_count: missingTimeGap
+    }
+  };
+}
+
+function validationErrorResponse(res, validation, message = 'Import payload validation failed') {
+  return res.status(400).json({
+    code: 400,
+    message,
+    data: {
+      validation
+    }
+  });
+}
+
+function chineseNameUpdateResponse(entityType, id, field, value) {
+  return {
+    code: 200,
+    message: `${entityType} Chinese name updated`,
+    data: {
+      entity_type: entityType,
+      id,
+      field,
+      value,
+      summary: {
+        updated: 1,
+        empty_after_trim: false
+      }
+    }
+  };
+}
+
 function normalizeRequiredStringField(body, fieldName) {
   if (!body || typeof body[fieldName] !== 'string') {
     return null;
@@ -103,6 +201,10 @@ router.use(adminMiddleware);
 router.post('/generate-sql', async (req, res) => {
   try {
     const { stage_info, results, jerseys } = req.body;
+    const validation = buildImportValidationSummary(stage_info, results, jerseys);
+    if (!validation.ok) {
+      return validationErrorResponse(res, validation);
+    }
     
     if (!stage_info || !results || !Array.isArray(results)) {
       return res.status(400).json({ 
@@ -304,7 +406,12 @@ SELECT
         sql: sqlScript,
         stage: `${raceCode} - Stage ${stageNum}`,
         results_count: sqlResults.length,
-        jerseys_count: jerseys?.length || 0
+        jerseys_count: jerseys?.length || 0,
+        validation,
+        summary: {
+          ...validation.summary,
+          generated_sql_bytes: Buffer.byteLength(sqlScript, 'utf8')
+        }
       } 
     });
     
@@ -318,6 +425,10 @@ SELECT
 router.post('/import-stage', async (req, res) => {
   try {
     const { stage_info, results, jerseys } = req.body;
+    const validation = buildImportValidationSummary(stage_info, results, jerseys);
+    if (!validation.ok) {
+      return validationErrorResponse(res, validation);
+    }
     const normalized = normalizeImportStagePayload(stage_info, results);
     if (normalized.error) {
       return res.status(400).json({
@@ -376,6 +487,7 @@ router.post('/import-stage', async (req, res) => {
     // 3. 批量导入成绩
     let imported = 0;
     let skipped = 0;
+    const rowErrors = [];
     
     for (const result of normalizedResults) {
       try {
@@ -412,6 +524,12 @@ router.post('/import-stage', async (req, res) => {
         imported++;
       } catch (err) {
         skipped++;
+        rowErrors.push({
+          rank: result.rank,
+          rider_name: result.rider_name,
+          team_name: result.team_name,
+          error: err.message
+        });
         log.error('成绩导入失败', { rank: result.rank, rider_name: result.rider_name, error: err.message });
       }
     }
@@ -427,12 +545,20 @@ router.post('/import-stage', async (req, res) => {
           race_code: raceCode,
           stage_number: stageNum,
           results_imported: imported,
-          results_skipped: skipped
+          results_skipped: skipped,
+          row_errors: rowErrors.slice(0, 10),
+          validation,
+          summary: {
+            ...validation.summary,
+            results_imported: imported,
+            results_skipped: skipped
+          }
         }
       });
     }
 
     let jerseyImported = 0;
+    const jerseyErrors = [];
     if (jerseys && jerseys.length > 0) {
       for (const jersey of jerseys) {
         try {
@@ -440,6 +566,12 @@ router.post('/import-stage', async (req, res) => {
           const [teams] = await pool.query('SELECT * FROM teams WHERE team_name = ?', [jersey.team_name]);
           
           if (riders.length === 0 || teams.length === 0) {
+            jerseyErrors.push({
+              jersey_type: jersey.jersey_type,
+              rider_name: jersey.rider_name,
+              team_name: jersey.team_name,
+              error: 'rider or team not found after result import'
+            });
             log.error('找不到车手或车队', { rider_name: jersey.rider_name, team_name: jersey.team_name });
             continue;
           }
@@ -452,6 +584,12 @@ router.post('/import-stage', async (req, res) => {
           
           jerseyImported++;
         } catch (err) {
+          jerseyErrors.push({
+            jersey_type: jersey.jersey_type,
+            rider_name: jersey.rider_name,
+            team_name: jersey.team_name,
+            error: err.message
+          });
           log.error('领骑衫导入失败', { jersey_type: jersey.jersey_type, error: err.message });
         }
       }
@@ -476,7 +614,19 @@ router.post('/import-stage', async (req, res) => {
         results_imported: imported,
         results_skipped: skipped,
         jerseys_imported: jerseyImported,
-        db_count: count[0].count
+        jerseys_skipped: jerseyErrors.length,
+        db_count: count[0].count,
+        row_errors: rowErrors.slice(0, 10),
+        jersey_errors: jerseyErrors.slice(0, 10),
+        validation,
+        summary: {
+          ...validation.summary,
+          results_imported: imported,
+          results_skipped: skipped,
+          jerseys_imported: jerseyImported,
+          jerseys_skipped: jerseyErrors.length,
+          db_result_count: count[0].count
+        }
       }
     });
     
@@ -552,7 +702,7 @@ router.put('/rider/:id/chinese-name', async (req, res) => {
       return res.status(404).json({ code: 404, message: '车手不存在' });
     }
     
-    res.json({ code: 200, message: '车手中文名更新成功' });
+    res.json(chineseNameUpdateResponse('rider', id, 'rider_name_zh', riderNameZh));
   } catch (err) {
     log.error('更新车手中文名失败', { error: err.message || String(err) });
     res.status(500).json({ code: 500, message: '更新失败: ' + err.message });
@@ -621,7 +771,7 @@ router.put('/team/:id/chinese-name', async (req, res) => {
       return res.status(404).json({ code: 404, message: '车队不存在' });
     }
     
-    res.json({ code: 200, message: '车队中文名更新成功' });
+    res.json(chineseNameUpdateResponse('team', id, 'team_name_zh', teamNameZh));
   } catch (err) {
     log.error('更新车队中文名失败', { error: err.message || String(err) });
     res.status(500).json({ code: 500, message: '更新失败: ' + err.message });
@@ -647,7 +797,7 @@ router.put('/race/:id/chinese-name', async (req, res) => {
       return res.status(404).json({ code: 404, message: '比赛不存在' });
     }
     
-    res.json({ code: 200, message: '比赛中文名更新成功' });
+    res.json(chineseNameUpdateResponse('race', id, 'race_name_zh', raceNameZh));
   } catch (err) {
     log.error('更新比赛中文名失败', { error: err.message || String(err) });
     res.status(500).json({ code: 500, message: '更新失败: ' + err.message });
@@ -673,7 +823,7 @@ router.put('/stage/:id/chinese-name', async (req, res) => {
       return res.status(404).json({ code: 404, message: '赛段不存在' });
     }
     
-    res.json({ code: 200, message: '赛段中文名更新成功' });
+    res.json(chineseNameUpdateResponse('stage', id, 'stage_name_zh', stageNameZh));
   } catch (err) {
     log.error('更新赛段中文名失败', { error: err.message || String(err) });
     res.status(500).json({ code: 500, message: '更新失败: ' + err.message });

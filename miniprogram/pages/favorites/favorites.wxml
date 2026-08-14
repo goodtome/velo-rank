@@ -1,0 +1,42 @@
+<view class="favorites-page">
+  <view wx:if="{{loading}}" class="state-block">
+    <view class="loading-spinner"></view>
+    <text class="state-text">加载关注列表...</text>
+  </view>
+
+  <view wx:elif="{{loadError}}" class="state-block">
+    <text class="state-icon">!</text>
+    <text class="state-text">{{errorMessage || '加载失败，请稍后重试'}}</text>
+    <button class="retry-btn" bindtap="retryLoad">重试</button>
+  </view>
+
+  <view wx:elif="{{favorites.length === 0}}" class="state-block">
+    <text class="state-icon">⌕</text>
+    <text class="state-text">还没有关注车手</text>
+    <text class="state-sub">进入车手详情页可以添加关注</text>
+  </view>
+
+  <view wx:else class="favorite-list">
+    <view class="favorite-card" wx:for="{{favorites}}" wx:key="rider_id">
+      <view class="favorite-main" data-id="{{item.rider_id}}" bindtap="goToRider">
+        <image wx:if="{{item.photo_url}}" class="rider-avatar" src="{{item.photo_url}}" mode="aspectFill" lazy-load></image>
+        <view wx:else class="rider-avatar rider-avatar-placeholder">R</view>
+        <view class="rider-info">
+          <text class="rider-name">{{item.displayName}}</text>
+          <text wx:if="{{item.displaySub}}" class="rider-sub">{{item.displaySub}}</text>
+          <text wx:if="{{item.nationalityZh || item.nationality}}" class="rider-meta">{{item.nationalityZh || item.nationality}}</text>
+        </view>
+      </view>
+      <button
+        class="remove-btn"
+        loading="{{removingId === item.rider_id}}"
+        disabled="{{!!removingId}}"
+        data-id="{{item.rider_id}}"
+        data-name="{{item.displayName}}"
+        catchtap="removeFavorite"
+      >
+        取消
+      </button>
+    </view>
+  </view>
+</view>

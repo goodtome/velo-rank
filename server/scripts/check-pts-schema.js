@@ -1,6 +1,8 @@
 const mysql = require('mysql2/promise');
+const { localDbConfig } = require('../../scripts/lib/db-config');
+
 (async () => {
-  const c = await mysql.createConnection({host:'localhost',port:13306,user:'root',password:'mysql123456',database:'jersey_db'});
+  const c = await mysql.createConnection(localDbConfig());
   const [cols] = await c.query('SHOW COLUMNS FROM points_classification');
   console.log('points_classification columns:');
   cols.forEach(c => console.log(`  ${c.Field} (${c.Type}) ${c.Key} ${c.Null === 'YES' ? 'NULL' : 'NOT NULL'} ${c.Default || ''}`));

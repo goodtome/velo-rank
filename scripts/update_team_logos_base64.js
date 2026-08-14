@@ -1,27 +1,13 @@
 const axios = require('axios');
 const cheerio = require('cheerio');
 const mysql = require('mysql2/promise');
-require('dotenv').config();
+const { localDbConfig, prodDbConfig } = require('./lib/db-config');
+require('dotenv').config({ path: require('path').join(__dirname, '..', 'server', 'config', '.env') });
 
 const isProd = process.env.NODE_ENV === 'production';
 const DB_CONFIG = isProd
-  ? {
-      host: process.env.DB_HOST_PROD || process.env.DB_HOST,
-      port: parseInt(process.env.DB_PORT_PROD || process.env.DB_PORT, 10) || 4000,
-      user: process.env.DB_USER_PROD || process.env.DB_USER,
-      password: process.env.DB_PASSWORD_PROD || process.env.DB_PASSWORD,
-      database: process.env.DB_NAME_PROD || process.env.DB_NAME || 'jersey_db',
-      charset: 'utf8mb4',
-      ssl: { rejectUnauthorized: true }
-    }
-  : {
-      host: process.env.DB_HOST || 'localhost',
-      port: parseInt(process.env.DB_PORT, 10) || 13306,
-      user: process.env.DB_USER || 'root',
-      password: process.env.DB_PASSWORD || 'mysql123456',
-      database: process.env.DB_NAME || 'jersey_db',
-      charset: 'utf8mb4'
-    };
+  ? prodDbConfig()
+  : localDbConfig();
 
 const USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/125 Safari/537.36';
 const MAX_IMAGE_BYTES = 250 * 1024;

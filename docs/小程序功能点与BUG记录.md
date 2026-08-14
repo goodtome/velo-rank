@@ -1,5 +1,7 @@
 # 「领骑/Jersey」小程序开发功能点与BUG记录
 
+> 历史归档：本文档记录 v1/v1.1 阶段开发状态，不能作为 v2 当前待办清单。v2 当前口径请以 `docs/V2.0.0_RELEASE_SCOPE.md` 和 `docs/CURRENT_VERSION_FEATURES.md` 为准。
+
 > 更新时间：2026-05-28
 > 项目：自行车比赛成绩查询小程序
 > 技术栈：微信小程序 + Node.js/Express + MySQL + Python 爬虫

@@ -85,6 +85,48 @@
     </view>
 
     <!-- 参赛赛事（新增） -->
+    <view wx:if="{{teamInsights.hasData}}" class="card-base team-insights-card">
+      <view class="section-title">团队表现</view>
+      <view class="team-insights-grid">
+        <view wx:for="{{teamInsights.profileItems}}" wx:key="key" class="team-insights-item team-insights-{{item.tone}}">
+          <text class="team-insights-value">{{item.value}}</text>
+          <text class="team-insights-label">{{item.label}}</text>
+        </view>
+      </view>
+
+      <view wx:if="{{teamInsights.topRiders.length > 0}}" class="team-insights-section">
+        <view class="team-insights-subtitle">核心车手</view>
+        <view wx:for="{{teamInsights.topRiders}}" wx:key="id" class="team-leader-row" bindtap="goToRider" data-id="{{item.id}}" hover-class="team-leader-row-hover">
+          <view class="team-leader-main">
+            <text class="team-leader-name">{{item.name}}</text>
+            <text class="team-leader-meta">{{item.nationality}} · {{item.wins}} 胜 · {{item.podiums}} 次领奖台</text>
+          </view>
+          <text class="team-leader-rank">最佳 {{item.bestRank}}</text>
+        </view>
+      </view>
+
+      <view wx:if="{{teamInsights.seasonSummaries.length > 0}}" class="team-insights-section">
+        <view class="team-insights-subtitle">赛季汇总</view>
+        <view wx:for="{{teamInsights.seasonSummaries}}" wx:key="season" class="team-season-row">
+          <text class="team-season-year">{{item.season}}</text>
+          <text class="team-season-meta">{{item.starts}} 次出赛</text>
+          <text class="team-season-meta team-season-win">{{item.wins}} 胜</text>
+          <text class="team-season-meta">{{item.podiums}} 次领奖台</text>
+        </view>
+      </view>
+
+      <view wx:if="{{teamInsights.highlights.length > 0}}" class="team-insights-section">
+        <view class="team-insights-subtitle">近期高光</view>
+        <view wx:for="{{teamInsights.highlights}}" wx:key="id" class="team-highlight-row">
+          <view class="team-highlight-main">
+            <text class="team-highlight-race">{{item.raceName}} · {{item.stageLabel}}</text>
+            <text class="team-highlight-rider">{{item.riderName}}</text>
+          </view>
+          <text class="team-highlight-rank {{item.isWin ? 'team-highlight-win' : ''}}">{{item.rankLabel}}</text>
+        </view>
+      </view>
+    </view>
+
     <view wx:if="{{stats && stats.recent_races && stats.recent_races.length > 0}}" class="card-base races-card">
       <view class="section-title">参赛赛事</view>
       <view wx:for="{{stats.recent_races}}" wx:key="id" class="race-item">
@@ -106,6 +148,14 @@
       <view wx:if="{{teamName.en}}" class="info-item">
         <text class="info-label">英文名</text>
         <text class="info-value">{{teamName.en}}</text>
+      </view>
+      <view wx:if="{{team.country}}" class="info-item">
+        <text class="info-label">注册国家</text>
+        <text class="info-value">{{team.country}}</text>
+      </view>
+      <view wx:if="{{team.category}}" class="info-item">
+        <text class="info-label">车队级别</text>
+        <text class="info-value">{{team.category}}</text>
       </view>
       <view wx:if="{{team.bike_brand}}" class="info-item">
         <text class="info-label">自行车品牌</text>

@@ -1,11 +1,10 @@
-/**
- * 推送设置页面逻辑
- * v1.0 简化版：本地存储优先，服务端同步为辅
- * 不依赖JWT，使用openid做简单标识
- */
-
-const { t, getLocale } = require('../../utils/i18n');
 const { post, get: fetchGet } = require('../../utils/request');
+const { getSubscribeTemplateIds } = require('../../config/env');
+const auth = require('../../utils/auth');
+
+function getEnabledSubscribeTemplateIds() {
+  return Object.values(getSubscribeTemplateIds()).filter(Boolean);
+}
 
 Page({
   data: {
@@ -20,65 +19,73 @@ Page({
     pushFrequency: 'realtime',
     openid: '',
     syncing: false,
-    syncStatus: '' // 'synced', 'error', ''
+    syncStatus: '',
+    hasSubscribeTemplates: getEnabledSubscribeTemplateIds().length > 0,
+    subscriptionStatus: {},
+    subscriptionSummary: '未同步授权状态'
   },
 
   onLoad() {
-    this.initI18n();
     this.loadSettings();
   },
 
-  /**
-   * 初始化i18n
-   */
-  initI18n() {
-    const locale = getLocale();
-    this.t = (key) => t(key, locale);
-    this.setData({ t: this.t });
+  async ensureLogin() {
+    let openid = auth.getOpenid();
+    if (auth.isLoggedIn() && openid) {
+      this.setData({ openid });
+      return true;
+    }
+
+    try {
+      wx.showLoading({ title: '登录中...' });
+      const loginResult = await auth.login();
+      wx.hideLoading();
+      openid = loginResult.openid || auth.getOpenid();
+      this.setData({ openid });
+      return !!openid;
+    } catch (err) {
+      wx.hideLoading();
+      console.error('登录失败:', err);
+      wx.showToast({
+        title: '登录失败，请稍后重试',
+        icon: 'none'
+      });
+      return false;
+    }
   },
 
-  /**
-   * 加载设置（本地优先 → 服务端覆盖）
-   */
   async loadSettings() {
     try {
-      // 先从本地读取
       const localSettings = wx.getStorageSync('pushSettings');
       if (localSettings) {
         this.setData(localSettings);
       }
 
-      // 尝试获取openid
-      const openid = wx.getStorageSync('openid') || '';
-      if (openid) {
-        this.setData({ openid });
-        // 从服务端同步最新设置
-        const res = await fetchGet('/push/settings', { openid });
-        if (res && res.code === 200 && res.data) {
-          const serverData = res.data;
-          this.setData({
-            pushEnabled: serverData.pushEnabled,
-            notifyRaceStart: serverData.notifyRaceStart,
-            notifyStageEnd: serverData.notifyStageEnd,
-            notifyRiderChange: serverData.notifyRiderChange,
-            notifyKeyEvents: serverData.notifyKeyEvents,
-            dndEnabled: serverData.dndEnabled,
-            dndStart: serverData.dndStart || '22:00',
-            dndEnd: serverData.dndEnd || '07:00',
-            pushFrequency: serverData.pushFrequency || 'realtime'
-          });
-          // 同步到本地存储
-          this.saveToLocal();
-        }
+      const loggedIn = await this.ensureLogin();
+      if (!loggedIn) return;
+
+      const res = await fetchGet('/push/settings');
+      if (res && res.code === 200 && res.data) {
+        const serverData = res.data;
+        this.setData({
+          pushEnabled: serverData.pushEnabled,
+          notifyRaceStart: serverData.notifyRaceStart,
+          notifyStageEnd: serverData.notifyStageEnd,
+          notifyRiderChange: serverData.notifyRiderChange,
+          notifyKeyEvents: serverData.notifyKeyEvents,
+          dndEnabled: serverData.dndEnabled,
+          dndStart: serverData.dndStart || '22:00',
+          dndEnd: serverData.dndEnd || '07:00',
+          pushFrequency: serverData.pushFrequency || 'realtime'
+        });
+        this.saveToLocal();
       }
+      await this.syncSubscriptionStatus();
     } catch (error) {
       console.error('加载推送设置失败:', error);
     }
   },
 
-  /**
-   * 保存到本地存储
-   */
   saveToLocal() {
     const {
       pushEnabled, notifyRaceStart, notifyStageEnd,
@@ -93,15 +100,27 @@ Page({
     });
   },
 
-  /**
-   * 同步到服务端
-   */
-  async syncToServer() {
-    const { openid } = this.data;
-    if (!openid) {
-      // 没有openid，仅本地保存
-      return;
+  async syncSubscriptionStatus() {
+    try {
+      const res = await fetchGet('/push/subscriptions');
+      if (!res || res.code !== 200 || !Array.isArray(res.data)) return;
+      const subscriptionStatus = res.data.reduce((statusMap, item) => {
+        statusMap[item.template_id] = item.is_valid === 1 || item.is_valid === true ? 'accepted' : 'rejected';
+        return statusMap;
+      }, {});
+      const acceptedCount = Object.values(subscriptionStatus).filter(status => status === 'accepted').length;
+      const subscriptionSummary = acceptedCount > 0
+        ? `已授权 ${acceptedCount} 个订阅模板`
+        : '尚未授权可用订阅模板';
+      this.setData({ subscriptionStatus, subscriptionSummary });
+    } catch (error) {
+      console.warn('Unable to sync subscription status:', error);
     }
+  },
+
+  async syncToServer() {
+    const loggedIn = await this.ensureLogin();
+    if (!loggedIn) return;
 
     this.setData({ syncing: true, syncStatus: '' });
 
@@ -113,7 +132,6 @@ Page({
       } = this.data;
 
       const res = await post('/push/settings', {
-        openid,
         pushEnabled,
         notifyRaceStart,
         notifyStageEnd,
@@ -138,24 +156,33 @@ Page({
     }
   },
 
-  /**
-   * 保存设置（本地 + 服务端）
-   */
   saveSettings() {
     this.saveToLocal();
     this.syncToServer();
   },
 
-  // ===== 切换事件 =====
-
-  togglePush(e) {
+  async togglePush(e) {
     const pushEnabled = e.detail.value;
     this.setData({ pushEnabled });
-    this.saveSettings();
+    this.saveToLocal();
+    await this.syncToServer();
 
     if (pushEnabled) {
-      // 申请推送权限
       this.requestSubscribe();
+    } else {
+      await this.cancelSubscriptions();
+    }
+  },
+
+  async cancelSubscriptions() {
+    const loggedIn = await this.ensureLogin();
+    if (!loggedIn) return;
+    try {
+      await post('/push/unsubscribe', { templateIds: getEnabledSubscribeTemplateIds() });
+      await this.syncSubscriptionStatus();
+    } catch (error) {
+      console.error('Unable to cancel subscriptions:', error);
+      wx.showToast({ title: '取消订阅同步失败', icon: 'none' });
     }
   },
 
@@ -180,8 +207,7 @@ Page({
   },
 
   toggleDnd(e) {
-    const dndEnabled = e.detail.value;
-    this.setData({ dndEnabled });
+    this.setData({ dndEnabled: e.detail.value });
     this.saveSettings();
   },
 
@@ -201,73 +227,67 @@ Page({
     this.saveSettings();
   },
 
-  /**
-   * 请求订阅消息权限
-   */
   requestSubscribe() {
-    // 微信订阅消息模板ID（需要在小程序后台配置后填入）
-    const tmplIds = [
-      // 'your-template-id-1', // 赛事开始模板
-      // 'your-template-id-2', // 赛段结束模板
-    ].filter(id => id); // 过滤空值
+    const tmplIds = getEnabledSubscribeTemplateIds();
 
     if (tmplIds.length === 0) {
-      console.log('未配置订阅消息模板ID，跳过订阅请求');
-      return;
-    }
-
-    wx.requestSubscribeMessage({
-      tmplIds,
-      success: (res) => {
-        console.log('订阅消息权限申请结果:', res);
-        // 保存订阅记录到服务端
-        const openid = this.data.openid || wx.getStorageSync('openid');
-        if (openid) {
-          const agreedTemplateIds = tmplIds.filter(id => res[id] === 'accept');
-          if (agreedTemplateIds.length > 0) {
-            post('/push/subscribe', { openid, templateIds: agreedTemplateIds })
-              .catch(err => console.error('保存订阅记录失败:', err));
-          }
-        }
-      },
-      fail: (err) => {
-        console.log('订阅消息权限申请失败:', err);
-      }
-    });
-  },
-
-  /**
-   * 发送测试推送
-   */
-  async sendTestNotification() {
-    const openid = this.data.openid || wx.getStorageSync('openid');
-    if (!openid) {
       wx.showToast({
-        title: '请先登录后测试',
+        title: '订阅模板待配置',
         icon: 'none'
       });
       return;
     }
 
+    wx.requestSubscribeMessage({
+      tmplIds,
+      success: async (res) => {
+        console.log('订阅消息授权结果:', res);
+        const openid = this.data.openid || auth.getOpenid();
+        if (openid) {
+          const agreedTemplateIds = tmplIds.filter(id => res[id] === 'accept');
+          if (agreedTemplateIds.length > 0) {
+            await post('/push/subscribe', { templateIds: agreedTemplateIds })
+              .catch(err => console.error('保存订阅记录失败:', err));
+          }
+        }
+        const rejectedTemplateIds = tmplIds.filter(id => ['reject', 'ban'].includes(res[id]));
+        if (rejectedTemplateIds.length > 0) {
+          try {
+            await post('/push/subscribe', { templateIds: [], rejectedTemplateIds });
+          } catch (err) {
+            console.error('Unable to persist rejected subscription:', err);
+          }
+        }
+        await this.syncSubscriptionStatus();
+      },
+      fail: (err) => {
+        console.log('订阅消息授权失败:', err);
+      }
+    });
+  },
+
+  async sendTestNotification() {
+    const loggedIn = await this.ensureLogin();
+    if (!loggedIn) return;
+
     wx.showLoading({ title: '发送中...' });
 
     try {
       const res = await post('/push/test', {
-        openid,
         title: '正一领骑 通知测试',
-        content: '如果您看到这条消息，说明推送功能正常工作！'
+        content: '如果您看到这条消息，说明推送功能正常工作。'
       });
 
       wx.hideLoading();
 
       if (res && res.code === 200) {
         wx.showToast({
-          title: res.data?.sent ? '测试推送已发送' : '推送已记录',
+          title: res.data && res.data.sent ? '测试推送已发送' : '推送已记录',
           icon: 'success'
         });
       } else {
         wx.showToast({
-          title: res?.message || '发送失败',
+          title: (res && res.message) || '发送失败',
           icon: 'none'
         });
       }
@@ -281,9 +301,6 @@ Page({
     }
   },
 
-  /**
-   * 分享
-   */
   onShareAppMessage() {
     return {
       title: '推送设置 - 正一领骑',

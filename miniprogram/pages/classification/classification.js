@@ -8,6 +8,8 @@ const { get, formatErrorMessage } = require('../../utils/request');
 const { showError, navigateTo } = require('../../utils/util');
 const { detectRaceType, getClassificationConfig } = require('../../utils/jersey-config');
 const { stageTypeName } = require('../../utils/stage-type');
+const dataCache = require('../../utils/cache');
+const { CACHE } = require('../../utils/constants');
 
 Page({
   data: {
@@ -22,8 +24,9 @@ Page({
     loadingMore: false,
     errorMessage: '',
     currentPage: 1,
-    pageSize: 50,
+    pageSize: 20,
     hasMore: false,
+    cacheNotice: '',
 
     // 类型配置（会在 onLoad 中根据赛事动态设置）
     typeName: {
@@ -106,6 +109,19 @@ Page({
     this.setData({ loading: true, loadError: false, currentPage: 1 });
 
     const { stageId, type, pageSize } = this.data;
+    this._prefetchedPage = null;
+    const cacheKey = dataCache.makeKey('classification', { stageId, type, page: 1 });
+    const cached = dataCache.get(cacheKey, { ttl: CACHE.CLASSIFICATION_TTL, allowStale: true });
+    if (cached) {
+      this.setData({
+        stage: cached.data.stage,
+        results: cached.data.results || [],
+        hasMore: !!cached.data.hasMore,
+        loading: false,
+        loadError: false,
+        cacheNotice: `${cached.isExpired ? '离线浏览' : '缓存数据'} · 更新于 ${dataCache.formatCachedAt(cached.cachedAt)}`
+      });
+    }
 
     if (!stageId) {
       this.setData({ loading: false });
@@ -140,13 +156,20 @@ Page({
       this.setData({
         results,
         hasMore,
-        loading: false
+        loading: false,
+        cacheNotice: ''
       });
+      dataCache.set(cacheKey, { stage: this.data.stage, results, hasMore });
+      this.prefetchNextPage();
     } catch (err) {
       console.error('加载分类数据失败:', err);
       const msg = formatErrorMessage(err);
-      this.setData({ loading: false, loadError: true, errorMessage: msg });
-      showError(msg);
+      if (cached) {
+        this.setData({ loading: false, cacheNotice: `离线浏览 · 数据更新于 ${dataCache.formatCachedAt(cached.cachedAt)}` });
+      } else {
+        this.setData({ loading: false, loadError: true, errorMessage: msg });
+        showError(msg);
+      }
     }
   },
 
@@ -162,10 +185,14 @@ Page({
     const nextPage = currentPage + 1;
 
     try {
-      const classRes = await get(`/stages/${stageId}/${type}`, { page: nextPage, limit: pageSize });
+      const prefetched = this._prefetchedPage;
+      const classRes = prefetched && prefetched.page === nextPage
+        ? prefetched.response
+        : await get(`/stages/${stageId}/${type}`, { page: nextPage, limit: pageSize });
+      this._prefetchedPage = null;
 
       if (classRes && classRes.code === 200 && Array.isArray(classRes.data)) {
-        const newResults = [...results, ...classRes.data];
+        const newResults = this.appendUniqueResults(results, classRes.data);
         const pagination = classRes.pagination || {};
         const hasMore = pagination.pages ? pagination.page < pagination.pages : classRes.data.length >= pageSize;
 
@@ -180,6 +207,35 @@ Page({
       wx.showToast({ title: formatErrorMessage(err), icon: 'none' });
     } finally {
       this.setData({ loadingMore: false });
+      this.prefetchNextPage();
+    }
+  },
+
+  appendUniqueResults(current, incoming) {
+    const seen = new Set(current.map(item => item.rider_id || item.team_id || `${item.rank}:${item.rider_name || item.team_name || ''}`));
+    return current.concat(incoming.filter(item => {
+      const key = item.rider_id || item.team_id || `${item.rank}:${item.rider_name || item.team_name || ''}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    }));
+  },
+
+  async prefetchNextPage() {
+    if (!this.data.hasMore || this.data.loadingMore) return;
+    const nextPage = this.data.currentPage + 1;
+    if (this._prefetchedPage && this._prefetchedPage.page === nextPage) return;
+    try {
+      const response = await get(`/stages/${this.data.stageId}/${this.data.type}`, {
+        page: nextPage,
+        limit: this.data.pageSize
+      });
+      if (response && response.code === 200 && Array.isArray(response.data)) {
+        this._prefetchedPage = { page: nextPage, response };
+      }
+    } catch (error) {
+      // Prefetch is opportunistic; the explicit load-more path remains available.
+      console.warn('Prefetch classification page failed:', error);
     }
   },
 

@@ -1,13 +1,13 @@
 # ============================================================
-# 正一领骑 后端 Dockerfile（精简版）
-# 部署目标：Fly.io
+# 正一领骑后端 Dockerfile
+# 部署目标：CloudBase 云托管等容器平台
 # 策略：排除 puppeteer/playwright 等重型爬虫依赖（仅独立脚本使用）
 # ============================================================
 
 FROM node:22-alpine
 
-# 安装 dumb-init 用于优雅退出
-RUN apk add --no-cache dumb-init
+# 安装 dumb-init 用于优雅退出，以及管理员同步 PCS 数据所需的 curl
+RUN apk add --no-cache dumb-init curl
 
 WORKDIR /app
 
@@ -33,9 +33,6 @@ RUN rm -rf node_modules/.cache \
 
 # ---- 应用代码 ----
 COPY server/ ./server/
-
-# 创建备份存储目录（挂载 Fly volume 时使用）
-RUN mkdir -p /app/backups
 
 # ---- 健康检查 ----
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \

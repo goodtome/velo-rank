@@ -37,13 +37,30 @@ server/fix-*.js
 server/generate-*.js
 server/insert*.js
 
-# ---- 爬虫脚本（仅本地开发用） ----
-server/crawl-*.js
-server/scrape-*.js
-server/import-pcs-*.js
-server/init-giro-*.js
-server/sync-pcs*.js
-server/test-pcs-*.js
+# ---- 爬虫脚本与离线数据处理（云托管镜像不运行） ----
+server/archive/
+server/scripts/archive/
+server/scripts/data/
+server/scripts/data-templates/
+server/scripts/backup-db.js
+server/scripts/schedule-backup.js
+server/scripts/fetch-pcs.py
+server/scripts/fetch_pcs_stage.py
+server/scripts/import*.js
+server/scripts/import*.py
+server/scripts/insert*.js
+server/scripts/fix*.js
+server/scripts/merge*.js
+server/scripts/cleanup*.js
+server/scripts/create-*.js
+server/scripts/setup-db.js
+server/scripts/check-*.js
+server/scripts/migrate-*.js
+server/scripts/generate-*.js
+server/scripts/seed-*.js
+server/scripts/run-migration.js
+server/scripts/MANUAL_DATA_COLLECTION.md
+server/scripts/README.md
 
 # ---- 部署检查脚本 ----
 server/deploy-check.*

@@ -18,6 +18,13 @@ const clients = new Map(); // 存储所有连接的客户端
  */
 function initWebSocket(server) {
   wss = new WebSocket.Server({ server, path: '/ws/realtime' });
+
+  wss.on('error', (error) => {
+    log.error('WebSocket服务器错误', {
+      code: error.code,
+      error: error.message
+    });
+  });
   
   wss.on('connection', (ws, req) => {
     const clientId = generateClientId();
@@ -161,27 +168,37 @@ async function sendInitialData(client, raceId, stageId) {
   try {
     // 获取GC排名
     const [gcRows] = await pool.query(`
-      SELECT r.id as riderId, r.name as riderName, t.name as teamName, 
-             gc.rank, gc.time_gap as timeGap
+      SELECT
+        r.id AS riderId,
+        r.rider_name AS riderName,
+        t.team_name AS teamName,
+        gc.\`rank\`,
+        gc.time_gap AS timeGap
       FROM general_classification gc
+      JOIN stages s ON gc.stage_id = s.id
       JOIN riders r ON gc.rider_id = r.id
-      JOIN teams t ON r.team_id = t.id
-      WHERE gc.race_id = ? AND gc.stage_id = ?
-      ORDER BY gc.rank ASC
+      JOIN teams t ON gc.team_id = t.id
+      WHERE gc.stage_id = ? AND s.race_id = ?
+      ORDER BY gc.\`rank\` ASC
       LIMIT 50
-    `, [raceId, stageId]);
-    
+    `, [stageId, raceId]);
+
     // 获取赛段成绩
     const [stageRows] = await pool.query(`
-      SELECT r.id as riderId, r.name as riderName, t.name as teamName, 
-             sr.rank, sr.time
+      SELECT
+        sr.\`rank\`,
+        r.id AS riderId,
+        r.rider_name AS riderName,
+        t.team_name AS teamName,
+        sr.time_gap AS timeGap
       FROM stage_results sr
+      JOIN stages s ON sr.stage_id = s.id
       JOIN riders r ON sr.rider_id = r.id
-      JOIN teams t ON r.team_id = t.id
-      WHERE sr.race_id = ? AND sr.stage_id = ?
-      ORDER BY sr.rank ASC
+      JOIN teams t ON sr.team_id = t.id
+      WHERE sr.stage_id = ? AND s.race_id = ?
+      ORDER BY sr.\`rank\` ASC
       LIMIT 50
-    `, [raceId, stageId]);
+    `, [stageId, raceId]);
     
     // 发送给客户端
     client.ws.send(JSON.stringify({

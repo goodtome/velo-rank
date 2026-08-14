@@ -133,6 +133,51 @@ router.get('/:id/stats', asyncHandler(async (req, res) => {
     LIMIT 5
   `, [id]);
 
+  const [careerStats] = await pool.query(`
+    SELECT COUNT(DISTINCT r.id) AS total_races,
+           COUNT(DISTINCT r.season) AS total_seasons,
+           MIN(sr.\`rank\`) AS best_stage_rank
+    FROM stage_results sr
+    JOIN stages s ON sr.stage_id = s.id
+    JOIN races r ON s.race_id = r.id
+    WHERE sr.rider_id = ?
+  `, [id]);
+
+  const [gcStats] = await pool.query(`
+    SELECT MIN(gc.\`rank\`) AS best_gc_rank,
+           COUNT(DISTINCT s.race_id) AS gc_races
+    FROM general_classification gc
+    JOIN stages s ON gc.stage_id = s.id
+    WHERE gc.rider_id = ?
+  `, [id]);
+
+  const [seasonSummaries] = await pool.query(`
+    SELECT r.season,
+           COUNT(*) AS starts,
+           SUM(CASE WHEN sr.\`rank\` = 1 THEN 1 ELSE 0 END) AS wins,
+           SUM(CASE WHEN sr.\`rank\` <= 3 THEN 1 ELSE 0 END) AS podiums,
+           MIN(sr.\`rank\`) AS best_rank
+    FROM stage_results sr
+    JOIN stages s ON sr.stage_id = s.id
+    JOIN races r ON s.race_id = r.id
+    WHERE sr.rider_id = ?
+    GROUP BY r.season
+    ORDER BY r.season DESC
+    LIMIT 4
+  `, [id]);
+
+  const [recentForm] = await pool.query(`
+    SELECT sr.\`rank\` AS rank, sr.time_gap, s.id AS stage_id, s.stage_number,
+           s.stage_name, s.stage_type, s.date, r.id AS race_id,
+           r.race_name, r.race_name_zh
+    FROM stage_results sr
+    JOIN stages s ON sr.stage_id = s.id
+    JOIN races r ON s.race_id = r.id
+    WHERE sr.rider_id = ?
+    ORDER BY s.date DESC, s.stage_number DESC
+    LIMIT 5
+  `, [id]);
+
   res.json({
     code: 200,
     data: {
@@ -142,7 +187,16 @@ router.get('/:id/stats', asyncHandler(async (req, res) => {
       top10: top10Stats[0].top10,
       stage_types: stageTypeStats,
       latest_result: latestResult.length > 0 ? latestResult[0] : null,
-      jerseys: jerseys
+      jerseys,
+      career: {
+        total_races: careerStats[0].total_races,
+        total_seasons: careerStats[0].total_seasons,
+        best_stage_rank: careerStats[0].best_stage_rank,
+        best_gc_rank: gcStats[0].best_gc_rank,
+        gc_races: gcStats[0].gc_races
+      },
+      season_summaries: seasonSummaries,
+      recent_form: recentForm
     },
     message: 'success'
   });

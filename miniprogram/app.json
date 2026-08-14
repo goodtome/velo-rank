@@ -3,6 +3,7 @@
     "pages/index/index",
     "pages/search/search",
     "pages/profile/profile",
+    "pages/favorites/favorites",
     "pages/help-feedback/help-feedback",
     "pages/race-archive/race-archive",
     "pages/admin-sync/admin-sync",

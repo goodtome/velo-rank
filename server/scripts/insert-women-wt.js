@@ -1,10 +1,9 @@
 const mysql = require('mysql2/promise');
 const crypto = require('crypto');
+const { localDbConfig } = require('../../scripts/lib/db-config');
 
 (async () => {
-  const conn = await mysql.createConnection({
-    host: 'localhost', port: 13306, user: 'root', password: 'mysql123456', database: 'jersey_db'
-  });
+  const conn = await mysql.createConnection(localDbConfig());
 
   // 单日赛 (16场) - 数据源: UCI官方 + domestiquecycling交叉验证
   const oneDay = [

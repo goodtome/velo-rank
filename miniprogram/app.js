@@ -32,7 +32,7 @@ App({
       .then(({ token, openid }) => {
         this.globalData.token = token;
         this.globalData.openid = openid;
-        console.log('微信登录成功, openid:', openid);
+        // 注意：不要在此打印 openid（隐私敏感，仅调试时在 Debug 面板查看）
       })
       .catch(err => {
         console.log('微信登录失败（非阻塞）:', err.message);

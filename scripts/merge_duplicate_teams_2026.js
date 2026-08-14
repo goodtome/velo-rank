@@ -1,15 +1,9 @@
 const path = require('path');
 const mysql = require('mysql2/promise');
+const { localDbConfig } = require('./lib/db-config');
 require('dotenv').config({ path: path.join(__dirname, '..', 'server', 'config', '.env') });
 
-const DB_CONFIG = {
-  host: process.env.DB_HOST || 'localhost',
-  port: Number(process.env.DB_PORT || 13306),
-  user: process.env.DB_USER || 'root',
-  password: process.env.DB_PASSWORD || 'mysql123456',
-  database: process.env.DB_NAME || 'jersey_db',
-  charset: 'utf8mb4'
-};
+const DB_CONFIG = localDbConfig();
 
 const DRY_RUN = process.argv.includes('--dry-run');
 

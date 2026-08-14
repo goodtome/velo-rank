@@ -33,7 +33,18 @@ Thumbs.db
 
 # Environment variables
 .env
-.<env-name>
+.env.*
+!server/config/.env.example
+
+# Archived one-time scripts (not part of the active codebase)
+server/archive/
+server/scripts/archive/
+scripts/archive/
+archive/
+
+# Scraping temp artifacts (not to be committed)
+temp/
+certs/
 
 # Workbuddy (not to be committed)
 .workbuddy/
@@ -47,10 +58,17 @@ server/uploads/
 *.sqlite
 *.sqlite3
 server/scripts/__pycache__/
-.env.production
-.env.example
 
 # Database backups
 backups/
 *.sql.gz
 server/scripts/backup_*.sql
+
+# Locally generated collection and audit artifacts
+scripts/__pycache__/
+/tdf_s*_data.json
+/tdf_s*_results.json
+/stage_data.json
+/tdf2026_audit_report.txt
+/june_2026_classification_audit.txt
+outputs/

@@ -7,6 +7,10 @@ const { get, formatErrorMessage } = require('../../utils/request');
 const { showError, navigateTo } = require('../../utils/util');
 const { jerseyTypeName, detectRaceType } = require('../../utils/jersey-config');
 const { stageTypeFullName } = require('../../utils/stage-type');
+const dataCache = require('../../utils/cache');
+const { CACHE } = require('../../utils/constants');
+
+const ADMIN_KEY_STORAGE = 'adminSyncKey';
 
 Page({
   data: {
@@ -24,15 +28,22 @@ Page({
     currentPage: 1,
     pageSize: 20,
     hasMore: false,
+    cacheNotice: '',
     raceCode: '',
     gcHeaderClass: '',
     stageResultKind: '',
+    isAdminToolsVisible: false,
     gcTrend: {
+      status: 'idle',
       chartWidth: 0,
-      chartHeight: 240,
+      chartHeight: 300,
       maxGapLabel: '',
+      message: '',
+      selectedRiderId: '',
+      riders: [],
       points: [],
-      segments: []
+      segments: [],
+      raw: null
     },
     tabs: [
       { id: 'stage', name: '赛段' },
@@ -55,6 +66,7 @@ Page({
     });
 
     this.updateTitle();
+    this.refreshAdminToolsVisibility();
 
     // 如果没有 stageId 但有 raceId，先获取最新赛段ID
     if (!stageId && raceId) {
@@ -62,6 +74,15 @@ Page({
     } else {
       this.loadData();
     }
+  },
+
+  onShow() {
+    this.refreshAdminToolsVisibility();
+  },
+
+  refreshAdminToolsVisibility() {
+    const adminKey = wx.getStorageSync(ADMIN_KEY_STORAGE) || '';
+    this.setData({ isAdminToolsVisible: !!adminKey });
   },
 
   /**
@@ -320,77 +341,160 @@ Page({
   /**
    * 构建 GC 时间差走势图
    */
-  buildGcTrend(results) {
-    const list = Array.isArray(results) ? results.slice() : [];
-    const pointsData = list.map((item, index) => {
-      const gapSeconds = index === 0 ? 0 : this.parseTimeGapToSeconds(item.time_gap);
-      const safeGap = Number.isFinite(gapSeconds) ? Math.max(0, gapSeconds) : 0;
-      return {
-        rank: item.rank || index + 1,
-        riderName: item.rider_name_zh || item.rider_name || '',
-        gapSeconds: safeGap,
-        gapLabel: index === 0 ? '+0:00' : (item.time_gap || this.formatGapText(safeGap)),
-        isLeader: index === 0 || safeGap === 0,
-        isMissing: index !== 0 && !Number.isFinite(gapSeconds)
-      };
-    }).filter(item => item.rank);
+  buildGcTrend(payload, selectedRiderId = '', error = false) {
+    const chartHeight = 300;
+    const fallback = {
+      status: error ? 'error' : 'empty',
+      chartWidth: 0,
+      chartHeight,
+      maxGapLabel: '',
+      message: error ? '走势数据暂时不可用，当前总成绩榜不受影响。' : '尚未积累足够的 GC 时间差数据。',
+      selectedRiderId: '',
+      riders: [],
+      points: [],
+      segments: [],
+      raw: payload || null
+    };
 
-    const chartHeight = 240;
-    const chartPointsData = pointsData.filter((item, index) => {
-      if (index === 0) return true;
-      return !item.isMissing && item.gapSeconds > 0;
-    });
+    if (!payload || !Array.isArray(payload.stages) || !Array.isArray(payload.riders)) {
+      return fallback;
+    }
 
-    if (chartPointsData.length <= 1) {
+    const stages = payload.stages
+      .filter(stage => stage && stage.id)
+      .slice()
+      .sort((a, b) => Number(a.number || 0) - Number(b.number || 0));
+    const riders = payload.riders
+      .filter(rider => rider && rider.id)
+      .slice(0, 10);
+
+    if (stages.length < 2 || riders.length === 0) {
       return {
-        chartWidth: 0,
-        chartHeight,
-        maxGapLabel: '',
-        leaderGap: pointsData[0] ? pointsData[0].gapLabel : '',
-        points: [],
-        segments: []
+        ...fallback,
+        status: payload.status === 'partial' ? 'partial' : 'empty',
+        message: stages.length < 2 ? '至少需要两个已完成赛段，才能展示 GC 时间差走势。' : fallback.message
       };
     }
 
-    const chartWidth = Math.max(520, chartPointsData.length * 96 + 56);
-    const maxGap = chartPointsData.reduce((max, item) => Math.max(max, item.gapSeconds), 0);
-    const minY = 34;
-    const maxY = chartHeight - 42;
+    const colorPalette = ['#1565c0', '#e65100', '#7b1fa2', '#00897b', '#c62828', '#6d4c41', '#546e7a', '#ad1457', '#2e7d32', '#5d4037'];
+    const selectedId = riders.some(rider => rider.id === selectedRiderId)
+      ? selectedRiderId
+      : riders[0].id;
+    const pointsByRider = new Map();
+    let maxGap = 0;
+    let validPointCount = 0;
 
-    const points = chartPointsData.map((item, index) => {
-      const x = 28 + index * 96;
-      const ratio = maxGap > 0 ? item.gapSeconds / maxGap : 0;
-      const y = maxGap > 0 ? (maxY - (ratio * (maxY - minY))) : maxY;
-      return {
-        ...item,
-        x,
-        y,
-        pointStyle: `left:${x}rpx;top:${y}rpx;`,
-        labelStyle: `left:${x}rpx;top:${Math.max(0, y - 16)}rpx;`,
-        rankLabel: `#${item.rank}`
-      };
-    });
-
-    const segments = [];
-    for (let i = 1; i < points.length; i += 1) {
-      const prev = points[i - 1];
-      const curr = points[i];
-      const dx = curr.x - prev.x;
-      const dy = curr.y - prev.y;
-      const length = Math.sqrt((dx * dx) + (dy * dy));
-      const angle = Math.atan2(dy, dx) * 180 / Math.PI;
-      segments.push({
-        style: `left:${prev.x}rpx;top:${prev.y}rpx;width:${length}rpx;transform:rotate(${angle}deg);`
+    riders.forEach(rider => {
+      const stageMap = new Map();
+      (Array.isArray(rider.points) ? rider.points : []).forEach(point => {
+        if (!point || !point.stageId) return;
+        const parsedGap = Number(point.rank) === 1 ? 0 : this.parseTimeGapToSeconds(point.timeGap);
+        const gapSeconds = Number.isFinite(parsedGap) ? Math.max(0, parsedGap) : null;
+        if (gapSeconds !== null) {
+          maxGap = Math.max(maxGap, gapSeconds);
+          validPointCount += 1;
+        }
+        stageMap.set(point.stageId, {
+          rank: point.rank,
+          timeGap: point.timeGap,
+          gapSeconds
+        });
       });
+      pointsByRider.set(rider.id, stageMap);
+    });
+
+    if (validPointCount < 2) {
+      return {
+        ...fallback,
+        status: payload.status === 'partial' ? 'partial' : 'empty',
+        message: '已获取 GC 数据，但有效时间差不足，暂不能绘制可靠走势。',
+        riders: riders.map((rider, index) => ({
+          id: rider.id,
+          name: rider.name || `车手 ${index + 1}`,
+          rank: rider.rank,
+          color: colorPalette[index],
+          selected: rider.id === selectedId
+        }))
+      };
     }
+
+    const chartWidth = Math.max(640, stages.length * 118 + 80);
+    const minY = 44;
+    const maxY = chartHeight - 58;
+    const chartPoints = [];
+    const segments = [];
+    const riderOptions = riders.map((rider, riderIndex) => ({
+      id: rider.id,
+      name: rider.name || `车手 ${riderIndex + 1}`,
+      rank: rider.rank,
+      color: colorPalette[riderIndex],
+      selected: rider.id === selectedId
+    }));
+
+    riders.forEach((rider, riderIndex) => {
+      const color = colorPalette[riderIndex];
+      const stageMap = pointsByRider.get(rider.id) || new Map();
+      let previous = null;
+
+      stages.forEach((stage, stageIndex) => {
+        const item = stageMap.get(stage.id);
+        if (!item || item.gapSeconds === null) {
+          previous = null;
+          return;
+        }
+
+        const x = 40 + stageIndex * 118;
+        const ratio = maxGap > 0 ? item.gapSeconds / maxGap : 0;
+        const y = maxY - ratio * (maxY - minY);
+        const isHighlighted = rider.id === selectedId;
+        const point = {
+          key: `${rider.id}-${stage.id}`,
+          riderId: rider.id,
+          stageId: stage.id,
+          stageNumber: stage.number,
+          riderName: rider.name || '',
+          rank: item.rank,
+          gapLabel: Number(item.rank) === 1 ? '+0:00' : (item.timeGap || this.formatGapText(item.gapSeconds)),
+          isHighlighted,
+          pointStyle: `left:${x}rpx;top:${y}rpx;`,
+          dotStyle: `background:${color};opacity:${isHighlighted ? 1 : 0.42};`,
+          labelStyle: `top:-42rpx;color:${color};`,
+        };
+        chartPoints.push(point);
+
+        if (previous) {
+          const dx = x - previous.x;
+          const dy = y - previous.y;
+          const length = Math.sqrt((dx * dx) + (dy * dy));
+          const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+          segments.push({
+            key: `${rider.id}-${previous.stageId}-${stage.id}`,
+            highlighted: isHighlighted,
+            style: `left:${previous.x}rpx;top:${previous.y}rpx;width:${length}rpx;background:${color};opacity:${isHighlighted ? 0.88 : 0.22};transform:rotate(${angle}deg);`
+          });
+        }
+
+        previous = { x, y, stageId: stage.id };
+      });
+    });
 
     return {
+      status: payload.status === 'partial' ? 'partial' : 'ready',
       chartWidth,
       chartHeight,
-      maxGapLabel: maxGap > 0 ? `最大落后 ${this.formatGapText(maxGap)}` : '全部同时间',
-      leaderGap: pointsData[0] ? pointsData[0].gapLabel : '',
-      points,
-      segments
+      maxGapLabel: maxGap > 0 ? `最大差距 ${this.formatGapText(maxGap)}` : '全部同秒',
+      message: payload.status === 'partial' ? '部分赛段或车手缺少 GC 数据，走势已在缺口处断开。' : '',
+      selectedRiderId: selectedId,
+      riders: riderOptions,
+      points: chartPoints,
+      segments,
+      stages: stages.map((stage, index) => ({
+        id: stage.id,
+        number: stage.number,
+        name: stage.name || '',
+        style: `left:${40 + index * 118}rpx;`
+      })),
+      raw: payload
     };
   },
 
@@ -449,6 +553,19 @@ Page({
     this.setData({ loading: true, loadError: false, currentPage: 1, errorMessage: '' });
 
     const { stageId, pageSize } = this.data;
+    const cacheKey = dataCache.makeKey('stage-results', { stageId, type: 'stage', page: 1 });
+    const cached = dataCache.get(cacheKey, { ttl: CACHE.STAGE_RESULTS_TTL, allowStale: true });
+    if (cached) {
+      this.setData({
+        stage: cached.data.stage || null,
+        results: cached.data.results || [],
+        hasMore: !!cached.data.hasMore,
+        stageResultKind: cached.data.stageResultKind || '',
+        loading: false,
+        loadError: false,
+        cacheNotice: `${cached.isExpired ? '离线浏览' : '缓存数据'} · 更新于 ${dataCache.formatCachedAt(cached.cachedAt)}`
+      });
+    }
 
     if (!stageId) {
       this.setData({ loading: false });
@@ -485,6 +602,13 @@ Page({
           results: teamResults,
           hasMore: pagination.pages ? pagination.page < pagination.pages : false,
           loading: false,
+          stageResultKind: 'team',
+          cacheNotice: ''
+        });
+        dataCache.set(cacheKey, {
+          stage: this.data.stage,
+          results: teamResults,
+          hasMore: pagination.pages ? pagination.page < pagination.pages : false,
           stageResultKind: 'team'
         });
         return;
@@ -499,7 +623,8 @@ Page({
         hasMore = pagination.pages ? pagination.page < pagination.pages : results.length >= pageSize;
       }
 
-      this.setData({ results, hasMore, loading: false });
+      this.setData({ results, hasMore, loading: false, cacheNotice: '' });
+      dataCache.set(cacheKey, { stage: this.data.stage, results, hasMore, stageResultKind: '' });
 
       // 加载领骑衫信息（独立 try/catch，失败不影响已加载的成绩）
       try {
@@ -510,8 +635,12 @@ Page({
     } catch (err) {
       console.error('加载赛段成绩失败:', err);
       const msg = formatErrorMessage(err);
-      this.setData({ loading: false, loadError: true, errorMessage: msg });
-      showError(msg);
+      if (cached) {
+        this.setData({ loading: false, cacheNotice: `离线浏览 · 数据更新于 ${dataCache.formatCachedAt(cached.cachedAt)}` });
+      } else {
+        this.setData({ loading: false, loadError: true, errorMessage: msg });
+        showError(msg);
+      }
     }
   },
 
@@ -559,6 +688,22 @@ Page({
     this.setData({ loading: true, loadError: false, currentPage: 1, errorMessage: '' });
 
     const { raceId, pageSize } = this.data;
+    const cacheKey = dataCache.makeKey('stage-results', { raceId, type: 'gc', page: 1 });
+    const cached = dataCache.get(cacheKey, { ttl: CACHE.STAGE_RESULTS_TTL, allowStale: true });
+    if (cached) {
+      const cachedResults = cached.data.results || [];
+      const cachedTrend = this.buildGcTrend(cached.data.gcTrendData || null);
+      this.setData({
+        results: cachedResults,
+        raceCode: cached.data.raceCode || this.data.raceCode,
+        gcHeaderClass: cached.data.gcHeaderClass || '',
+        hasMore: !!cached.data.hasMore,
+        gcTrend: cachedTrend,
+        loading: false,
+        loadError: false,
+        cacheNotice: `${cached.isExpired ? '离线浏览' : '缓存数据'} · 更新于 ${dataCache.formatCachedAt(cached.cachedAt)}`
+      });
+    }
 
     if (!raceId) {
       this.setData({ loading: false });
@@ -568,9 +713,10 @@ Page({
 
     try {
       // 并行加载 GC 成绩和赛事信息（用于领骑衫配色）
-      const [res, raceRes] = await Promise.all([
+      const [res, raceRes, trendRes] = await Promise.all([
         get(`/races/${raceId}/gc`, { page: 1, limit: pageSize }),
-        get(`/races/${raceId}`)
+        get(`/races/${raceId}`),
+        get(`/races/${raceId}/visualization/gc-trend`, { limit: 5 }).catch(err => ({ trendError: err }))
       ]);
 
       // 根据赛事类型设置 GC header 配色
@@ -592,8 +738,17 @@ Page({
         hasMore = pagination.pages ? pagination.page < pagination.pages : results.length >= pageSize;
       }
 
-      const gcTrend = this.buildGcTrend(results);
-      this.setData({ results, hasMore, loading: false, gcTrend });
+      const gcTrend = trendRes && trendRes.code === 200
+        ? this.buildGcTrend(trendRes.data)
+        : this.buildGcTrend(null, '', true);
+      this.setData({ results, hasMore, loading: false, gcTrend, cacheNotice: '' });
+      dataCache.set(cacheKey, {
+        results,
+        hasMore,
+        raceCode: this.data.raceCode,
+        gcHeaderClass: this.data.gcHeaderClass,
+        gcTrendData: trendRes && trendRes.code === 200 ? trendRes.data : null
+      });
 
       // GC页面也显示领骑衫（独立 try/catch，失败不影响已加载的成绩）
       try {
@@ -603,8 +758,12 @@ Page({
       }
     } catch (err) {
       console.error('加载总成绩榜失败:', err);
-      this.setData({ loading: false, loadError: true, errorMessage: formatErrorMessage(err) });
-      showError(formatErrorMessage(err));
+      if (cached) {
+        this.setData({ loading: false, cacheNotice: `离线浏览 · 数据更新于 ${dataCache.formatCachedAt(cached.cachedAt)}` });
+      } else {
+        this.setData({ loading: false, loadError: true, errorMessage: formatErrorMessage(err) });
+        showError(formatErrorMessage(err));
+      }
     }
   },
 
@@ -649,10 +808,10 @@ Page({
       const res = await get(url, params);
 
       if (res && res.code === 200 && Array.isArray(res.data)) {
-        const newResults = [...results, ...res.data];
+        const newResults = this.appendUniqueResults(results, res.data);
         const pagination = res.pagination || {};
         const hasMore = pagination.pages ? pagination.page < pagination.pages : res.data.length >= pageSize;
-        const gcTrend = type === 'gc' ? this.buildGcTrend(newResults) : this.data.gcTrend;
+        const gcTrend = this.data.gcTrend;
 
         this.setData({
           results: newResults,
@@ -667,6 +826,35 @@ Page({
     } finally {
       this.setData({ loadingMore: false });
     }
+  },
+
+  appendUniqueResults(current, incoming) {
+    const seen = new Set(current.map(item => item.rider_id || item.team_id || `${item.rank}:${item.rider_name || item.team_name || ''}`));
+    return current.concat(incoming.filter(item => {
+      const key = item.rider_id || item.team_id || `${item.rank}:${item.rider_name || item.team_name || ''}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    }));
+  },
+
+  selectGcTrendRider(e) {
+    const riderId = e.currentTarget.dataset.id;
+    const currentTrend = this.data.gcTrend || {};
+    if (!riderId || riderId === currentTrend.selectedRiderId || !currentTrend.raw) return;
+
+    this.setData({
+      gcTrend: this.buildGcTrend(currentTrend.raw, riderId)
+    });
+  },
+
+  goToGcTrendStage(e) {
+    const { stageId, stageNumber } = e.currentTarget.dataset;
+    if (!stageId) return;
+
+    navigateTo({
+      url: `/pages/stage-results/stage-results?stageId=${stageId}&raceId=${this.data.raceId}&stageNumber=${stageNumber || 0}&type=stage`
+    });
   },
 
   /**

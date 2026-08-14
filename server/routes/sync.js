@@ -200,8 +200,8 @@ function runSyncWorker({ raceCode, raceId, syncId, forceRefresh }) {
   return child;
 }
 
-// GET /api/v1/sync/status - 查看同步状态
-router.get('/status', asyncHandler(async (req, res) => {
+// GET /api/v1/sync/status - 查看同步状态（管理员）
+router.get('/status', adminMiddleware, asyncHandler(async (req, res) => {
   const valid = statusQuerySchema.validate(req.query);
   if (valid.error) {
     return res.status(400).json({

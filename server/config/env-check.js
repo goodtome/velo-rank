@@ -66,7 +66,7 @@ function validateEnv() {
     }
   }
 
-  const cors = process.env.CORS_ORIGINS || process.env.ALLOWED_ORIGINS;
+  const cors = process.env.CORS_ORIGINS;
   if (isProd && (!cors || cors === '*')) {
     errors.push('CORS_ORIGINS 未配置为明确白名单，生产环境必须限制来源');
   }
@@ -83,7 +83,7 @@ function validateEnv() {
     warnings.push('DB_POOL_QUEUE_LIMIT 为 0（无限排队），生产环境建议设置上限');
   }
 
-  const adminKey = process.env.ADMIN_API_KEY || process.env.ADMIN_KEY;
+  const adminKey = process.env.ADMIN_API_KEY;
   if (!adminKey || adminKey === 'your-admin-key') {
     if (isProd) {
       errors.push('ADMIN_API_KEY 未配置，生产环境管理接口必须设置');
@@ -95,16 +95,9 @@ function validateEnv() {
     if (!process.env.WECHAT_APPID || process.env.WECHAT_APPID === 'your_appid') {
       errors.push('WECHAT_APPID 未配置，微信登录和推送功能不可用');
     }
-    const wechatSecret = process.env.WECHAT_APPSECRET || process.env.WECHAT_SECRET;
+    const wechatSecret = process.env.WECHAT_APPSECRET;
     if (!wechatSecret || wechatSecret === 'your_appsecret') {
       errors.push('WECHAT_APPSECRET 未配置，微信登录和推送功能不可用');
-    }
-  }
-
-  // ---------- 备份（仅生产） ----------
-  if (isProd) {
-    if (!process.env.BACKUP_DIR) {
-      warnings.push('BACKUP_DIR 未配置，备份将存储在当前目录');
     }
   }
 

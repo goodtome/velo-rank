@@ -27,6 +27,11 @@ function buildRaceSearchLabel(race) {
   return { zh, en };
 }
 
+function normalizeFilter(value) {
+  const normalized = normalizeKeyword(value);
+  return normalized && normalized.toUpperCase() !== 'ALL' ? normalized : '';
+}
+
 // GET /api/v1/search/riders
 router.get('/riders', asyncHandler(async (req, res) => {
   const q = normalizeKeyword(req.query.q);
@@ -86,7 +91,10 @@ router.get('/teams', asyncHandler(async (req, res) => {
 // GET /api/v1/search/races
 router.get('/races', asyncHandler(async (req, res) => {
   const q = normalizeKeyword(req.query.q);
-  const { season } = req.query;
+  const season = req.query.season ?? req.query.year;
+  const status = normalizeFilter(req.query.status).toLowerCase();
+  const category = normalizeFilter(req.query.category);
+  const gender = normalizeFilter(req.query.gender).toUpperCase();
   const { pageNum, limitNum, offset } = parsePaging(req.query);
 
   if (q.length > 50) {
@@ -118,6 +126,32 @@ router.get('/races', asyncHandler(async (req, res) => {
     params.push(seasonNum);
   }
 
+  if (status) {
+    if (!['upcoming', 'ongoing', 'active', 'finished'].includes(status)) {
+      throw new AppError('Invalid status parameter', ERROR_CODE.BAD_REQUEST);
+    }
+    if (status === 'upcoming') {
+      where.push('start_date > CURDATE()');
+    } else if (status === 'ongoing' || status === 'active') {
+      where.push('start_date <= CURDATE() AND COALESCE(end_date, start_date) >= CURDATE()');
+    } else if (status === 'finished') {
+      where.push('COALESCE(end_date, start_date) < CURDATE()');
+    }
+  }
+
+  if (category) {
+    where.push('category = ?');
+    params.push(category);
+  }
+
+  if (gender) {
+    if (!['MEN', 'WOMEN'].includes(gender)) {
+      throw new AppError('Invalid gender parameter', ERROR_CODE.BAD_REQUEST);
+    }
+    where.push('gender = ?');
+    params.push(gender);
+  }
+
   const whereSql = `WHERE ${where.join(' AND ')}`;
 
   const [[{ total }]] = await pool.query(
@@ -141,7 +175,12 @@ router.get('/races', asyncHandler(async (req, res) => {
         end_date,
         total_stages,
         total_distance,
-        logo_url
+        logo_url,
+        CASE
+          WHEN start_date > CURDATE() THEN 'upcoming'
+          WHEN start_date <= CURDATE() AND COALESCE(end_date, start_date) >= CURDATE() THEN 'ongoing'
+          ELSE 'finished'
+        END AS status
       FROM races
       ${whereSql}
       ORDER BY season DESC, start_date DESC, race_name ASC

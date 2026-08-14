@@ -47,6 +47,14 @@
           <text class="rider-name-zh">{{riderName.zh || riderName.en}}</text>
           <text wx:if="{{riderName.zh && riderName.en}}" class="rider-name-en">{{riderName.en}}</text>
           <view wx:if="{{rider.nationality}}" class="nationality-tag">{{nationalityZh}}</view>
+          <button
+            class="favorite-btn {{isFavorite ? 'favorite-btn-active' : ''}}"
+            loading="{{favoriteLoading}}"
+            disabled="{{favoriteLoading}}"
+            bindtap="toggleFavorite"
+          >
+            {{isFavorite ? '已关注' : '关注'}}
+          </button>
         </view>
       </view>
     </view>
@@ -75,6 +83,81 @@
       <view wx:if="{{stats.jerseys && stats.jerseys.length > 0}}" class="jersey-history">
         <text class="jersey-label">🛡️ 曾穿领骑衫：</text>
         <text wx:for="{{stats.jerseys}}" wx:for-item="j" wx:key="jersey_type" class="jersey-tag jersey-tag-{{j.jersey_type}}">{{j._jersey_name_zh || j.jersey_type}}</text>
+      </view>
+    </view>
+
+    <view wx:if="{{riderInsights.hasData}}" class="card-base rider-insights-card">
+      <view class="section-title">赛季档案</view>
+      <view class="rider-insights-grid">
+        <view wx:for="{{riderInsights.careerItems}}" wx:key="key" class="rider-insights-item rider-insights-{{item.tone}}">
+          <text class="rider-insights-value">{{item.value}}</text>
+          <text class="rider-insights-label">{{item.label}}</text>
+        </view>
+      </view>
+
+      <view wx:if="{{riderInsights.seasonSummaries.length > 0}}" class="rider-insights-section">
+        <view class="rider-insights-subtitle">赛季汇总</view>
+        <view wx:for="{{riderInsights.seasonSummaries}}" wx:key="season" class="rider-season-row">
+          <text class="rider-season-year">{{item.season}}</text>
+          <text class="rider-season-meta">{{item.starts}} 次出赛</text>
+          <text class="rider-season-meta rider-season-win">{{item.wins}} 胜</text>
+          <text class="rider-season-meta">{{item.podiums}} 次领奖台</text>
+          <text class="rider-season-best">最佳 {{item.bestRank}}</text>
+        </view>
+      </view>
+
+      <view wx:if="{{riderInsights.recentForm.length > 0}}" class="rider-insights-section">
+        <view class="rider-insights-subtitle">近期状态</view>
+        <view wx:for="{{riderInsights.recentForm}}" wx:key="id" class="rider-form-row">
+          <view class="rider-form-main">
+            <text class="rider-form-race">{{item.raceName}}</text>
+            <text class="rider-form-stage">{{item.stageLabel}}</text>
+          </view>
+          <text class="rider-form-rank {{item.isWin ? 'rider-form-rank-win' : item.isPodium ? 'rider-form-rank-podium' : ''}}">{{item.rankLabel}}</text>
+        </view>
+      </view>
+    </view>
+
+    <view wx:if="{{performanceViz.hasData}}" class="card-base rider-viz-card">
+      <view class="section-title">表现趋势</view>
+
+      <view class="rider-viz-summary">
+        <view
+          wx:for="{{performanceViz.summary}}"
+          wx:key="key"
+          class="rider-viz-summary-item rider-viz-summary-{{item.tone}}"
+        >
+          <text class="rider-viz-summary-value">{{item.value}}</text>
+          <text class="rider-viz-summary-label">{{item.label}}</text>
+        </view>
+      </view>
+
+      <view wx:if="{{performanceViz.rankBars.length > 0}}" class="rider-viz-chart-wrap">
+        <view class="rider-viz-chart-title">近期赛段排名</view>
+        <scroll-view scroll-x="true" class="rider-viz-scroll" show-scrollbar="false">
+          <view class="rider-viz-bars">
+            <view wx:for="{{performanceViz.rankBars}}" wx:key="id" class="rider-viz-bar-item">
+              <text class="rider-viz-rank {{item.isWin ? 'rider-viz-rank-win' : item.isPodium ? 'rider-viz-rank-podium' : ''}}">{{item.rankLabel}}</text>
+              <view class="rider-viz-bar-track">
+                <view class="rider-viz-bar-fill {{item.isWin ? 'rider-viz-bar-win' : item.isPodium ? 'rider-viz-bar-podium' : ''}}" style="height: {{item.height}}rpx;"></view>
+              </view>
+              <text class="rider-viz-stage">{{item.label}}</text>
+            </view>
+          </view>
+        </scroll-view>
+      </view>
+
+      <view wx:if="{{performanceViz.typeBreakdown.length > 0}}" class="rider-viz-types">
+        <view class="rider-viz-chart-title">赛段类型分布</view>
+        <view wx:for="{{performanceViz.typeBreakdown}}" wx:key="label" class="rider-viz-type-item">
+          <view class="rider-viz-type-head">
+            <text class="rider-viz-type-name">{{item.label}}</text>
+            <text class="rider-viz-type-count">{{item.count}} 场 · {{item.percent}}%</text>
+          </view>
+          <view class="rider-viz-type-track">
+            <view class="rider-viz-type-fill" style="width: {{item.width}}%;"></view>
+          </view>
+        </view>
       </view>
     </view>
 

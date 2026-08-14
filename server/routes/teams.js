@@ -129,6 +129,64 @@ router.get('/:id/stats', asyncHandler(async (req, res) => {
     LIMIT 10
   `, [id]);
 
+  const [teamClassificationStats] = await pool.query(`
+    SELECT MIN(tc.\`rank\`) AS best_team_rank,
+           SUM(CASE WHEN tc.\`rank\` <= 3 THEN 1 ELSE 0 END) AS team_podiums
+    FROM team_classification tc
+    JOIN stages s ON tc.stage_id = s.id
+    WHERE tc.team_id = ?
+  `, [id]);
+
+  const [profileStats] = await pool.query(`
+    SELECT COUNT(DISTINCT sr.nationality) AS nationalities,
+           COUNT(DISTINCT s.race_id) AS races_count,
+           COUNT(DISTINCT r.season) AS seasons_count
+    FROM stage_results sr
+    JOIN stages s ON sr.stage_id = s.id
+    JOIN races r ON s.race_id = r.id
+    WHERE sr.team_id = ?
+  `, [id]);
+
+  const [topRiders] = await pool.query(`
+    SELECT r.id, r.rider_name, r.rider_name_zh, r.nationality,
+           SUM(CASE WHEN sr.\`rank\` = 1 THEN 1 ELSE 0 END) AS wins,
+           SUM(CASE WHEN sr.\`rank\` <= 3 THEN 1 ELSE 0 END) AS podiums,
+           MIN(sr.\`rank\`) AS best_rank
+    FROM stage_results sr
+    JOIN riders r ON sr.rider_id = r.id
+    WHERE sr.team_id = ?
+    GROUP BY r.id, r.rider_name, r.rider_name_zh, r.nationality
+    ORDER BY wins DESC, podiums DESC, best_rank ASC, r.rider_name ASC
+    LIMIT 5
+  `, [id]);
+
+  const [seasonSummaries] = await pool.query(`
+    SELECT r.season,
+           COUNT(*) AS starts,
+           SUM(CASE WHEN sr.\`rank\` = 1 THEN 1 ELSE 0 END) AS wins,
+           SUM(CASE WHEN sr.\`rank\` <= 3 THEN 1 ELSE 0 END) AS podiums
+    FROM stage_results sr
+    JOIN stages s ON sr.stage_id = s.id
+    JOIN races r ON s.race_id = r.id
+    WHERE sr.team_id = ?
+    GROUP BY r.season
+    ORDER BY r.season DESC
+    LIMIT 4
+  `, [id]);
+
+  const [recentHighlights] = await pool.query(`
+    SELECT sr.\`rank\` AS rank, s.id AS stage_id, s.stage_number, s.stage_name,
+           s.date, r.id AS race_id, r.race_name, r.race_name_zh,
+           rd.id AS rider_id, rd.rider_name, rd.rider_name_zh
+    FROM stage_results sr
+    JOIN stages s ON sr.stage_id = s.id
+    JOIN races r ON s.race_id = r.id
+    JOIN riders rd ON sr.rider_id = rd.id
+    WHERE sr.team_id = ? AND sr.\`rank\` <= 3
+    ORDER BY s.date DESC, s.stage_number DESC, sr.\`rank\` ASC
+    LIMIT 5
+  `, [id]);
+
   res.json({
     code: 200,
     data: {
@@ -138,7 +196,17 @@ router.get('/:id/stats', asyncHandler(async (req, res) => {
       podiums: podStats[0].podiums,
       top10: top10Stats[0].top10,
       jerseys_held: jerseyCount[0].total,
-      recent_races: races
+      recent_races: races,
+      profile: {
+        best_team_rank: teamClassificationStats[0].best_team_rank,
+        team_podiums: teamClassificationStats[0].team_podiums || 0,
+        nationalities: profileStats[0].nationalities || 0,
+        races_count: profileStats[0].races_count || 0,
+        seasons_count: profileStats[0].seasons_count || 0
+      },
+      top_riders: topRiders,
+      season_summaries: seasonSummaries,
+      recent_highlights: recentHighlights
     },
     message: 'success'
   });

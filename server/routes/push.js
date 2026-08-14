@@ -23,7 +23,7 @@ const { authMiddleware } = require('../middleware/auth');
 router.post('/send', asyncHandler(async (req, res) => {
   const { adminKey, type, raceId, stageId, title, content } = req.body;
   
-  const configuredAdminKey = process.env.ADMIN_API_KEY || process.env.ADMIN_KEY;
+  const configuredAdminKey = process.env.ADMIN_API_KEY;
   const providedAdminKey = adminKey || req.headers['x-admin-key'];
 
   if (!configuredAdminKey) {
@@ -34,13 +34,25 @@ router.post('/send', asyncHandler(async (req, res) => {
     throw new AppError('管理员验证失败', ERROR_CODE.FORBIDDEN);
   }
   
+  const templateId = getTemplateIdByType(type);
+  if (!templateId) {
+    return res.json({
+      code: 200,
+      data: { totalUsers: 0, sentCount: 0, failedCount: 0, skippedCount: 0, reason: 'no_template_id' }
+    });
+  }
+
   const [users] = await pool.query(`
     SELECT ups.openid, ups.push_enabled, ups.notify_race_start, 
            ups.notify_stage_end, ups.notify_rider_change, ups.notify_key_events,
            ups.dnd_enabled, ups.dnd_start, ups.dnd_end
     FROM user_push_settings ups
+    INNER JOIN user_push_subscriptions subscriptions
+      ON subscriptions.openid = ups.openid
+      AND subscriptions.template_id = ?
+      AND subscriptions.is_valid = 1
     WHERE ups.push_enabled = 1
-  `);
+  `, [templateId]);
   
   if (users.length === 0) {
     return res.json({
@@ -67,19 +79,17 @@ router.post('/send', asyncHandler(async (req, res) => {
     }
   });
   
-  const { sendSubscribeMessage } = require('../utils/wechat');
-  const templateId = getTemplateIdByType(type);
-
   const deliveryResults = validUsers.map(user => ({
     user,
-    status: templateId ? 'pending' : 'skipped',
-    errorMsg: null
+    status: 'pending',
+    errorMsg: null,
+    attempts: 0
   }));
 
   if (templateId) {
     for (const result of deliveryResults) {
       try {
-        await sendSubscribeMessage({
+        const delivery = await sendWithRetry({
           touser: result.user.openid,
           templateId,
           data: {
@@ -90,9 +100,11 @@ router.post('/send', asyncHandler(async (req, res) => {
           page: raceId ? `/pages/race-detail/race-detail?id=${raceId}` : 'pages/index/index'
         });
         result.status = 'sent';
+        result.attempts = delivery.attempts;
       } catch (err) {
         console.error(`推送失败: ${result.user.openid}`, err.message);
         result.status = 'failed';
+        result.attempts = err.attempts || PUSH_MAX_ATTEMPTS;
         result.errorMsg = err.message;
       }
     }
@@ -109,7 +121,8 @@ router.post('/send', asyncHandler(async (req, res) => {
     `, [
       result.user.openid, title || '赛事通知', content || '',
       type || 'general', raceId || null, stageId || null,
-      result.status, result.errorMsg
+      result.status,
+      result.errorMsg ? `${result.errorMsg} (attempts: ${result.attempts})` : null
     ]);
   }
   
@@ -219,7 +232,7 @@ router.get('/settings', asyncHandler(async (req, res) => {
  */
 router.post('/subscribe', asyncHandler(async (req, res) => {
   const openid = req.openid;
-  const { templateIds } = req.body;
+  const { templateIds, rejectedTemplateIds } = req.body;
   
   if (templateIds && Array.isArray(templateIds)) {
     for (const templateId of templateIds) {
@@ -228,6 +241,17 @@ router.post('/subscribe', asyncHandler(async (req, res) => {
           (openid, template_id, subscribe_time, is_valid)
         VALUES (?, ?, NOW(), 1)
         ON DUPLICATE KEY UPDATE subscribe_time = NOW(), is_valid = 1
+      `, [openid, templateId]);
+    }
+  }
+
+  if (rejectedTemplateIds && Array.isArray(rejectedTemplateIds)) {
+    for (const templateId of rejectedTemplateIds) {
+      await pool.query(`
+        INSERT INTO user_push_subscriptions
+          (openid, template_id, subscribe_time, is_valid)
+        VALUES (?, ?, NOW(), 0)
+        ON DUPLICATE KEY UPDATE subscribe_time = NOW(), is_valid = 0
       `, [openid, templateId]);
     }
   }
@@ -285,7 +309,7 @@ router.get('/history', asyncHandler(async (req, res) => {
   const offsetNum = Math.max(0, parseInt(offset) || 0);
   
   const [rows] = await pool.query(`
-    SELECT id, title, content, type, race_id, stage_id, send_time, status
+    SELECT id, title, content, type, race_id, stage_id, send_time, status, error_msg
     FROM push_history WHERE openid = ?
     ORDER BY send_time DESC LIMIT ? OFFSET ?
   `, [openid, limitNum, offsetNum]);
@@ -318,11 +342,10 @@ router.post('/test', asyncHandler(async (req, res) => {
   `, [openid, testTitle, testContent]);
   
   try {
-    const { sendSubscribeMessage } = require('../utils/wechat');
     const templateId = process.env.WECHAT_TEMPLATE_RACE_START;
     
     if (templateId) {
-      await sendSubscribeMessage({
+      await sendWithRetry({
         touser: openid,
         templateId,
         data: {
@@ -341,8 +364,8 @@ router.post('/test', asyncHandler(async (req, res) => {
       res.json({ code: 200, message: '测试推送已发送', data: { sent: true } });
     } else {
       await pool.query(
-        "UPDATE push_history SET status = 'sent' WHERE openid = ? AND type = 'test' ORDER BY send_time DESC LIMIT 1",
-        [openid]
+        "UPDATE push_history SET status = 'skipped', error_msg = ? WHERE openid = ? AND type = 'test' ORDER BY send_time DESC LIMIT 1",
+        ['no_template_id', openid]
       );
       
       res.json({
@@ -355,7 +378,7 @@ router.post('/test', asyncHandler(async (req, res) => {
     console.error('发送测试推送失败:', sendError.message);
     await pool.query(
       "UPDATE push_history SET status = 'failed', error_msg = ? WHERE openid = ? AND type = 'test' ORDER BY send_time DESC LIMIT 1",
-      [sendError.message, openid]
+      [`${sendError.message} (attempts: ${sendError.attempts || PUSH_MAX_ATTEMPTS})`, openid]
     );
     res.json({
       code: 200,
@@ -377,6 +400,31 @@ function getTemplateIdByType(type) {
     key_event: process.env.WECHAT_TEMPLATE_KEY_EVENT
   };
   return templateMap[type] || process.env.WECHAT_TEMPLATE_RACE_START;
+}
+
+const PUSH_MAX_ATTEMPTS = 3;
+
+function wait(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+async function sendWithRetry(payload) {
+  const { sendSubscribeMessage } = require('../utils/wechat');
+  let lastError;
+
+  for (let attempts = 1; attempts <= PUSH_MAX_ATTEMPTS; attempts += 1) {
+    try {
+      await sendSubscribeMessage(payload);
+      return { attempts };
+    } catch (err) {
+      lastError = err;
+      if (attempts < PUSH_MAX_ATTEMPTS) await wait(100 * attempts);
+    }
+  }
+
+  const error = new Error((lastError && lastError.message) || 'send_failed');
+  error.attempts = PUSH_MAX_ATTEMPTS;
+  throw error;
 }
 
 function isTimeInRange(time, start, end) {

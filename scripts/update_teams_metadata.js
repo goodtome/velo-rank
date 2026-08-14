@@ -15,15 +15,9 @@
  */
 
 const mysql = require('mysql2/promise');
+const { localDbConfig } = require('./lib/db-config');
 
-const DB_CONFIG = {
-  host: 'localhost',
-  port: 13306,
-  user: 'root',
-  password: 'mysql123456',
-  database: 'jersey_db',
-  charset: 'utf8mb4'
-};
+const DB_CONFIG = localDbConfig();
 
 // 完整更新数据
 // key: uci_code (唯一标识), value: { team_name_zh, team_slug, category }

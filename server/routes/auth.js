@@ -75,8 +75,20 @@ router.get('/check', authMiddleware, asyncHandler(async (req, res) => {
 }));
 
 /**
+ * 安全删除：表不存在（ER_NO_SUCH_TABLE=1146）时静默跳过，避免阻塞注销事务
+ */
+async function deleteIfExists(conn, sql, params) {
+  try {
+    await conn.query(sql, params);
+  } catch (err) {
+    if (err && err.code === 'ER_NO_SUCH_TABLE') return;
+    throw err;
+  }
+}
+
+/**
  * DELETE /api/v1/auth/account
- * 注销账号：删除该用户的所有数据（token、设置、收藏）
+ * 注销账号：删除该用户的所有数据（token、设置、收藏、推送订阅、历史记录、日志）
  * 需要登录态
  */
 router.delete('/account', authMiddleware, asyncHandler(async (req, res) => {
@@ -99,6 +111,19 @@ router.delete('/account', authMiddleware, asyncHandler(async (req, res) => {
 
     // 删除用户设置
     await conn.query('DELETE FROM users_settings WHERE user_id = ?', [openid]);
+
+    // 删除旧版用户偏好设置表（部分环境未创建，缺表时跳过）
+    await deleteIfExists(conn, 'DELETE FROM riders_settings WHERE user_id = ?', [openid]);
+
+    // 删除推送设置 / 订阅记录 / 推送历史（隐私政策承诺的"全部个人数据"）
+    await conn.query('DELETE FROM user_push_settings WHERE openid = ?', [openid]);
+    await conn.query('DELETE FROM user_push_subscriptions WHERE openid = ?', [openid]);
+    await conn.query('DELETE FROM push_history WHERE openid = ?', [openid]);
+
+    // 删除管理操作日志 / 同步日志中与该用户相关的记录
+    await conn.query('DELETE FROM admin_logs WHERE user_id = ?', [openid]);
+    // 同步日志表部分环境未创建，缺表时跳过
+    await deleteIfExists(conn, 'DELETE FROM sync_logs WHERE requested_by = ?', [openid]);
 
     await conn.commit();
     log.info('用户注销账号成功');
