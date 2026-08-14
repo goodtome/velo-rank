@@ -829,9 +829,9 @@ Page({
   },
 
   appendUniqueResults(current, incoming) {
-    const seen = new Set(current.map(item => item.rider_id || item.team_id || `${item.rank}:${item.rider_name || item.team_name || ''}`));
+    const seen = new Set(current.map(item => item.rider_id || item.team_id || `${item.rank_pos || item.rank}:${item.rider_name || item.team_name || ''}`));
     return current.concat(incoming.filter(item => {
-      const key = item.rider_id || item.team_id || `${item.rank}:${item.rider_name || item.team_name || ''}`;
+      const key = item.rider_id || item.team_id || `${item.rank_pos || item.rank}:${item.rider_name || item.team_name || ''}`;
       if (seen.has(key)) return false;
       seen.add(key);
       return true;

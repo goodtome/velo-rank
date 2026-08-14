@@ -131,7 +131,7 @@ router.get('/:id/results', asyncHandler(async (req, res) => {
     JOIN riders r ON sr.rider_id = r.id
     JOIN teams t ON sr.team_id = t.id
     WHERE sr.stage_id = ?
-    ORDER BY sr.\`rank\`
+    ORDER BY sr.rank_pos
     LIMIT ? OFFSET ?
   `;
     

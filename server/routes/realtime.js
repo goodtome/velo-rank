@@ -94,7 +94,7 @@ router.get('/stage', async (req, res) => {
 
     const [rows] = await pool.query(`
       SELECT
-        sr.\`rank\`,
+        sr.rank_pos AS \`rank\`,
         r.id AS riderId,
         r.rider_name AS riderName,
         t.team_name AS teamName,
@@ -104,7 +104,7 @@ router.get('/stage', async (req, res) => {
       JOIN riders r ON sr.rider_id = r.id
       JOIN teams t ON sr.team_id = t.id
       WHERE sr.stage_id = ? AND s.race_id = ?
-      ORDER BY sr.\`rank\` ASC
+      ORDER BY sr.rank_pos ASC
       LIMIT 50
     `, [stageId, raceId]);
 

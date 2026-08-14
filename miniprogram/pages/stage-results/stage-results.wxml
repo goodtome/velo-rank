@@ -191,7 +191,7 @@
           <text wx:if="{{index === 0}}">🥇</text>
           <text wx:elif="{{index === 1}}">🥈</text>
           <text wx:elif="{{index === 2}}">🥉</text>
-          <text wx:else>{{item.rank}}</text>
+          <text wx:else>{{item.rank_pos || item.rank}}</text>
         </view>
 
         <!-- 车手/车队显示逻辑 -->

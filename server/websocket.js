@@ -196,7 +196,7 @@ async function sendInitialData(client, raceId, stageId) {
       JOIN riders r ON sr.rider_id = r.id
       JOIN teams t ON sr.team_id = t.id
       WHERE sr.stage_id = ? AND s.race_id = ?
-      ORDER BY sr.\`rank\` ASC
+      ORDER BY sr.rank_pos ASC
       LIMIT 50
     `, [stageId, raceId]);
     

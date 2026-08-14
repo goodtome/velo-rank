@@ -96,19 +96,19 @@ router.get('/:id/stats', asyncHandler(async (req, res) => {
 
   // 统计赛段冠军数
   const [stageWins] = await pool.query(
-    'SELECT COUNT(*) as wins FROM stage_results WHERE team_id = ? AND `rank` = 1',
+    'SELECT COUNT(*) as wins FROM stage_results WHERE team_id = ? AND rank_pos = 1',
     [id]
   );
 
   // 统计领奖台数
   const [podStats] = await pool.query(
-    'SELECT COUNT(*) as podiums FROM stage_results WHERE team_id = ? AND `rank` <= 3',
+    'SELECT COUNT(*) as podiums FROM stage_results WHERE team_id = ? AND rank_pos <= 3',
     [id]
   );
 
   // 统计前10名次数
   const [top10Stats] = await pool.query(
-    'SELECT COUNT(*) as top10 FROM stage_results WHERE team_id = ? AND `rank` <= 10',
+    'SELECT COUNT(*) as top10 FROM stage_results WHERE team_id = ? AND rank_pos <= 10',
     [id]
   );
 

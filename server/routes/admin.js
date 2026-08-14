@@ -513,7 +513,7 @@ router.post('/import-stage', async (req, res) => {
         
         // 插入成绩
         await pool.query(`
-          INSERT INTO stage_results (id, stage_id, \`rank\`, rider_id, team_id, nationality, time_gap)
+          INSERT INTO stage_results (id, stage_id, rank_pos, rider_id, team_id, nationality, time_gap)
           VALUES (?, ?, ?, ?, ?, ?, ?)
           ON DUPLICATE KEY UPDATE
             rider_id = VALUES(rider_id),
